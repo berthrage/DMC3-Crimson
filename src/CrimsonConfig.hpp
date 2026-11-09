@@ -8,6 +8,7 @@
 #include "CrimsonConfigGameplay.hpp"
 
 #include "Core/DebugSwitch.hpp"
+#include "MusicSwitcherLoudness.hpp"
 #pragma optimize("", off) // Disable all optimizations
 #pragma pack(push, 8)
 
@@ -547,6 +548,39 @@ struct CrimsonConfig {
 		}
 	} Sound;
 
+	struct MusicSwitcher {
+		bool enabled = false;
+		// Empty selects nothing; the feature stays inert until a playlist with songs is picked.
+		std::string battlePlaylist;
+		std::string danteBattlePlaylist;
+		std::string vergilBattlePlaylist;
+		bool perCharacterPools = false;
+		bool randomStartDefault = true;
+		bool keepPlayingInBloodyPalace = false;
+		// Level every song is measured onto. Lower means quieter; see
+		// MusicSwitcherLoudness for how the default was arrived at.
+		float normalizeTargetLufs = MusicSwitcherLoudness::kDefaultTargetLufs;
+		bool nowPlayingBanner = true;
+		float bannerSeconds = 6.0f;
+		bool bannerShowArtwork = true;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("enabled", &MusicSwitcher::enabled),
+				std::make_pair("battlePlaylist", &MusicSwitcher::battlePlaylist),
+				std::make_pair("danteBattlePlaylist", &MusicSwitcher::danteBattlePlaylist),
+				std::make_pair("vergilBattlePlaylist", &MusicSwitcher::vergilBattlePlaylist),
+				std::make_pair("perCharacterPools", &MusicSwitcher::perCharacterPools),
+				std::make_pair("randomStartDefault", &MusicSwitcher::randomStartDefault),
+				std::make_pair("keepPlayingInBloodyPalace", &MusicSwitcher::keepPlayingInBloodyPalace),
+				std::make_pair("normalizeTargetLufs", &MusicSwitcher::normalizeTargetLufs),
+				std::make_pair("nowPlayingBanner", &MusicSwitcher::nowPlayingBanner),
+				std::make_pair("bannerSeconds", &MusicSwitcher::bannerSeconds),
+				std::make_pair("bannerShowArtwork", &MusicSwitcher::bannerShowArtwork)
+			);
+		}
+	} MusicSwitcher;
+
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
@@ -789,6 +823,7 @@ struct CrimsonConfig {
             std::make_pair("SFX", &CrimsonConfig::SFX),
 			std::make_pair("Visual", &CrimsonConfig::Visual),
 			std::make_pair("Sound", &CrimsonConfig::Sound),
+			std::make_pair("MusicSwitcher", &CrimsonConfig::MusicSwitcher),
 			std::make_pair("PlayerProperties", &CrimsonConfig::PlayerProperties),
 			std::make_pair("System", &CrimsonConfig::System),
 			std::make_pair("CachedSettings", &CrimsonConfig::CachedSettings),

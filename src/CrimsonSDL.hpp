@@ -42,7 +42,7 @@ void PlayStyleChangeVO(int playerIndex, int style, bool doppActive);
 void PlaySnap(byte8* actorBaseAddr);
 void PlayEcstasyHit(uintptr_t shlActorAddr);
 void SetAllSFXDistance(int playerIndex, int angle, int distance);
-void StyleRankAnnouncerController(int rank);
+void StyleRankAnnouncerController(int playerIndex, int rank);
 void PlaySprint(int playerIndex);
 void PlayDevilTriggerIn(int playerIndex);
 void PlayDevilTriggerOut(int playerIndex);
@@ -80,5 +80,29 @@ void PlayBattleOfBrothersSong();
 void CrossfadeCustomMusic(const char* relativePath, int volume, int fadeInMs = 500, int fadeOutMs = 500);
 void ReduceMusicVolumeInPause();
 int IsMusicPlaying();
+// Length of a music file straight from the decoder; false when unknown.
+bool ProbeMusicDurationMs(const char* absolutePath, int32& outMs);
+
+// Music switcher playback. Plays looping from `startMs`, fading in, on a track
+// reserved for the switcher; a previous switcher track is stopped as it starts.
+// `gainScale` is the file's loudness correction, applied on top of the slider.
+bool PlaySwitcherMusic(const char* absolutePath, int32 startMs, int32 fadeInMs, int32 volume,
+    float gainScale = 1.0f);
+void StopSwitcherMusic(int32 fadeOutMs);
+bool IsSwitcherMusicPlaying();
+void SetSwitcherMusicVolume(int32 volume);
+const char* SwitcherMusicPath();
+
+// Pause duck, as a factor of the track's own gain. The correction itself is
+// fixed when a track starts; only the level slider and this duck move it.
+void SetSwitcherMusicDuck(float duck);
+
+// Applies a new level correction to the song already playing, so the slider can
+// be heard without waiting for the next battle.
+void SetSwitcherMusicLevel(float gainScale);
+
+// Integrated loudness of a file, decoded without a device or playback. Safe to
+// call from a worker thread.
+bool MeasureMusicLoudness(const char* absolutePath, float& outLufs, float& outPeakDbfs);
 
 }

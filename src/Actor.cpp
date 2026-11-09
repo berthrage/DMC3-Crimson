@@ -9031,7 +9031,17 @@ void UpdateActorSpeed(byte8* baseAddr) {
 
     CrimsonFX::DTReadySFX();
     // CheckSkyLaunch(mainActorData);
-    CrimsonSDL::StyleRankAnnouncerController(mainActorData.styleData.rank);
+
+    // Each player's own actor: the global main actor can point at either player.
+    for (uint8 announcerPlayer = 0; announcerPlayer < playercount; ++announcerPlayer) {
+        auto& announcerPlayerData = GetPlayerData(announcerPlayer);
+        auto& announcerActorData = GetNewActorData(announcerPlayer, announcerPlayerData.activeCharacterIndex, ENTITY::MAIN);
+        if (!announcerActorData.baseAddr) {
+            continue;
+        }
+        auto& announcerActor = *reinterpret_cast<PlayerActorData*>(announcerActorData.baseAddr);
+        CrimsonSDL::StyleRankAnnouncerController(announcerPlayer, announcerActor.styleData.rank);
+    }
 
     // NewActorData
 

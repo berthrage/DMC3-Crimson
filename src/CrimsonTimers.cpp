@@ -608,7 +608,6 @@ void VergilDoppelgangerDrainTimer() {
 void StyleRankAnnouncerCDTimers() {
     for (int rankId = 0; rankId < 7; rankId++) {
         auto& timer = rankAnnouncer[rankId].timer;
-		auto& wasHit = rankAnnouncer[rankId].wasHit;
 		auto& offCooldown = rankAnnouncer[rankId].offCooldown;
 
         if (timer > 0) {

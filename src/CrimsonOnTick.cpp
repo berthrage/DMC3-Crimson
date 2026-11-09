@@ -21,6 +21,7 @@
 #include "Core/Macros.h"
 #include "Sound.hpp"
 #include "CrimsonSDL.hpp"
+#include "CrimsonMusicSwitcher.hpp"
 #include "CrimsonPatches.hpp"
 #include "Camera.hpp"
 #include "CrimsonDetours.hpp"
@@ -2325,6 +2326,7 @@ void TriggerOnTickFuncs() {
 	CrimsonSDL::CheckAndOpenControllers();
 	CrimsonSDL::UpdateJoysticks();
 	Sound::UpdateVolumeTransition();
+	CrimsonMusicSwitcher::OnTick();
 }
 
 

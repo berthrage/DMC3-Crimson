@@ -22,6 +22,7 @@
 #include "Core/Input.hpp"
 #include "Global.hpp"
 #include "DMC3Input.hpp"
+#include "MusicSwitcherLoudness.hpp"
 
 namespace CrimsonSDL {
 
@@ -226,6 +227,12 @@ SDL_FUNCTION_DECLRATION(MIX_SetTagGain)                   = NULL;
 SDL_FUNCTION_DECLRATION(MIX_SetTrack3DPosition)           = NULL;
 SDL_FUNCTION_DECLRATION(MIX_SetTrackStoppedCallback)      = NULL;
 SDL_FUNCTION_DECLRATION(MIX_TrackMSToFrames)              = NULL;
+SDL_FUNCTION_DECLRATION(MIX_GetAudioDuration)             = NULL;
+SDL_FUNCTION_DECLRATION(MIX_AudioFramesToMS)              = NULL;
+SDL_FUNCTION_DECLRATION(MIX_CreateAudioDecoder)           = NULL;
+SDL_FUNCTION_DECLRATION(MIX_DecodeAudio)                  = NULL;
+SDL_FUNCTION_DECLRATION(MIX_GetAudioDecoderFormat)        = NULL;
+SDL_FUNCTION_DECLRATION(MIX_DestroyAudioDecoder)          = NULL;
 
 constexpr const char* kMusicTag = "crimson.music";
 
@@ -538,6 +545,45 @@ static MIX_Audio* LoadSfx(const char* path) {
 
 static MIX_Audio* LoadMusic(const char* path) {
     return LoadAudioFile(path, false);
+}
+
+// The switcher plays on its own pair of tracks so it never steals the slot a
+// mission-clear or shop jingle is using. They still carry the music tag, so the
+// mixer's tag gain (pause duck) applies to them.
+static MIX_Track* g_switcherTracks[2] = {NULL, NULL};
+static int g_switcherNext = 0;
+static SDL_PropertiesID g_switcherProperties = 0;
+
+static bool PlaySwitcherOnTrack(MIX_Track* track, MIX_Audio* audio, int32 startMs, int32 fadeInMs,
+    float gain) {
+    if (track == NULL || audio == NULL || fn_MIX_SetTrackAudio == NULL || fn_MIX_PlayTrack == NULL ||
+        fn_SDL_CreateProperties == NULL || fn_SDL_SetNumberProperty == NULL) {
+        return false;
+    }
+
+    // A separate property set: a start offset left behind here would make the
+    // next sound effect begin mid-file.
+    if (g_switcherProperties == 0) {
+        g_switcherProperties = fn_SDL_CreateProperties();
+    }
+    if (g_switcherProperties == 0) {
+        return false;
+    }
+
+    if (startMs < 0) {
+        startMs = 0;
+    }
+
+    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
+    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_FADE_IN_MILLISECONDS_NUMBER, fadeInMs);
+    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_START_MILLISECOND_NUMBER, startMs);
+
+    if (fn_MIX_SetTrackGain != NULL) {
+        fn_MIX_SetTrackGain(track, gain);
+    }
+
+    fn_MIX_SetTrackAudio(track, audio);
+    return fn_MIX_PlayTrack(track, g_switcherProperties);
 }
 
 // Music is streamed, so a switcher would otherwise reload the same file on
@@ -1244,6 +1290,12 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(MIX_SetTrack3DPosition);
         LOAD_MIXER_FUNCTION(MIX_SetTrackStoppedCallback);
         LOAD_MIXER_FUNCTION(MIX_TrackMSToFrames);
+        LOAD_MIXER_FUNCTION(MIX_GetAudioDuration);
+        LOAD_MIXER_FUNCTION(MIX_AudioFramesToMS);
+        LOAD_MIXER_FUNCTION(MIX_CreateAudioDecoder);
+        LOAD_MIXER_FUNCTION(MIX_DecodeAudio);
+        LOAD_MIXER_FUNCTION(MIX_GetAudioDecoderFormat);
+        LOAD_MIXER_FUNCTION(MIX_DestroyAudioDecoder);
 
         if (fn_MIX_Init == NULL) {
             MixerInitialization = "Mixer3 Error: MIX_Init not found";
@@ -1274,6 +1326,15 @@ void InitSDL() {
                 if (g_musicTracks[i] != NULL && fn_MIX_TagTrack != NULL) {
                     fn_MIX_TagTrack(g_musicTracks[i], kMusicTag);
                 }
+            }
+
+            // The switcher tracks are deliberately left untagged. The music tag
+            // is what the jingle features and the pause duck pull down, and a
+            // switch of that gain mid-fade would change a song's level under it;
+            // its own gain is the slider, the measured correction and the pause
+            // duck, nothing else.
+            for (int i = 0; i < 2; ++i) {
+                g_switcherTracks[i] = fn_MIX_CreateTrack(g_mixer);
             }
 
             MixerInitialization2 = "Mixer3 Tracks OK";
@@ -1695,66 +1756,59 @@ void StyleRankCooldownTracker(int rank) {
     rankAnnouncer[rank].trackerRunning = false;
 }
 
-void SetCurrentStyleRank(int currentStyleRank) {
-
-    for (int i = 0; i < 7; i++) {
-
-        if (i <= currentStyleRank) {
-            rankAnnouncer[i].count = 1;
-        } else {
-            rankAnnouncer[i].count = 0;
-        }
-    }
-}
-
 void PlayStyleRank(MIX_Audio* styleRankWAV, MIX_Audio* styleRankWAVAlt, int rank) {
 	float slider = activeCrimsonConfig.SFX.announcerVolume / 100.0f;
 	int volume = (int)(255.0f * slider);
 
-    if (activeCrimsonConfig.SFX.onlyResetAnnouncerWhenHit && !rankAnnouncer[rank - 1].wasHit) {
+    auto& announcer = rankAnnouncer[rank - 1];
+
+    if (activeCrimsonConfig.SFX.onlyResetAnnouncerWhenHit && !announcer.wasHit) {
+        return;
+    }
+    if (!announcer.offCooldown) {
         return;
     }
 
-    if (rankAnnouncer[rank - 1].turn == 0 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        poolStyleRank.PlayVoice(0, rank - 1, styleRankWAV, (float)volume);
-        rankAnnouncer[rank - 1].turn++;
-
-        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
-
-
-    } else if (rankAnnouncer[rank - 1].turn == 1 && rankAnnouncer[rank - 1].count == 0 && rankAnnouncer[rank - 1].offCooldown) {
-        poolStyleRank.PlayVoice(0, rank - 1, styleRankWAVAlt, (float)volume);
-        rankAnnouncer[rank - 1].turn = 0;
-
-        rankAnnouncer[rank - 1].timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
-    }
-
-    rankAnnouncer[rank - 1].wasHit = false;
-    SetCurrentStyleRank(rank - 1);
+    poolStyleRank.PlayVoice(0, rank - 1, (announcer.turn == 0) ? styleRankWAV : styleRankWAVAlt, (float)volume);
+    announcer.turn = (announcer.turn == 0) ? 1 : 0;
+    announcer.timer = activeCrimsonConfig.SFX.styleRankAnnouncerCooldownSec;
+    announcer.wasHit = false;
 }
 
-void StyleRankAnnouncerController(int rank) {
+// Last rank seen per player; a line only plays on a climb, so a falling rank can never replay one.
+static int s_announcerLastRank[PLAYER_COUNT] = {};
 
-    if (rank == 1) {
+void StyleRankAnnouncerController(int playerIndex, int rank) {
 
-        PlayStyleRank(styleRankD1, styleRankD2, 1);
-
-    } else if (rank == 2) {
-        PlayStyleRank(styleRankC1, styleRankC2, 2);
-    } else if (rank == 3) {
-        PlayStyleRank(styleRankB1, styleRankB2, 3);
-    } else if (rank == 4) {
-        PlayStyleRank(styleRankA1, styleRankA2, 4);
-    } else if (rank == 5) {
-        PlayStyleRank(styleRankS1, styleRankS2, 5);
-    } else if (rank == 6) {
-        PlayStyleRank(styleRankSS1, styleRankSS2, 6);
-    } else if (rank == 7) {
-        PlayStyleRank(styleRankSSS1, styleRankSSS2, 7);
+    if (playerIndex < 0 || playerIndex >= PLAYER_COUNT) {
+        return;
+    }
+    if (rank < STYLE_RANK::NONE || rank > STYLE_RANK::STYLISH) {
+        return;
     }
 
-    if (rank == 0) {
-        rankAnnouncer[0].count = 0;
+    int& lastRank = s_announcerLastRank[playerIndex];
+    bool climbed = rank > lastRank;
+    lastRank = rank; // Falling back to no rank re-arms the D line for the next climb.
+
+    if (!climbed) {
+        return;
+    }
+
+    if (rank == STYLE_RANK::DOPE) {
+        PlayStyleRank(styleRankD1, styleRankD2, STYLE_RANK::DOPE);
+    } else if (rank == STYLE_RANK::CRAZY) {
+        PlayStyleRank(styleRankC1, styleRankC2, STYLE_RANK::CRAZY);
+    } else if (rank == STYLE_RANK::BLAST) {
+        PlayStyleRank(styleRankB1, styleRankB2, STYLE_RANK::BLAST);
+    } else if (rank == STYLE_RANK::ALRIGHT) {
+        PlayStyleRank(styleRankA1, styleRankA2, STYLE_RANK::ALRIGHT);
+    } else if (rank == STYLE_RANK::SWEET) {
+        PlayStyleRank(styleRankS1, styleRankS2, STYLE_RANK::SWEET);
+    } else if (rank == STYLE_RANK::SHOWTIME) {
+        PlayStyleRank(styleRankSS1, styleRankSS2, STYLE_RANK::SHOWTIME);
+    } else if (rank == STYLE_RANK::STYLISH) {
+        PlayStyleRank(styleRankSSS1, styleRankSSS2, STYLE_RANK::STYLISH);
     }
 }
 
@@ -2020,6 +2074,246 @@ void FadeOutMusic(int delayMs) {
 int IsMusicPlaying() {
     if (!SDL3Init) return 0;
     return (TrackPlaying(g_musicTracks[0]) || TrackPlaying(g_musicTracks[1])) ? 1 : 0;
+}
+
+// Opens the file just far enough for the decoder to report its length.
+bool ProbeMusicDurationMs(const char* absolutePath, int32& outMs) {
+    outMs = 0;
+
+    if (!SDL3Init || g_mixer == NULL || absolutePath == NULL || absolutePath[0] == '\0') {
+        return false;
+    }
+    if (fn_MIX_LoadAudio == NULL || fn_MIX_GetAudioDuration == NULL || fn_MIX_AudioFramesToMS == NULL) {
+        return false;
+    }
+
+    MIX_Audio* audio = fn_MIX_LoadAudio(g_mixer, absolutePath, false);
+    if (audio == NULL) {
+        return false;
+    }
+
+    const Sint64 frames = fn_MIX_GetAudioDuration(audio);
+    bool known          = false;
+
+    if (frames > 0) {
+        const Sint64 durationMs = fn_MIX_AudioFramesToMS(audio, frames);
+        if (durationMs > 0) {
+            outMs = static_cast<int32>(durationMs > 0x7FFFFFFF ? 0x7FFFFFFF : durationMs);
+            known = true;
+        }
+    }
+
+    if (fn_MIX_DestroyAudio != NULL) {
+        fn_MIX_DestroyAudio(audio);
+    }
+
+    return known;
+}
+
+// Decodes the whole file through the mixer's own decoder, which needs neither a
+// device nor playback, and measures it as it goes.
+bool MeasureMusicLoudness(const char* absolutePath, float& outLufs, float& outPeakDbfs) {
+    outLufs     = 0.0f;
+    outPeakDbfs = -120.0f;
+
+    if (!SDL3Init || absolutePath == NULL || absolutePath[0] == '\0') {
+        return false;
+    }
+
+    MusicSwitcherLoudness::Result result;
+
+    // WAV is read directly: the mixer's decoder stops after half of a WAV data
+    // chunk, which would measure half the track.
+    if (!MusicSwitcherLoudness::MeasureWavFile(absolutePath, result)) {
+        if (fn_MIX_CreateAudioDecoder == NULL || fn_MIX_DecodeAudio == NULL ||
+            fn_MIX_DestroyAudioDecoder == NULL) {
+            return false;
+        }
+
+        MIX_AudioDecoder* decoder = fn_MIX_CreateAudioDecoder(absolutePath, 0);
+        if (decoder == NULL) {
+            return false;
+        }
+
+        // Fixed output format: the weighting is defined at 48 kHz, so every
+        // source rate is converted here rather than biasing the result.
+        SDL_AudioSpec spec;
+        SDL_zero(spec);
+        spec.format   = SDL_AUDIO_F32;
+        spec.channels = 2;
+        spec.freq     = 48000;
+
+        MusicSwitcherLoudness::Analyzer analyzer;
+        std::vector<float> pcm(16384 * 2);
+
+        bool reachedEnd = false;
+
+        for (;;) {
+            const int bytes = fn_MIX_DecodeAudio(decoder, pcm.data(),
+                static_cast<int>(pcm.size() * sizeof(float)), &spec);
+            if (bytes <= 0) {
+                reachedEnd = (bytes == 0);
+                break;
+            }
+
+            analyzer.Feed(pcm.data(), static_cast<size_t>(bytes) / (sizeof(float) * 2));
+        }
+
+        fn_MIX_DestroyAudioDecoder(decoder);
+
+        if (!reachedEnd) {
+            return false;
+        }
+
+        result = analyzer.Finish();
+    }
+
+    if (!result.valid) {
+        return false;
+    }
+
+    outLufs     = result.lufs;
+    outPeakDbfs = result.peakDbfs;
+
+    return true;
+}
+
+static std::string g_switcherPath;
+// Loudness correction per switcher track: the two tracks can hold different
+// songs while one crossfades into the other.
+static float g_switcherNormGain[2]  = {1.0f, 1.0f};
+static float g_switcherSliderGain   = 1.0f;
+// Pause duck; 1.0 while the game is running.
+static float g_switcherDuck         = 1.0f;
+// Track the current song is on, so a level change can find it again.
+static int g_switcherCurrent        = -1;
+
+bool PlaySwitcherMusic(const char* absolutePath, int32 startMs, int32 fadeInMs, int32 volume,
+    float gainScale) {
+    if (!SDL3Init || absolutePath == NULL || absolutePath[0] == '\0') {
+        return false;
+    }
+    if (g_switcherTracks[0] == NULL && g_switcherTracks[1] == NULL) {
+        return false;
+    }
+
+    MIX_Audio* song = LoadMusicCached(absolutePath);
+    if (song == NULL) {
+        return false;
+    }
+
+    MIX_Track* track = NULL;
+    int trackIndex   = 0;
+    for (int i = 0; i < 2; ++i) {
+        const int index = (g_switcherNext + i) % 2;
+        if (!TrackPlaying(g_switcherTracks[index])) {
+            track            = g_switcherTracks[index];
+            trackIndex       = index;
+            g_switcherNext   = (index + 1) % 2;
+            break;
+        }
+    }
+    if (track == NULL) {
+        trackIndex     = g_switcherNext;
+        track          = g_switcherTracks[trackIndex];
+        g_switcherNext = (g_switcherNext + 1) % 2;
+    }
+
+    g_switcherSliderGain            = Gain((int)(volume * 1.28f));
+    g_switcherNormGain[trackIndex]  = std::clamp(gainScale, 0.005f, 8.0f);
+    g_switcherCurrent               = trackIndex;
+
+    if (!PlaySwitcherOnTrack(track, song, startMs, fadeInMs,
+            g_switcherSliderGain * g_switcherNormGain[trackIndex] * g_switcherDuck)) {
+        return false;
+    }
+
+    // Only retire the outgoing track once the new one is actually running, so a
+    // failed start cannot leave the fight silent.
+    for (int i = 0; i < 2; ++i) {
+        MIX_Track* other = g_switcherTracks[i];
+        if (other != NULL && other != track) {
+            StopTrack(other, fadeInMs);
+        }
+    }
+
+    g_switcherPath = absolutePath;
+
+    return true;
+}
+
+void StopSwitcherMusic(int32 fadeOutMs) {
+    for (int i = 0; i < 2; ++i) {
+        if (g_switcherTracks[i] != NULL) {
+            StopTrack(g_switcherTracks[i], fadeOutMs);
+        }
+    }
+
+    g_switcherPath.clear();
+}
+
+bool IsSwitcherMusicPlaying() {
+    if (!SDL3Init) {
+        return false;
+    }
+
+    return TrackPlaying(g_switcherTracks[0]) || TrackPlaying(g_switcherTracks[1]);
+}
+
+void SetSwitcherMusicVolume(int32 volume) {
+    if (!SDL3Init || fn_MIX_SetTrackGain == NULL) {
+        return;
+    }
+
+    g_switcherSliderGain = Gain((int)(volume * 1.28f));
+
+    for (int i = 0; i < 2; ++i) {
+        if (g_switcherTracks[i] != NULL) {
+            fn_MIX_SetTrackGain(g_switcherTracks[i],
+                g_switcherSliderGain * g_switcherNormGain[i] * g_switcherDuck);
+        }
+    }
+}
+
+const char* SwitcherMusicPath() {
+    return g_switcherPath.c_str();
+}
+
+void SetSwitcherMusicDuck(float duck) {
+    if (!SDL3Init || fn_MIX_SetTrackGain == NULL) {
+        return;
+    }
+
+    duck = std::clamp(duck, 0.0f, 1.0f);
+
+    if (duck == g_switcherDuck) {
+        return;
+    }
+
+    g_switcherDuck = duck;
+
+    for (int i = 0; i < 2; ++i) {
+        if (g_switcherTracks[i] != NULL) {
+            fn_MIX_SetTrackGain(g_switcherTracks[i],
+                g_switcherSliderGain * g_switcherNormGain[i] * g_switcherDuck);
+        }
+    }
+}
+
+void SetSwitcherMusicLevel(float gainScale) {
+    if (!SDL3Init || fn_MIX_SetTrackGain == NULL) {
+        return;
+    }
+    if (g_switcherCurrent < 0 || g_switcherCurrent > 1) {
+        return;
+    }
+
+    g_switcherNormGain[g_switcherCurrent] = std::clamp(gainScale, 0.005f, 8.0f);
+
+    if (g_switcherTracks[g_switcherCurrent] != NULL) {
+        fn_MIX_SetTrackGain(g_switcherTracks[g_switcherCurrent],
+            g_switcherSliderGain * g_switcherNormGain[g_switcherCurrent] * g_switcherDuck);
+    }
 }
 
 void PlayBattleOfBrothersSong() {

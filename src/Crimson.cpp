@@ -44,6 +44,7 @@
 #include "CrimsonGameModes.hpp"
 #include "UI/WeaponWheel.hpp"
 #include "CrimsonHighFPSFixes.hpp"
+#include "CrimsonMusicSwitcher.hpp"
 
 
 
@@ -129,6 +130,8 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
             return 0;
         }
+
+        CrimsonMusicSwitcher::Init();
 
 
         /*

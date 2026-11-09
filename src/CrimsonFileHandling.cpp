@@ -14,6 +14,7 @@ namespace Paths {
 	const char* assets = "Crimson\\assets";
 	const char* config = "Crimson\\configs";
 	const char* sounds = "Crimson\\sound";
+	const char* musicSwitcher = "Crimson\\musicswitcher";
 	const char* huds = "Crimson\\huds";
 	const char* styleRanks = "Crimson\\assets\\styleranks";
 	const char* visualStylesPreviews = "Crimson\\assets\\visualstylepreviews";

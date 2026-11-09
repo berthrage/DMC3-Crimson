@@ -8,6 +8,7 @@ namespace Paths {
 	extern const char* assets;
 	extern const char* config;
 	extern const char* sounds;
+	extern const char* musicSwitcher;
 	extern const char* huds;
 	extern const char* styleRanks;
 	extern const char* visualStylesPreviews;

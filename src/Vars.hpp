@@ -5615,7 +5615,6 @@ extern float storedLunarPhasePosY;
 
 struct RankAnnouncer {
     int turn            = 0;
-    int count           = 0;
 	float timer = 0.0f;
     bool trackerRunning = false;
     bool offCooldown    = true;

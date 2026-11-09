@@ -5275,6 +5275,7 @@ void DetectCloseToEnemy(byte8* actorBaseAddr) {
 #pragma region DanteAirTaunt
 
 // Ecstasy is locked in for its opening frames so it can't be cancelled into another move.
+// Jump and Trickster tricks are exempt (see EcstasyLockController).
 bool IsEcstasyLocked(PlayerActorData& actorData) {
 	static constexpr float ECSTASY_LOCK_TIME = 0.3f;
 
@@ -5295,19 +5296,27 @@ void EcstasyLockController(byte8* actorBaseAddr) {
 	if (actorData.character != CHARACTER::DANTE) return;
 	if (!IsEcstasyLocked(actorData)) return;
 
+	// Trickster owns the style button in this style, so a trick request goes through untouched.
+	const bool allowTrick = (actorData.style == STYLE::TRICKSTER);
+
 	// 0 is NEXT_ACTION_REQUEST_POLICY::IGNORE, shadowed by the Win32 IGNORE macro.
 	// Jump is left alone: jump cancelling Ecstasy stays available, it just won't throw the rose.
 	for (uint8 i = NEXT_ACTION_REQUEST_POLICY::MELEE_ATTACK; i < NEXT_ACTION_REQUEST_POLICY::END; ++i) {
 		if (i == NEXT_ACTION_REQUEST_POLICY::JUMP_ROLL) {
 			continue;
 		}
+		if (allowTrick && i == NEXT_ACTION_REQUEST_POLICY::TRICKSTER_DARK_SLAYER) {
+			continue;
+		}
 		actorData.nextActionRequestPolicy[i] = 0;
 	}
 	actorData.bufferedAction = 0;
 	actorData.buttons[0] &= ~GetBinding(BINDING::MELEE_ATTACK);
-	actorData.buttons[0] &= ~GetBinding(BINDING::STYLE_ACTION);
-	// Style attacks are gated on this permission bit, so clearing it refuses the cancel outright.
-	actorData.permissions &= ~PERMISSION::INTERACTION_STYLE_ATTACK;
+	if (!allowTrick) {
+		actorData.buttons[0] &= ~GetBinding(BINDING::STYLE_ACTION);
+		// Style attacks are gated on this permission bit, so clearing it refuses the cancel outright.
+		actorData.permissions &= ~PERMISSION::INTERACTION_STYLE_ATTACK;
+	}
 }
 
 // Drops the queued rose — Ecstasy only throws it while the move is left running.

@@ -228,6 +228,15 @@ file(GLOB MAIN_SRC
     CrimsonHUD.hpp
     CrimsonLDK.cpp
     CrimsonLDK.hpp
+    CrimsonMusicSwitcher.cpp
+    CrimsonMusicSwitcher.hpp
+    MusicSwitcherTags.cpp
+    MusicSwitcherTags.hpp
+    MusicSwitcherPlaylist.cpp
+    MusicSwitcherPlaylist.hpp
+    MusicSwitcherLoudness.cpp
+    MusicSwitcherLoudness.hpp
+    MusicSwitcherSelect.hpp
     CrimsonUtil.cpp
     CrimsonUtil.hpp
     CrimsonVisualStyle.cpp
