@@ -227,6 +227,9 @@ SDL_FUNCTION_DECLRATION(MIX_SetTagGain)                   = NULL;
 SDL_FUNCTION_DECLRATION(MIX_SetTrack3DPosition)           = NULL;
 SDL_FUNCTION_DECLRATION(MIX_SetTrackStoppedCallback)      = NULL;
 SDL_FUNCTION_DECLRATION(MIX_TrackMSToFrames)              = NULL;
+SDL_FUNCTION_DECLRATION(MIX_TrackFramesToMS)              = NULL;
+SDL_FUNCTION_DECLRATION(MIX_GetTrackPlaybackPosition)     = NULL;
+SDL_FUNCTION_DECLRATION(MIX_SetTrackLoops)                = NULL;
 SDL_FUNCTION_DECLRATION(MIX_GetAudioDuration)             = NULL;
 SDL_FUNCTION_DECLRATION(MIX_AudioFramesToMS)              = NULL;
 SDL_FUNCTION_DECLRATION(MIX_CreateAudioDecoder)           = NULL;
@@ -554,8 +557,13 @@ static MIX_Track* g_switcherTracks[2] = {NULL, NULL};
 static int g_switcherNext = 0;
 static SDL_PropertiesID g_switcherProperties = 0;
 
-static bool PlaySwitcherOnTrack(MIX_Track* track, MIX_Audio* audio, int32 startMs, int32 fadeInMs,
-    float gain) {
+// Previews get a track of their own: auditioning a song from the menu must not
+// cut a battle theme short.
+static MIX_Track* g_previewTrack = NULL;
+static SDL_PropertiesID g_previewProperties = 0;
+
+static bool PlayMusicOnTrack(MIX_Track* track, SDL_PropertiesID* properties, int loops,
+    MIX_Audio* audio, int32 startMs, int32 maxMs, int32 fadeInMs, float gain) {
     if (track == NULL || audio == NULL || fn_MIX_SetTrackAudio == NULL || fn_MIX_PlayTrack == NULL ||
         fn_SDL_CreateProperties == NULL || fn_SDL_SetNumberProperty == NULL) {
         return false;
@@ -563,10 +571,10 @@ static bool PlaySwitcherOnTrack(MIX_Track* track, MIX_Audio* audio, int32 startM
 
     // A separate property set: a start offset left behind here would make the
     // next sound effect begin mid-file.
-    if (g_switcherProperties == 0) {
-        g_switcherProperties = fn_SDL_CreateProperties();
+    if (*properties == 0) {
+        *properties = fn_SDL_CreateProperties();
     }
-    if (g_switcherProperties == 0) {
+    if (*properties == 0) {
         return false;
     }
 
@@ -574,16 +582,26 @@ static bool PlaySwitcherOnTrack(MIX_Track* track, MIX_Audio* audio, int32 startM
         startMs = 0;
     }
 
-    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
-    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_FADE_IN_MILLISECONDS_NUMBER, fadeInMs);
-    fn_SDL_SetNumberProperty(g_switcherProperties, MIX_PROP_PLAY_START_MILLISECOND_NUMBER, startMs);
+    fn_SDL_SetNumberProperty(*properties, MIX_PROP_PLAY_LOOPS_NUMBER, loops);
+    fn_SDL_SetNumberProperty(*properties, MIX_PROP_PLAY_FADE_IN_MILLISECONDS_NUMBER, fadeInMs);
+    fn_SDL_SetNumberProperty(*properties, MIX_PROP_PLAY_START_MILLISECOND_NUMBER, startMs);
+
+    // An end point, not a length: anything past it is treated as end of file.
+    if (maxMs > 0) {
+        fn_SDL_SetNumberProperty(*properties, MIX_PROP_PLAY_MAX_MILLISECONDS_NUMBER, maxMs);
+    }
 
     if (fn_MIX_SetTrackGain != NULL) {
         fn_MIX_SetTrackGain(track, gain);
     }
 
     fn_MIX_SetTrackAudio(track, audio);
-    return fn_MIX_PlayTrack(track, g_switcherProperties);
+    return fn_MIX_PlayTrack(track, *properties);
+}
+
+static bool PlaySwitcherOnTrack(MIX_Track* track, MIX_Audio* audio, int32 startMs, int32 fadeInMs,
+    float gain, int loops) {
+    return PlayMusicOnTrack(track, &g_switcherProperties, loops, audio, startMs, -1, fadeInMs, gain);
 }
 
 // Music is streamed, so a switcher would otherwise reload the same file on
@@ -1290,6 +1308,9 @@ void InitSDL() {
         LOAD_MIXER_FUNCTION(MIX_SetTrack3DPosition);
         LOAD_MIXER_FUNCTION(MIX_SetTrackStoppedCallback);
         LOAD_MIXER_FUNCTION(MIX_TrackMSToFrames);
+        LOAD_MIXER_FUNCTION(MIX_TrackFramesToMS);
+        LOAD_MIXER_FUNCTION(MIX_GetTrackPlaybackPosition);
+        LOAD_MIXER_FUNCTION(MIX_SetTrackLoops);
         LOAD_MIXER_FUNCTION(MIX_GetAudioDuration);
         LOAD_MIXER_FUNCTION(MIX_AudioFramesToMS);
         LOAD_MIXER_FUNCTION(MIX_CreateAudioDecoder);
@@ -1336,6 +1357,8 @@ void InitSDL() {
             for (int i = 0; i < 2; ++i) {
                 g_switcherTracks[i] = fn_MIX_CreateTrack(g_mixer);
             }
+
+            g_previewTrack = fn_MIX_CreateTrack(g_mixer);
 
             MixerInitialization2 = "Mixer3 Tracks OK";
         }
@@ -2189,7 +2212,7 @@ static float g_switcherDuck         = 1.0f;
 static int g_switcherCurrent        = -1;
 
 bool PlaySwitcherMusic(const char* absolutePath, int32 startMs, int32 fadeInMs, int32 volume,
-    float gainScale) {
+    float gainScale, bool loop) {
     if (!SDL3Init || absolutePath == NULL || absolutePath[0] == '\0') {
         return false;
     }
@@ -2224,7 +2247,8 @@ bool PlaySwitcherMusic(const char* absolutePath, int32 startMs, int32 fadeInMs, 
     g_switcherCurrent               = trackIndex;
 
     if (!PlaySwitcherOnTrack(track, song, startMs, fadeInMs,
-            g_switcherSliderGain * g_switcherNormGain[trackIndex] * g_switcherDuck)) {
+            g_switcherSliderGain * g_switcherNormGain[trackIndex] * g_switcherDuck,
+            loop ? -1 : 0)) {
         return false;
     }
 
@@ -2258,6 +2282,68 @@ bool IsSwitcherMusicPlaying() {
     }
 
     return TrackPlaying(g_switcherTracks[0]) || TrackPlaying(g_switcherTracks[1]);
+}
+
+bool PlayPreviewMusic(const char* absolutePath, int32 startMs, int32 maxMs, int32 fadeInMs,
+    int32 volume, float gainScale) {
+    if (!SDL3Init || absolutePath == NULL || absolutePath[0] == '\0' || g_previewTrack == NULL) {
+        return false;
+    }
+
+    MIX_Audio* song = LoadMusicCached(absolutePath);
+    if (song == NULL) {
+        return false;
+    }
+
+    const float gain = Gain((int)(volume * 1.28f)) * std::clamp(gainScale, 0.005f, 8.0f);
+
+    return PlayMusicOnTrack(g_previewTrack, &g_previewProperties, 0, song, startMs, maxMs, fadeInMs,
+        gain);
+}
+
+void StopPreviewMusic(int32 fadeOutMs) {
+    if (g_previewTrack != NULL) {
+        StopTrack(g_previewTrack, fadeOutMs);
+    }
+}
+
+// Where the switcher's current song is, in milliseconds into the file.
+int32 SwitcherMusicPositionMs() {
+    if (!SDL3Init || g_switcherCurrent < 0 || g_switcherCurrent > 1 ||
+        fn_MIX_GetTrackPlaybackPosition == NULL || fn_MIX_TrackFramesToMS == NULL) {
+        return 0;
+    }
+
+    MIX_Track* track = g_switcherTracks[g_switcherCurrent];
+    if (track == NULL) {
+        return 0;
+    }
+
+    const Sint64 frames = fn_MIX_GetTrackPlaybackPosition(track);
+    if (frames <= 0) {
+        return 0;
+    }
+
+    const Sint64 positionMs = fn_MIX_TrackFramesToMS(track, frames);
+    if (positionMs <= 0) {
+        return 0;
+    }
+
+    return static_cast<int32>(positionMs > 0x7FFFFFFF ? 0x7FFFFFFF : positionMs);
+}
+
+// Changes the current song's loop while it plays; the next song reads the
+// playlist setting anyway.
+void SetSwitcherMusicLoop(bool loop) {
+    if (!SDL3Init || g_switcherCurrent < 0 || g_switcherCurrent > 1 ||
+        fn_MIX_SetTrackLoops == NULL) {
+        return;
+    }
+
+    MIX_Track* track = g_switcherTracks[g_switcherCurrent];
+    if (track != NULL) {
+        fn_MIX_SetTrackLoops(track, loop ? -1 : 0);
+    }
 }
 
 void SetSwitcherMusicVolume(int32 volume) {

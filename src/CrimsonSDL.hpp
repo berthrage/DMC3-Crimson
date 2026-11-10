@@ -86,8 +86,9 @@ bool ProbeMusicDurationMs(const char* absolutePath, int32& outMs);
 // Music switcher playback. Plays looping from `startMs`, fading in, on a track
 // reserved for the switcher; a previous switcher track is stopped as it starts.
 // `gainScale` is the file's loudness correction, applied on top of the slider.
+// `loop` false plays the file once, for lists that walk to the next song.
 bool PlaySwitcherMusic(const char* absolutePath, int32 startMs, int32 fadeInMs, int32 volume,
-    float gainScale = 1.0f);
+    float gainScale = 1.0f, bool loop = true);
 void StopSwitcherMusic(int32 fadeOutMs);
 bool IsSwitcherMusicPlaying();
 void SetSwitcherMusicVolume(int32 volume);
@@ -100,6 +101,18 @@ void SetSwitcherMusicDuck(float duck);
 // Applies a new level correction to the song already playing, so the slider can
 // be heard without waiting for the next battle.
 void SetSwitcherMusicLevel(float gainScale);
+
+// Song preview used by the playlist editor. Its own track, played once from
+// `startMs` and cut at `maxMs`, so it never disturbs the switcher's own tracks.
+bool PlayPreviewMusic(const char* absolutePath, int32 startMs, int32 maxMs, int32 fadeInMs,
+    int32 volume, float gainScale = 1.0f);
+void StopPreviewMusic(int32 fadeOutMs);
+
+// Position of the switcher's current song, in milliseconds into the file.
+int32 SwitcherMusicPositionMs();
+
+// Reloops the song that is already playing, without restarting it.
+void SetSwitcherMusicLoop(bool loop);
 
 // Integrated loudness of a file, decoded without a device or playback. Safe to
 // call from a worker thread.

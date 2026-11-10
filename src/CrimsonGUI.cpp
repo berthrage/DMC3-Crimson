@@ -8308,6 +8308,30 @@ void FMODJukeboxSection() {
 
 #pragma region MusicSwitcher
 
+// The same popup the cheat toggles use, so a hotkey press is visible on screen.
+// The song title is left to the Now Playing banner.
+void MusicSwitcherPreviousSong() {
+	if (!CrimsonMusicSwitcher::PreviousSong()) {
+		return;
+	}
+
+	cheatsPopUp.cheatText = "Previous Song (Music Switcher)";
+	cheatsPopUp.showPopUp = true;
+
+	if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25);
+}
+
+void MusicSwitcherSkipSong() {
+	if (!CrimsonMusicSwitcher::SkipSong()) {
+		return;
+	}
+
+	cheatsPopUp.cheatText = "Next Song (Music Switcher)";
+	cheatsPopUp.showPopUp = true;
+
+	if (activeCrimsonConfig.GUI.sounds) FMOD_PlaySound(0, 25);
+}
+
 void MusicSwitcherSection() {
 	auto defaultFontSize = UI::g_UIContext.DefaultFontSize;
 	ImU32 checkmarkColorBg = UI::SwapColorEndianness(0xFFFFFFFF);
@@ -8319,76 +8343,8 @@ void MusicSwitcherSection() {
 	ImGui::PushFont(UI::g_ImGuiFont_Roboto[defaultFontSize * 0.9f]);
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColorBg);
 
-	GUI_Checkbox2("Per Character Playlists", active.perCharacterPools, queued.perCharacterPools);
-
-	auto PlaylistCombo = [](const char* label, std::string& activeName, std::string& queuedName) {
-		const char* preview = queuedName.empty() ? "None" : queuedName.c_str();
-
-		ImGui::PushItemWidth(itemWidth * 1.3f);
-		if (ImGui::BeginCombo(label, preview)) {
-			if (ImGui::Selectable("None", queuedName.empty())) {
-				queuedName.clear();
-				activeName.clear();
-			}
-
-			for (const auto& playlist : CrimsonMusicSwitcher::Playlists()) {
-				if (ImGui::Selectable(playlist.name.c_str(), queuedName == playlist.name)) {
-					queuedName = playlist.name;
-					activeName = queuedName;
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-		ImGui::PopItemWidth();
-	};
-
-	if (queued.perCharacterPools) {
-		PlaylistCombo("Dante Battle Playlist", active.danteBattlePlaylist, queued.danteBattlePlaylist);
-		PlaylistCombo("Vergil Battle Playlist", active.vergilBattlePlaylist, queued.vergilBattlePlaylist);
-	} else {
-		PlaylistCombo("Battle Playlist", active.battlePlaylist, queued.battlePlaylist);
-	}
-
-	GUI_Checkbox2("Keep Playing In Bloody Palace", active.keepPlayingInBloodyPalace,
-		queued.keepPlayingInBloodyPalace);
-
-	static float defaultLufs = MusicSwitcherLoudness::kDefaultTargetLufs;
-
-	ImGui::PushItemWidth(itemWidth * 1.1f);
-	GUI_Slider2FloatDefault("Normalized Volume (LUFS)", active.normalizeTargetLufs,
-		queued.normalizeTargetLufs, defaultLufs, -40.0f, -10.0f, 0.1f, "%.1f");
-	ImGui::PopItemWidth();
-
-	ImGui::SameLine();
-	TooltipHelper("(?)", "Level every song is measured onto. Lower is quieter; %.1f roughly matches "
-		"the Vanilla game's battle music volume in a fight.", MusicSwitcherLoudness::kDefaultTargetLufs);
-
-	GUI_Checkbox2("Now Playing Banner", active.nowPlayingBanner, queued.nowPlayingBanner);
-
-
-	// --- Playlist editor ---------------------------------------------------
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + defaultFontSize * 0.6f);
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
-	ImGui::Text("PLAYLISTS");
-	ImGui::PopFont();
-
 	const auto& songs = CrimsonMusicSwitcher::Songs();
 	const auto& playlists = CrimsonMusicSwitcher::Playlists();
-
-	ImGui::Text("%u songs, %u playlists", (uint32)songs.size(), (uint32)playlists.size());
-	if (!CrimsonMusicSwitcher::AreDurationsProbed() && !songs.empty()) {
-		ImGui::SameLine();
-		ImGui::TextDisabled("(reading lengths...)");
-	}
-	if (!CrimsonMusicSwitcher::AreLevelsProbed() && !songs.empty()) {
-		ImGui::SameLine();
-		ImGui::TextDisabled("(measuring levels...)");
-	}
-
-	if (GUI_Button("RESCAN FOLDER", ImVec2(150.0f * scaleFactorY, 50.0f * scaleFactorY))) {
-		CrimsonMusicSwitcher::Rescan();
-	}
 
 	// Which playlist the editor is showing. Kept as a name so a rescan cannot
 	// leave a dangling pointer behind.
@@ -8401,17 +8357,216 @@ void MusicSwitcherSection() {
 		s_selected = playlists.front().name;
 	}
 
-	ImGui::PushItemWidth(itemWidth * 1.3f);
-	const char* preview = s_selected.empty() ? "None" : s_selected.c_str();
-	if (ImGui::BeginCombo("Edit Playlist", preview)) {
-		for (const auto& playlist : playlists) {
-			if (ImGui::Selectable(playlist.name.c_str(), s_selected == playlist.name)) {
-				s_selected = playlist.name;
+	auto PlaylistCombo = [&](const char* label, std::string& activeName, std::string& queuedName) {
+		std::vector<std::string> names;
+		names.push_back("None");
+
+		for (const auto& playlist : CrimsonMusicSwitcher::Playlists()) {
+			names.push_back(playlist.name);
+		}
+
+		size_t queuedIndex = 0;
+		size_t activeIndex = 0;
+
+		for (size_t index = 0; index < names.size(); ++index) {
+			if (names[index] == queuedName) {
+				queuedIndex = index;
+			}
+			if (names[index] == activeName) {
+				activeIndex = index;
 			}
 		}
-		ImGui::EndCombo();
+
+		ImGui::PushItemWidth(itemWidth);
+
+		const bool changed = UI::ComboVectorString2(label, names, activeIndex, queuedIndex);
+
+		ImGui::PopItemWidth();
+
+		if (changed) {
+			queuedName = (queuedIndex == 0) ? std::string() : names[queuedIndex];
+			activeName = queuedName;
+		}
+	};
+	if (ImGui::BeginTable("MusicSwitcherOptions", 2,
+			ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_PadOuterX)) {
+		ImGui::TableNextRow();
+
+		// ---- Playback ----
+		ImGui::TableNextColumn();
+		ImGui::TextDisabled("PLAYBACK");
+
+		GUI_Checkbox2("Per Character Playlists", active.perCharacterPools, queued.perCharacterPools);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Dante and Vergil each get their own playlist. The pool is picked from whoever "
+			"Player 1 is playing the moment a battle theme starts: Vergil reads the Vergil playlist, every "
+			"other character reads the Dante one, so a mid-mission swap counts.");
+
+		GUI_PushDisable(!queued.perCharacterPools);
+		GUI_Checkbox2("Swap Playlist Mid-Fight", active.switchPlaylistOnCharacterSwap,
+			queued.switchPlaylistOnCharacterSwap);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Experimental: when Player 1 switches character during a fight, the song "
+			"jumps to the new character's playlist. Off, a fight keeps the song it started with.");
+		GUI_PopDisable(!queued.perCharacterPools);
+
+		if (queued.perCharacterPools) {
+			PlaylistCombo("Dante Battle Playlist", active.danteBattlePlaylist, queued.danteBattlePlaylist);
+			PlaylistCombo("Vergil Battle Playlist", active.vergilBattlePlaylist, queued.vergilBattlePlaylist);
+		} else {
+			PlaylistCombo("Battle Playlist", active.battlePlaylist, queued.battlePlaylist);
+		}
+
+		GUI_Checkbox2("Keep Playing In Bloody Palace", active.keepPlayingInBloodyPalace,
+			queued.keepPlayingInBloodyPalace);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Bloody Palace only: keeps the battle song running through the room clears, the "
+			"way a continuous mix would, instead of vanilla dropping the music between rooms. Songs hand over "
+			"to the next one when they end instead of looping.");
+
+		// ---- Defaults for new songs ----
+		ImGui::TableNextColumn();
+		ImGui::TextDisabled("NEW SONG DEFAULTS");
+
+		int defaultMin = queued.defaultStartMinPercent;
+		int defaultMax = queued.defaultStartMaxPercent;
+
+		ImGui::PushItemWidth(itemWidth * 0.5f);
+
+		if (ImGui::InputInt("Default Start Min", &defaultMin, 5, 10)) {
+			queued.defaultStartMinPercent = (uint8)std::clamp(defaultMin, 0, 100);
+			queued.defaultStartMaxPercent =
+				(uint8)std::max<int>(queued.defaultStartMinPercent, queued.defaultStartMaxPercent);
+			active.defaultStartMinPercent = queued.defaultStartMinPercent;
+			active.defaultStartMaxPercent = queued.defaultStartMaxPercent;
+			::GUI::save = true;
+		}
+		ImGui::SameLine();
+		ImGui::TextDisabled("%%");
+
+		if (ImGui::InputInt("Default Start Max", &defaultMax, 5, 10)) {
+			queued.defaultStartMaxPercent = (uint8)std::clamp(defaultMax, 0, 100);
+			queued.defaultStartMinPercent =
+				(uint8)std::min<int>(queued.defaultStartMinPercent, queued.defaultStartMaxPercent);
+			active.defaultStartMinPercent = queued.defaultStartMinPercent;
+			active.defaultStartMaxPercent = queued.defaultStartMaxPercent;
+			::GUI::save = true;
+		}
+		ImGui::SameLine();
+		ImGui::TextDisabled("%%");
+
+		ImGui::PopItemWidth();
+
+		ImGui::TextDisabled("Songs added from now on start in this window.");
+
+		MusicSwitcherPlaylist* defaultsPlaylist = CrimsonMusicSwitcher::EditablePlaylist(s_selected);
+		const bool canApplyDefaults = (defaultsPlaylist != NULL) && !defaultsPlaylist->songs.empty();
+
+		GUI_PushDisable(!canApplyDefaults);
+		if (GUI_Button("APPLY DEFAULTS TO ALL SONGS",
+				ImVec2(330.0f * scaleFactorY, 28.0f * scaleFactorY))) {
+			CrimsonMusicSwitcher::ApplyDefaultStartToAll(*defaultsPlaylist);
+			CrimsonMusicSwitcher::SavePlaylist(*defaultsPlaylist);
+		}
+		GUI_PopDisable(!canApplyDefaults);
+
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Sets Start Min and Start Max of every song in the playlist being edited to the "
+			"defaults above. Each row can still be edited on its own afterwards.");
+
+		// ---- Library and display ----
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::TextDisabled("LIBRARY");
+
+		GUI_Checkbox2("Include Original Game Songs", active.includeVanillaSongs, queued.includeVanillaSongs);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Also offers the music in data\\dmc3\\afs\\sound, so the game's own tracks "
+			"can be used in playlists.");
+
+		ImGui::TableNextColumn();
+		ImGui::TextDisabled("AUDIO & DISPLAY");
+
+		static float defaultLufs = MusicSwitcherLoudness::kDefaultTargetLufs;
+
+		ImGui::PushItemWidth(itemWidth * 1.1f);
+		GUI_Slider2FloatDefault("Normalized Volume (LUFS)", active.normalizeTargetLufs,
+			queued.normalizeTargetLufs, defaultLufs, -40.0f, -10.0f, 0.1f, "%.1f");
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Level every song is measured onto. Lower is quieter; %.1f roughly matches "
+			"the Vanilla game's battle music volume in a fight.", MusicSwitcherLoudness::kDefaultTargetLufs);
+
+		GUI_Checkbox2("Now Playing Banner", active.nowPlayingBanner, queued.nowPlayingBanner);
+		ImGui::SameLine();
+		TooltipHelper("(?)", "Shows the song title, artist, cover art and progress in the top right when a "
+			"battle song starts.");
+
+		ImGui::EndTable();
 	}
-	ImGui::PopItemWidth();
+
+	const bool canStepSong = CrimsonMusicSwitcher::CanStepSong();
+
+	GUI_PushDisable(!canStepSong);
+	if (GUI_Button("PREVIOUS", ImVec2(130.0f * scaleFactorY, 40.0f * scaleFactorY))) {
+		MusicSwitcherPreviousSong();
+	}
+	ImGui::SameLine();
+	if (GUI_Button("NEXT", ImVec2(100.0f * scaleFactorY, 40.0f * scaleFactorY))) {
+		MusicSwitcherSkipSong();
+	}
+	GUI_PopDisable(!canStepSong);
+
+	ImGui::SameLine();
+	TooltipHelper("(?)", "Steps through the pool in use while a battle song is playing. Sequential and "
+		"Random pools can step; Per Mission is fixed by mission number. Hotkeys: F7 previous, F8 next.");
+
+	// --- Playlist editor ---------------------------------------------------
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + defaultFontSize * 0.6f);
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	ImGui::Text("PLAYLISTS");
+	ImGui::PopFont();
+
+	ImGui::Text("%u songs, %u playlists", (uint32)songs.size(), (uint32)playlists.size());
+	if (!CrimsonMusicSwitcher::AreDurationsProbed() && !songs.empty()) {
+		ImGui::SameLine();
+		ImGui::TextDisabled("(reading lengths...)");
+	}
+	if (!CrimsonMusicSwitcher::AreLevelsProbed() && !songs.empty()) {
+		ImGui::SameLine();
+		ImGui::TextDisabled("(measuring levels...)");
+	}
+
+	{
+		std::vector<std::string> playlistNames;
+
+		for (const auto& playlist : playlists) {
+			playlistNames.push_back(playlist.name);
+		}
+
+		if (!playlistNames.empty()) {
+			size_t current = 0;
+
+			for (size_t index = 0; index < playlistNames.size(); ++index) {
+				if (playlistNames[index] == s_selected) {
+					current = index;
+				}
+			}
+
+			size_t chosen = current;
+
+			ImGui::PushItemWidth(itemWidth);
+
+			const bool changed = UI::ComboVectorString2("Edit Playlist", playlistNames, current, chosen);
+
+			ImGui::PopItemWidth();
+
+			if (changed) {
+				s_selected = playlistNames[chosen];
+			}
+		}
+	}
 
 	MusicSwitcherPlaylist* playlist = CrimsonMusicSwitcher::EditablePlaylist(s_selected);
 
@@ -8419,7 +8574,6 @@ void MusicSwitcherSection() {
 		ImGui::TextWrapped("Create a playlist to hold the songs. Songs come from %s.",
 			Paths::musicSwitcher);
 	} else {
-		// ---- Name ----
 		if (s_nameBufferOwner != s_selected) {
 			snprintf(s_nameBuffer, sizeof(s_nameBuffer), "%s", s_selected.c_str());
 			s_nameBufferOwner = s_selected;
@@ -8462,46 +8616,59 @@ void MusicSwitcherSection() {
 		}
 		ImGui::PopItemWidth();
 
-		// ---- Mode ----
-		const char* modeNames[] = {
+		const char* modeLabels[] = {
 			"Sequential",
 			"Random",
 			"Per Mission",
 		};
-		static_assert(countof(modeNames) == MUSICPLAYLISTMODE::COUNT);
+		static_assert(countof(modeLabels) == MUSICPLAYLISTMODE::COUNT);
 
-		ImGui::PushItemWidth(itemWidth * 1.1f);
-		if (ImGui::BeginCombo("Song Order", modeNames[playlist->mode])) {
-			for (int mode = 0; mode < MUSICPLAYLISTMODE::COUNT; ++mode) {
-				if (ImGui::Selectable(modeNames[mode], playlist->mode == mode)) {
-					playlist->mode = (uint8)mode;
+		std::vector<std::string> modeNames(modeLabels, modeLabels + countof(modeLabels));
 
-					CrimsonMusicSwitcher::SavePlaylist(*playlist);
-				}
-			}
-			ImGui::EndCombo();
-		}
+		size_t mode = playlist->mode;
+		size_t mode2 = mode;
+
+		ImGui::PushItemWidth(itemWidth);
+
+		const bool modeChanged = UI::ComboVectorString2("Song Order", modeNames, mode, mode2);
+
 		ImGui::PopItemWidth();
 
+		if (modeChanged) {
+			playlist->mode = (uint8)mode;
+
+			CrimsonMusicSwitcher::SavePlaylist(*playlist);
+		}
+
+		ImGui::SameLine();
+
 		if (playlist->mode == MUSICPLAYLISTMODE::PER_MISSION) {
-			ImGui::TextDisabled("Song N is used by mission N (1-20), and Bloody Palace uses mission 21.");
+			ImGui::TextDisabled("Rows 1-19 are missions 1-19; row 20 is Bloody Palace. Mission 20 (Vergil 3 "
+				"and the credits) has no row.");
 		} else if (playlist->mode == MUSICPLAYLISTMODE::RANDOM) {
 			ImGui::TextDisabled("A different song is picked for each battle.");
 		} else {
 			ImGui::TextDisabled("Songs play in this order, one per battle.");
 		}
 
+		if (GUI_Checkbox("Loop Themes", playlist->loopThemes)) {
+			CrimsonMusicSwitcher::SavePlaylist(*playlist);
+		}
+		ImGui::SameLine();
+		TooltipHelper("(?)", "On, a battle song repeats until the fight ends. Off, this playlist moves on to "
+			"the next song when the current one finishes. Per Mission always loops, and Bloody Palace "
+			"continuity never does.");
+
 		// ---- Songs in the playlist ----
 		if (playlist->songs.empty()) {
 			ImGui::TextWrapped("This playlist is empty. Add songs from the list below.");
-		} else if (ImGui::BeginTable("MusicSwitcherPlaylistTable", 6,
+		} else if (ImGui::BeginTable("MusicSwitcherPlaylistTable", 5,
 				ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV)) {
 			ImGui::TableSetupColumn("Song", ImGuiTableColumnFlags_WidthStretch);
-			ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 110.0f * scaleFactorX);
 			ImGui::TableSetupColumn("Start Min", ImGuiTableColumnFlags_WidthFixed, 100.0f * scaleFactorX);
 			ImGui::TableSetupColumn("Start Max", ImGuiTableColumnFlags_WidthFixed, 100.0f * scaleFactorX);
 			ImGui::TableSetupColumn("Random Start", ImGuiTableColumnFlags_WidthFixed, 110.0f * scaleFactorX);
-			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 150.0f * scaleFactorX);
+			ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, 250.0f * scaleFactorX);
 			ImGui::TableHeadersRow();
 
 			int removeIndex = -1;
@@ -8509,14 +8676,15 @@ void MusicSwitcherSection() {
 			size_t moveTo   = 0;
 
 			const ImVec2 rowButtonSize(42.0f * scaleFactorX, 0.0f);
+			const ImVec2 previewButtonSize(86.0f * scaleFactorX, 0.0f);
 
 			// Grayed out instead of hidden, so the rows keep one shape.
-			auto RowButton = [&](const char* label, bool enabled) {
+			auto RowButton = [&](const char* label, bool enabled, const ImVec2& size) {
 				if (!enabled) {
 					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.35f);
 				}
 
-				const bool pressed = GUI_Button(label, rowButtonSize);
+				const bool pressed = GUI_Button(label, size);
 
 				if (!enabled) {
 					ImGui::PopStyleVar();
@@ -8525,81 +8693,162 @@ void MusicSwitcherSection() {
 				return pressed && enabled;
 			};
 
+			// Repeated rows stay in the file when the order is not Per Mission, but
+			// that order never plays them; they are dimmed to show they are unused.
+			const bool duplicatesIgnored = playlist->mode != MUSICPLAYLISTMODE::PER_MISSION;
+
+			auto isRepeatedRow = [&](size_t index) {
+				if (!duplicatesIgnored || playlist->songs[index].file.empty()) {
+					return false;
+				}
+
+				for (size_t other = 0; other < index; ++other) {
+					if (playlist->songs[other].file == playlist->songs[index].file) {
+						return true;
+					}
+				}
+
+				return false;
+			};
+
+			// Per Mission keeps empty slots on screen; the other orders hide them but
+			// leave them in the file, so switching back restores the exact layout.
+			const bool showGaps = playlist->mode == MUSICPLAYLISTMODE::PER_MISSION;
+
+			std::vector<size_t> rowIndex;
+			rowIndex.reserve(playlist->songs.size());
+
 			for (size_t index = 0; index < playlist->songs.size(); ++index) {
-				auto& entry = playlist->songs[index];
-				const MusicSwitcherSong* song = CrimsonMusicSwitcher::FindSong(entry.file);
+				if (showGaps || !playlist->songs[index].file.empty()) {
+					rowIndex.push_back(index);
+				}
+			}
+
+			for (size_t row = 0; row < rowIndex.size(); ++row) {
+				const size_t index = rowIndex[row];
+				auto& entry        = playlist->songs[index];
+				const bool gap     = entry.file.empty();
+				const MusicSwitcherSong* song = gap ? NULL : CrimsonMusicSwitcher::FindSong(entry.file);
 
 				// Table cells share an ID scope per column, so rows need their own.
 				ImGui::PushID((int)index);
 
+				const bool repeatedRow = isRepeatedRow(index);
+
+				if (repeatedRow) {
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.4f);
+				}
+
 				ImGui::TableNextRow();
 
 				ImGui::TableNextColumn();
-				if (song != NULL) {
-					ImGui::Text("%u. %s", (uint32)(index + 1), song->title.c_str());
-				} else {
-					ImGui::TextDisabled("%u. %s (missing)", (uint32)(index + 1), entry.file.c_str());
+				{
+					ImFont* rowLabelFont = UI::g_ImGuiFont_Benguiat[defaultFontSize * 0.9f];
+
+					ImGui::PushFont(rowLabelFont);
+
+					if (showGaps) {
+						if (static_cast<int>(index) == CrimsonMusicSwitcher::kPalaceRow) {
+							ImGui::TextUnformatted("BLOODY PALACE.");
+						} else if (static_cast<int>(index) > CrimsonMusicSwitcher::kPalaceRow) {
+							ImGui::TextUnformatted("UNUSED.");
+						} else {
+							ImGui::Text("MISSION %u.", (uint32)(index + 1));
+						}
+					} else {
+						ImGui::Text("%u.", (uint32)(row + 1));
+					}
+
+					ImGui::PopFont();
 				}
 
-				ImGui::TableNextColumn();
-				if (song != NULL && song->loudnessKnown) {
-					ImGui::TextDisabled("%.1f LUFS  %+.1f dB", song->lufs,
-						20.0f * std::log10(song->normGain));
+				ImGui::SameLine();
+				if (gap) {
+					ImGui::TextDisabled("(empty slot)");
+				} else if (song != NULL) {
+					ImGui::Text("%s", song->title.c_str());
 				} else {
-					ImGui::TextDisabled("-");
+					ImGui::TextDisabled("%s (missing)", entry.file.c_str());
 				}
 
 				bool changed = false;
 
-				ImGui::TableNextColumn();
-				int minPercent = entry.startMinPercent;
-				ImGui::SetNextItemWidth(80.0f * scaleFactorX);
-				if (ImGui::InputInt("##startMin", &minPercent, 5, 10)) {
-					entry.startMinPercent = (uint8)std::clamp(minPercent, 0, 100);
-					entry.startMaxPercent = (uint8)std::max<int>(entry.startMinPercent, entry.startMaxPercent);
+				if (gap) {
+					// Nothing to adjust on an empty slot; keep the cells so rows line up.
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+					ImGui::TableNextColumn();
+				} else {
+					ImGui::TableNextColumn();
+					int minPercent = entry.startMinPercent;
+					ImGui::SetNextItemWidth(80.0f * scaleFactorX);
+					if (ImGui::InputInt("##startMin", &minPercent, 5, 10)) {
+						entry.startMinPercent = (uint8)std::clamp(minPercent, 0, 100);
+						entry.startMaxPercent = (uint8)std::max<int>(entry.startMinPercent, entry.startMaxPercent);
+					}
+					changed |= ImGui::IsItemDeactivatedAfterEdit();
+					ImGui::SameLine();
+					ImGui::TextDisabled("%%");
+
+					ImGui::TableNextColumn();
+					int maxPercent = entry.startMaxPercent;
+					ImGui::SetNextItemWidth(80.0f * scaleFactorX);
+					if (ImGui::InputInt("##startMax", &maxPercent, 5, 10)) {
+						entry.startMaxPercent = (uint8)std::clamp(maxPercent, 0, 100);
+						entry.startMinPercent = (uint8)std::min<int>(entry.startMinPercent, entry.startMaxPercent);
+					}
+					changed |= ImGui::IsItemDeactivatedAfterEdit();
+					ImGui::SameLine();
+					ImGui::TextDisabled("%%");
+
+					ImGui::TableNextColumn();
+					changed |= ImGui::Checkbox("##randomStart", &entry.randomStart);
+					if (ImGui::IsItemHovered()) {
+						ImGui::SetTooltip(
+							"Where in the song each battle starts.\n"
+							"On: a new random point between Start Min and Start Max.\n"
+							"Off: always Start Min.");
+					}
 				}
-				changed |= ImGui::IsItemDeactivatedAfterEdit();
-				ImGui::SameLine();
-				ImGui::TextDisabled("%%");
 
 				ImGui::TableNextColumn();
-				int maxPercent = entry.startMaxPercent;
-				ImGui::SetNextItemWidth(80.0f * scaleFactorX);
-				if (ImGui::InputInt("##startMax", &maxPercent, 5, 10)) {
-					entry.startMaxPercent = (uint8)std::clamp(maxPercent, 0, 100);
-					entry.startMinPercent = (uint8)std::min<int>(entry.startMinPercent, entry.startMaxPercent);
-				}
-				changed |= ImGui::IsItemDeactivatedAfterEdit();
-				ImGui::SameLine();
-				ImGui::TextDisabled("%%");
 
-				ImGui::TableNextColumn();
-				changed |= ImGui::Checkbox("##randomStart", &entry.randomStart);
-				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip(
-						"Where in the song each battle starts.\n"
-						"On: a new random point between Start Min and Start Max.\n"
-						"Off: always Start Min.");
+				if (!gap) {
+					const bool previewing = CrimsonMusicSwitcher::IsPreviewing(entry.file);
+					if (RowButton(previewing ? "STOP" : "PREVIEW", song != NULL, previewButtonSize)) {
+						if (previewing) {
+							CrimsonMusicSwitcher::StopPreview();
+						} else {
+							CrimsonMusicSwitcher::PreviewSong(entry.file);
+						}
+					}
+					if (ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("Plays a random 5 seconds of this song.");
+					}
+					ImGui::SameLine();
 				}
 
-				ImGui::TableNextColumn();
-				if (RowButton("UP", index > 0)) {
+				if (RowButton("UP", row > 0, rowButtonSize)) {
 					moveFrom = index;
-					moveTo   = index - 1;
+					moveTo   = rowIndex[row - 1];
 				}
 				ImGui::SameLine();
-				if (RowButton("DN", index + 1 < playlist->songs.size())) {
+				if (RowButton("DN", row + 1 < rowIndex.size(), rowButtonSize)) {
 					moveFrom = index;
-					moveTo   = index + 1;
+					moveTo   = rowIndex[row + 1];
 				}
 				ImGui::SameLine();
-				if (RowButton("X", true)) {
+				if (RowButton("X", true, rowButtonSize)) {
 					removeIndex = (int)index;
 				}
 
 				// Typing a number should not rewrite the file on every keystroke.
 				if (changed) {
 					CrimsonMusicSwitcher::SavePlaylist(*playlist);
+				}
+
+				if (repeatedRow) {
+					ImGui::PopStyleVar();
 				}
 
 				ImGui::PopID();
@@ -8617,11 +8866,54 @@ void MusicSwitcherSection() {
 			}
 		}
 
+		// ---- Empty slot ----
+		if (playlist->mode == MUSICPLAYLISTMODE::PER_MISSION) {
+			if (GUI_Button("ADD EMPTY SLOT", ImVec2(170.0f * scaleFactorY, 34.0f * scaleFactorY))) {
+				CrimsonMusicSwitcher::AddGapToPlaylist(*playlist);
+				CrimsonMusicSwitcher::SavePlaylist(*playlist);
+			}
+			ImGui::SameLine();
+			TooltipHelper("(?)", "Leaves a mission without a song. Empty slots are saved with the playlist "
+				"and only shown in Per Mission order; Sequential and Random skip them.");
+		}
+
 		// ---- Available songs ----
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + defaultFontSize * 0.4f);
 		ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
 		ImGui::Text("ADD SONGS");
 		ImGui::PopFont();
+
+		// Per Mission needs to know where the song lands; the other orders append.
+		static size_t s_addMission = 0;
+
+		if (playlist->mode == MUSICPLAYLISTMODE::PER_MISSION) {
+			std::vector<std::string> missionNames;
+			missionNames.push_back("Next empty slot");
+
+			for (int row = 0; row <= CrimsonMusicSwitcher::kPalaceRow; ++row) {
+				char label[64] = "";
+
+				if (row == CrimsonMusicSwitcher::kPalaceRow) {
+					snprintf(label, sizeof(label), "BLOODY PALACE");
+				} else {
+					snprintf(label, sizeof(label), "MISSION %d", row + 1);
+				}
+
+				missionNames.push_back(label);
+			}
+
+			if (s_addMission >= missionNames.size()) {
+				s_addMission = 0;
+			}
+
+			size_t chosen = s_addMission;
+
+			ImGui::PushItemWidth(itemWidth * 1.4f);
+			if (UI::ComboVectorString2("Add To", missionNames, s_addMission, chosen)) {
+				s_addMission = chosen;
+			}
+			ImGui::PopItemWidth();
+		}
 
 		if (songs.empty()) {
 			ImGui::TextWrapped("No music files found. Drop .mp3, .ogg, .wav or .flac files into the folder.");
@@ -8629,17 +8921,20 @@ void MusicSwitcherSection() {
 			std::string addFile;
 			bool add = false;
 
+			// Per Mission fills one row per mission, so a song already listed can be
+			// added again; the other orders only offer songs that are not in yet.
+			const bool allowDuplicates = (playlist->mode == MUSICPLAYLISTMODE::PER_MISSION);
+
 			ImGui::BeginChild("MusicSwitcherAvailableSongs", ImVec2(0.0f, 150.0f * scaleFactorY), true);
 			for (const auto& song : songs) {
-				bool inPlaylist = false;
+				size_t rows = 0;
 				for (const auto& entry : playlist->songs) {
 					if (entry.file == song.fileName) {
-						inPlaylist = true;
-						break;
+						++rows;
 					}
 				}
 
-				if (inPlaylist) {
+				if (rows > 0 && !allowDuplicates) {
 					continue;
 				}
 
@@ -8655,7 +8950,11 @@ void MusicSwitcherSection() {
 				}
 
 				ImGui::PushID(song.fileName.c_str());
-				if (GUI_Button("ADD")) {
+
+				const ImVec2 addButtonSize(46.0f * scaleFactorX, 0.0f);
+				const ImVec2 previewButtonSize(86.0f * scaleFactorX, 0.0f);
+
+				if (GUI_Button("ADD", addButtonSize)) {
 					addFile = song.fileName;
 					add     = true;
 				}
@@ -8666,12 +8965,65 @@ void MusicSwitcherSection() {
 				} else {
 					ImGui::Text("%s  %s%s", song.title.c_str(), duration, level);
 				}
+
+				if (song.vanilla) {
+					ImGui::SameLine();
+					ImGui::TextDisabled("(game)");
+				}
+
+				if (rows > 0) {
+					ImGui::SameLine();
+					ImGui::TextDisabled("(already %u row%s)", (uint32)rows, (rows == 1) ? "" : "s");
+				}
+
+				// The preview sits at the right edge of the row, away from ADD.
+				ImGui::SameLine();
+				const float rowRight = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
+				ImGui::SameLine(rowRight - previewButtonSize.x);
+
+				const bool previewing = CrimsonMusicSwitcher::IsPreviewing(song.fileName);
+				if (GUI_Button(previewing ? "STOP" : "PREVIEW", previewButtonSize)) {
+					if (previewing) {
+						CrimsonMusicSwitcher::StopPreview();
+					} else {
+						CrimsonMusicSwitcher::PreviewSong(song.fileName);
+					}
+				}
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("Plays a random 5 seconds of this song.");
+				}
 				ImGui::PopID();
 			}
 			ImGui::EndChild();
 
 			if (add) {
-				CrimsonMusicSwitcher::AddSongToPlaylist(*playlist, addFile);
+				// Outside Per Mission the added song leaves this list, taking with it the
+				// button that would stop its audition.
+				if (playlist->mode != MUSICPLAYLISTMODE::PER_MISSION &&
+					CrimsonMusicSwitcher::IsPreviewing(addFile)) {
+					CrimsonMusicSwitcher::StopPreview();
+				}
+
+				if (playlist->mode == MUSICPLAYLISTMODE::PER_MISSION) {
+					size_t slot = playlist->songs.size();
+
+					if (s_addMission == 0) {
+						// "Next empty slot": the first gap, or the end when there is none.
+						for (size_t index = 0; index < playlist->songs.size(); ++index) {
+							if (playlist->songs[index].file.empty()) {
+								slot = index;
+								break;
+							}
+						}
+					} else {
+						slot = s_addMission - 1;
+					}
+
+					CrimsonMusicSwitcher::AddSongToPlaylistAt(*playlist, addFile, slot);
+				} else {
+					CrimsonMusicSwitcher::AddSongToPlaylist(*playlist, addFile);
+				}
+
 				CrimsonMusicSwitcher::SavePlaylist(*playlist);
 			}
 		}
@@ -8693,6 +9045,11 @@ void MusicSwitcherSection() {
 			s_nameBufferOwner.clear();
 			s_newName[0]      = '\0';
 		}
+	}
+
+	ImGui::SameLine();
+	if (GUI_Button("RESCAN FOLDER", ImVec2(150.0f * scaleFactorY, 40.0f * scaleFactorY))) {
+		CrimsonMusicSwitcher::Rescan();
 	}
 
 	ImGui::PopStyleColor();
@@ -14183,6 +14540,8 @@ std::vector<KeyBinding> keyBindings = {
     {"Move To Main Character", activeConfig.keyData[4], queuedConfig.keyData[4], defaultConfig.keyData[4], MoveToMainActor},
 	{"Freeze Enemies", activeConfig.keyData[5], queuedConfig.keyData[5], defaultConfig.keyData[5], FreezeEnemies},
 	{"Toggle Multiplayer Camera", activeConfig.keyData[6], queuedConfig.keyData[6], defaultConfig.keyData[6], ToggleMultiplayerCamera},
+	{"Previous Music Switcher Song", activeConfig.keyData[7], queuedConfig.keyData[7], defaultConfig.keyData[7], MusicSwitcherPreviousSong},
+	{"Next Music Switcher Song", activeConfig.keyData[8], queuedConfig.keyData[8], defaultConfig.keyData[8], MusicSwitcherSkipSong},
 	
 };
 
@@ -14209,13 +14568,21 @@ void HotkeysSection() {
 
 	ImVec2 startPos = ImGui::GetCursorScreenPos();
 
+	// The list grew past what a 120 px row can cover, so the step shrinks with the
+	// count instead of pushing the last rows out of the widget area.
+	const float rowStep   = 120.0f * scaleFactorY;
+	const float available = ImGui::GetContentRegionAvail().y;
+	const float step      = (available > 0.0f && keyBindings.size() * rowStep > available)
+		? available / (float)keyBindings.size()
+		: rowStep;
+
 	for_all(index, keyBindings.size()) {
 		auto& keyBinding = keyBindings[index];
 
 		ImGui::SetCursorScreenPos(startPos);
 		keyBinding.Main();
 
-		startPos.y += 120 * scaleFactorY; // <- matches ImVec2{300 * scaleFactorY, 100 * scaleFactorY} from the keybinding's button height
+		startPos.y += step; // <- matches ImVec2{300 * scaleFactorY, 100 * scaleFactorY} from the keybinding's button height
 	}
 
 	GUI_PopDisable(condition);
@@ -15227,7 +15594,9 @@ void DrawMainContent(ID3D11Device* pDevice, UI::UIContext& context) {
 
 				ImGui::TextWrapped("Replaces the game's battle themes with your own music.\n\n"
 					"Put .mp3, .ogg, .wav or .flac files in Crimson\\musicswitcher, then build playlists "
-					"here. Boss themes are not replaced yet.");
+					"here. Boss themes are not replaced yet. Turn on Include Original Game Songs to use "
+					"the tracks already shipped with the game.\n\n"
+					"PREVIEW on a row auditions a random 5 seconds of that song.");
 
 				const char* resolvedPlaylist = CrimsonMusicSwitcher::ResolvedPlaylistName();
 				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + context.DefaultFontSize * 0.8f);
@@ -17218,6 +17587,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonBetterArkham2::BlackoutArkham2OriginalScene();
 	CrimsonHUD::CheatsHUDIndicatorWindow();
 	CrimsonHUD::CheatHotkeysPopUpWindow();
+	CrimsonHUD::NowPlayingBannerWindow();
 	CrimsonHUD::StyleMeterWindows();
 	CrimsonHUD::StylishPointsWindow();
 	CrimsonHUD::MissionTimerDisplay();

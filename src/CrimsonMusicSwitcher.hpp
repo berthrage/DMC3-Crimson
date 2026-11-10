@@ -18,7 +18,11 @@ struct MusicSwitcherArtwork {
 
 // A music file found in Crimson\musicswitcher, with whatever its tags gave us.
 struct MusicSwitcherSong {
+    // Key playlists store. Songs taken from the game carry a "vanilla/" prefix so
+    // they cannot collide with a file of the same name in the Crimson folder.
     std::string fileName;
+    // Where the file actually sits, resolved when the folder is scanned.
+    std::string path;
     std::string title;
     std::string artist;
     std::string album;
@@ -30,6 +34,8 @@ struct MusicSwitcherSong {
     float peakDbfs      = -120.0f;
     float normGain      = 1.0f;
     bool  loudnessKnown = false;
+    // Comes from the game's own sound folder rather than Crimson\musicswitcher.
+    bool vanilla = false;
 
     bool HasArtwork() const {
         return artwork.insideComment || artwork.size != 0;
@@ -49,7 +55,7 @@ enum {
 // One entry of a playlist. The song file is shared, the settings are not.
 struct MusicSwitcherSongEntry {
     std::string file;
-    uint8 startMinPercent = 40;
+    uint8 startMinPercent = 20;
     uint8 startMaxPercent = 80;
     bool randomStart      = true;
 };
@@ -58,10 +64,18 @@ struct MusicSwitcherPlaylist {
     std::string name;
     std::string fileName;
     uint8 mode = MUSICPLAYLISTMODE::SEQUENTIAL;
+    // On, a battle song repeats until the fight ends. Off, this playlist moves to
+    // the next song when one finishes. Per Mission always loops.
+    bool loopThemes = true;
     std::vector<MusicSwitcherSongEntry> songs;
 };
 
 namespace CrimsonMusicSwitcher {
+// Per Mission rows: missions 1-19 get a row each and the 20th row is Bloody
+// Palace. Mission 20 is the Vergil 3 fight and the credits, so it has no row
+// yet; slots past these are unused.
+constexpr int kMissionRowCount = 19;
+constexpr int kPalaceRow       = kMissionRowCount;
 
 void Init();
 void OnTick();
@@ -91,7 +105,22 @@ bool CreatePlaylist(const std::string& name);
 // live in when the name changed.
 bool SavePlaylist(MusicSwitcherPlaylist& playlist);
 
+// Adds the song to the end of the playlist. Per Mission lists keep one row per
+// mission, so the same file may appear more than once there; the other orders
+// hold one row per file.
 void AddSongToPlaylist(MusicSwitcherPlaylist& playlist, const std::string& fileName);
+
+// Rewrites the start window of every entry in the playlist with the configured
+// defaults for new songs.
+void ApplyDefaultStartToAll(MusicSwitcherPlaylist& playlist);
+
+// Appends an empty mission slot. Only Per Mission shows gaps; the other orders
+// keep them in the file but skip them.
+void AddGapToPlaylist(MusicSwitcherPlaylist& playlist);
+
+// Adds the song to a specific mission slot: pads the list with empty slots when
+// the mission is past the end, and replaces whatever sits in that slot.
+void AddSongToPlaylistAt(MusicSwitcherPlaylist& playlist, const std::string& fileName, size_t slot);
 void RemoveSongFromPlaylist(MusicSwitcherPlaylist& playlist, size_t index);
 
 // Moves an entry to another slot, shifting the rows in between.
@@ -99,6 +128,32 @@ void MoveSongInPlaylist(MusicSwitcherPlaylist& playlist, size_t from, size_t to)
 
 bool IsPlaying();
 const char* PlayingFileName();
+// Title of the song that is playing, or "" when nothing is.
+const char* PlayingTitle();
+
+// The song behind the banner: cover art, title, artist and where it is now.
+const MusicSwitcherSong* PlayingSong();
+uint32 PlayingRevision();
+double PlayingStartedAt();
+int32 PlayingPositionMs();
+bool PlayingLoopEnabled();
+// Flips the loop setting of the pool that is playing and applies it right away.
+bool TogglePlayingLoop();
+
+// True while a song plays from a pool that has an order to step through.
+bool CanStepSong();
+
+// Moves playback to the previous/next song of the pool in use, keeping the
+// battle it was covering. Per Mission is fixed by mission and cannot step.
+bool PreviousSong();
+bool SkipSong();
+
+// Auditions the song on a track of its own: a random five second slice, started
+// from the beginning when the track is shorter than that. Any preview already
+// running is replaced. False when the file cannot be played.
+bool PreviewSong(const std::string& fileName);
+bool IsPreviewing(const std::string& fileName);
+void StopPreview();
 
 // Cover art bytes for a song. Empty when it has none.
 bool ReadArtwork(const MusicSwitcherSong& song, std::vector<uint8>& outBytes, std::string& outMimeType);

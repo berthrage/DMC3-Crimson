@@ -555,13 +555,23 @@ struct CrimsonConfig {
 		std::string danteBattlePlaylist;
 		std::string vergilBattlePlaylist;
 		bool perCharacterPools = false;
+		// Experiment: a mid-fight character swap also moves the song to the new
+		// character's pool instead of keeping the one the fight started with.
+		bool switchPlaylistOnCharacterSwap = false;
+		// Also lists the game's own music in data\dmc3\afs\sound, so vanilla tracks
+		// can be mixed into playlists.
+		bool includeVanillaSongs = false;
 		bool randomStartDefault = true;
+		// Start window every newly added song gets; the playlist rows still edit
+		// each song on their own.
+		uint8 defaultStartMinPercent = 20;
+		uint8 defaultStartMaxPercent = 80;
 		bool keepPlayingInBloodyPalace = false;
 		// Level every song is measured onto. Lower means quieter; see
 		// MusicSwitcherLoudness for how the default was arrived at.
 		float normalizeTargetLufs = MusicSwitcherLoudness::kDefaultTargetLufs;
 		bool nowPlayingBanner = true;
-		float bannerSeconds = 6.0f;
+		float bannerSeconds = 4.0f;
 		bool bannerShowArtwork = true;
 
 		static constexpr auto Metadata() {
@@ -571,7 +581,12 @@ struct CrimsonConfig {
 				std::make_pair("danteBattlePlaylist", &MusicSwitcher::danteBattlePlaylist),
 				std::make_pair("vergilBattlePlaylist", &MusicSwitcher::vergilBattlePlaylist),
 				std::make_pair("perCharacterPools", &MusicSwitcher::perCharacterPools),
+				std::make_pair("switchPlaylistOnCharacterSwap",
+					&MusicSwitcher::switchPlaylistOnCharacterSwap),
+				std::make_pair("includeVanillaSongs", &MusicSwitcher::includeVanillaSongs),
 				std::make_pair("randomStartDefault", &MusicSwitcher::randomStartDefault),
+				std::make_pair("defaultStartMinPercent", &MusicSwitcher::defaultStartMinPercent),
+				std::make_pair("defaultStartMaxPercent", &MusicSwitcher::defaultStartMaxPercent),
 				std::make_pair("keepPlayingInBloodyPalace", &MusicSwitcher::keepPlayingInBloodyPalace),
 				std::make_pair("normalizeTargetLufs", &MusicSwitcher::normalizeTargetLufs),
 				std::make_pair("nowPlayingBanner", &MusicSwitcher::nowPlayingBanner),

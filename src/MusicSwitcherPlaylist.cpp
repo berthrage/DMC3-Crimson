@@ -92,6 +92,10 @@ bool Load(const std::string& path, MusicSwitcherPlaylist& playlist) {
 
     playlist.mode = ModeFromName(JsonString(document, "mode"));
 
+    if (auto it = document.FindMember("loopThemes"); it != document.MemberEnd() && it->value.IsBool()) {
+        playlist.loopThemes = it->value.GetBool();
+    }
+
     auto songs = document.FindMember("songs");
     if (songs == document.MemberEnd() || !songs->value.IsArray()) {
         return true;
@@ -103,10 +107,12 @@ bool Load(const std::string& path, MusicSwitcherPlaylist& playlist) {
         }
 
         const char* fileName = JsonString(item, "file");
-        if (fileName == NULL || fileName[0] == '\0') {
+        if (fileName == NULL) {
             continue;
         }
 
+        // An empty name is a gap: a mission slot with no song, kept in the file so
+        // the layout survives a switch to another order.
         MusicSwitcherSongEntry entry;
         entry.file = fileName;
 
@@ -135,8 +141,9 @@ bool Save(const std::string& path, const MusicSwitcherPlaylist& playlist) {
     auto& allocator = document.GetAllocator();
 
     document.AddMember("name", Value().SetString(playlist.name.c_str(), allocator), allocator);
-    document.AddMember("version", 2, allocator);
+    document.AddMember("version", 3, allocator);
     document.AddMember("mode", Value().SetString(ModeName(playlist.mode), allocator), allocator);
+    document.AddMember("loopThemes", playlist.loopThemes, allocator);
 
     Value songs(rapidjson::kArrayType);
 

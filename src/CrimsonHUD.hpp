@@ -14,6 +14,7 @@ void InitStyleNameTextures(ID3D11Device* pd3dDevice);
 void RedOrbCounterWindow();
 void CheatsHUDIndicatorWindow();
 void CheatHotkeysPopUpWindow();
+void NowPlayingBannerWindow();
 void StyleMeterWindows();
 void StylishPointsWindow();
 void MissionTimerDisplay();

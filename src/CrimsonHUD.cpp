@@ -33,11 +33,14 @@
 #include "StyleSwitchFX.hpp"
 #include "Core/Macros.h"
 #include <deque>
+#include <algorithm>
+#include <memory>
 #include "Training.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonSDL.hpp"
 #include "CrimsonPatches.hpp"
 #include "CrimsonTimers.hpp"
+#include "CrimsonMusicSwitcher.hpp"
 #include "CrimsonUtil.hpp"
 #include "UI\EmbeddedImages.hpp"
 #include "CrimsonGUI.hpp"
@@ -97,6 +100,9 @@ struct HudViewClipGuard {
 	HudViewClipGuard& operator=(const HudViewClipGuard&) = delete;
 };
 
+
+// Kept so runtime art (album covers) can be uploaded when a song starts.
+static ID3D11Device* g_hudDevice{ nullptr };
 
 // RED ORB
 static Texture2DD3D11* RedOrbTexture{ nullptr };
@@ -1889,7 +1895,7 @@ void CheatHotkeysPopUpWindow() {
 		cheatsPopUp.popupTime -= ImGui::GetIO().DeltaTime;
 	}
 
-	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[fontSize]);
+	ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize]);
 	ImVec4 windowColor = ImColor(UI::SwapColorEndianness(gameModeData.colors[currentGameMode]));
 	windowColor.w = 0.6f; // window opacity
 	ImVec4 textColor = ImColor(UI::SwapColorEndianness(0xFFFFFFFF));
@@ -1919,6 +1925,255 @@ void CheatHotkeysPopUpWindow() {
 	ImGui::PopStyleColor(2);
 	ImGui::PopFont();
 	ImGui::End();
+}
+
+// Shrinks a title/artist until it fits, with an ellipsis when it cannot.
+static std::string FitBannerText(ImFont* font, float sizePx, const std::string& text, float maxWidth) {
+	if (font == nullptr || text.empty()) {
+		return text;
+	}
+
+	if (font->CalcTextSizeA(sizePx, FLT_MAX, 0.0f, text.c_str()).x <= maxWidth) {
+		return text;
+	}
+
+	std::string fitted = text;
+	while (!fitted.empty() &&
+		font->CalcTextSizeA(sizePx, FLT_MAX, 0.0f, (fitted + "...").c_str()).x > maxWidth) {
+		fitted.pop_back();
+	}
+
+	return fitted + "...";
+}
+
+// Now Playing banner: the song the switcher started, top left. It fades in when
+// a song starts, holds, then fades out on its own clock, not the game's.
+void NowPlayingBannerWindow() {
+	const auto& config = activeCrimsonConfig.MusicSwitcher;
+
+	if (!config.nowPlayingBanner || g_showMain || !CrimsonMusicSwitcher::IsPlaying()) {
+		return;
+	}
+
+	static uint32 bannerRevision = 0;
+	static double bannerShownAt  = 0.0;
+	static uint32 artRevision    = 0;
+	static std::unique_ptr<Texture2DD3D11> coverArt;
+
+	const uint32 revision = CrimsonMusicSwitcher::PlayingRevision();
+	const double now      = ImGui::GetTime();
+
+	if (revision != bannerRevision) {
+		bannerRevision = revision;
+		bannerShownAt  = now;
+	}
+
+	const float visibleSeconds = (config.bannerSeconds > 1.0f) ? config.bannerSeconds : 4.0f;
+	const double elapsed       = now - bannerShownAt;
+
+	if (elapsed < 0.0 || elapsed > visibleSeconds) {
+		return;
+	}
+
+	constexpr float kFadeInSeconds  = 0.35f;
+	constexpr float kFadeOutSeconds = 1.0f;
+
+	float alpha = 1.0f;
+	if (elapsed < kFadeInSeconds) {
+		alpha = static_cast<float>(elapsed) / kFadeInSeconds;
+	} else if (visibleSeconds - elapsed < kFadeOutSeconds) {
+		alpha = static_cast<float>((visibleSeconds - elapsed) / kFadeOutSeconds);
+	}
+	alpha = std::clamp(alpha, 0.0f, 1.0f);
+
+	const MusicSwitcherSong* song = CrimsonMusicSwitcher::PlayingSong();
+
+	if (song == NULL || alpha <= 0.0f) {
+		return;
+	}
+
+	// Cover art is uploaded once per song and released by the next one.
+	if (revision != artRevision) {
+		artRevision = revision;
+		coverArt.reset();
+
+		if (config.bannerShowArtwork && song->HasArtwork() && g_hudDevice != nullptr) {
+			std::vector<uint8> bytes;
+			std::string mime;
+
+			if (CrimsonMusicSwitcher::ReadArtwork(*song, bytes, mime) && !bytes.empty()) {
+				auto texture = std::make_unique<Texture2DD3D11>(bytes.data(), bytes.size(), g_hudDevice);
+				if (texture->IsValid()) {
+					coverArt = std::move(texture);
+				}
+			}
+		}
+	}
+
+	const float scaleX = CrimsonGUI::scaleFactorX;
+	const float scaleY = CrimsonGUI::scaleFactorY;
+
+	const ImVec2 size(429.0f * scaleX, 129.0f * scaleY);
+	const ImVec2 pos(g_uiSize.x - size.x - 18.0f * scaleX, 18.0f * scaleY);
+
+	ImGui::SetNextWindowPos(pos);
+	ImGui::SetNextWindowSize(size);
+
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing |
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground;
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+	ImGui::Begin("NowPlayingBanner", nullptr, flags);
+
+	// The red orb counter and the cheat readouts also live at the top; ImGui draws
+	// windows by focus order, so ask for the front explicitly.
+	ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow());
+
+	ImGui::SetWindowFontScale(scaleY);
+
+	ImDrawList* drawList = ImGui::GetWindowDrawList();
+	const ImVec2 origin  = ImGui::GetWindowPos();
+	const ImVec2 farCorner = ImVec2(origin.x + size.x, origin.y + size.y);
+
+	// The overlay's own panel colour, edged with the Crimson red.
+	const float rounding = 6.0f * scaleY;
+	const ImU32 bgColor  = ImGui::GetColorU32(ImVec4(0.169f, 0.125f, 0.133f, 0.92f * alpha));
+	const ImU32 edgeColor = ImGui::GetColorU32(ImVec4(0.855f, 0.106f, 0.325f, 0.85f * alpha));
+	const ImU32 barBack   = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f * alpha));
+	const ImU32 barFill   = ImGui::GetColorU32(ImVec4(0.855f, 0.106f, 0.325f, alpha));
+
+	drawList->AddRectFilled(origin, farCorner, bgColor, rounding);
+	drawList->AddRect(origin, farCorner, edgeColor, rounding, 15, 1.5f * scaleY);
+
+	const float pad     = 12.0f * scaleY;
+	const float artSize = 105.0f * scaleY;
+	const float textRight = farCorner.x - pad;
+
+	float textLeft = origin.x + pad;
+
+	if (config.bannerShowArtwork && coverArt != nullptr) {
+		const ImVec2 artMin(origin.x + pad, origin.y + (size.y - artSize) * 0.5f);
+
+		drawList->AddImage((ImTextureID)coverArt->GetTexture(), artMin,
+			ImVec2(artMin.x + artSize, artMin.y + artSize), ImVec2(0, 0), ImVec2(1, 1),
+			ImGui::GetColorU32(ImVec4(1, 1, 1, alpha)));
+
+		textLeft = artMin.x + artSize + pad;
+	}
+
+	ImFont* titleFont  = UI::g_ImGuiFont_Benguiat[24.0f];
+	ImFont* artistFont = UI::g_ImGuiFont_Benguiat[16.0f];
+	ImFont* smallFont  = UI::g_ImGuiFont_Benguiat[14.0f];
+
+	const float titleSize  = titleFont->FontSize * scaleY;
+	const float artistSize = artistFont->FontSize * scaleY;
+	const float smallSize  = smallFont->FontSize * scaleY;
+
+	const float titleY  = origin.y + 10.0f * scaleY;
+	const float artistY = titleY + titleSize + 2.0f * scaleY;
+
+	const std::string title = FitBannerText(titleFont, titleSize, song->title, textRight - textLeft);
+
+	const std::string& artistSource = !song->artist.empty() ? song->artist : song->album;
+	const std::string artist = FitBannerText(artistFont, artistSize, artistSource, textRight - textLeft);
+
+	drawList->AddText(titleFont, titleSize, ImVec2(textLeft, titleY),
+		ImGui::GetColorU32(ImVec4(1, 1, 1, alpha)), title.c_str());
+
+	if (!artist.empty()) {
+		drawList->AddText(artistFont, artistSize, ImVec2(textLeft, artistY),
+			ImGui::GetColorU32(ImVec4(0.82f, 0.8f, 0.84f, alpha)), artist.c_str());
+	}
+
+	const int32 durationMs = song->durationMs;
+	const int32 positionMs = CrimsonMusicSwitcher::PlayingPositionMs();
+
+	float progress = 0.0f;
+	if (durationMs > 0) {
+		progress = std::clamp(positionMs / static_cast<float>(durationMs), 0.0f, 1.0f);
+	}
+
+	const float barY = artistY + artistSize + 8.0f * scaleY;
+	const float barH = 5.0f * scaleY;
+	const float barW = textRight - textLeft;
+
+	drawList->AddRectFilled(ImVec2(textLeft, barY), ImVec2(textLeft + barW, barY + barH), barBack, barH);
+
+	if (progress > 0.0f) {
+		drawList->AddRectFilled(ImVec2(textLeft, barY), ImVec2(textLeft + barW * progress, barY + barH),
+			barFill, barH);
+	}
+
+	if (durationMs > 0) {
+		char timeText[48];
+		snprintf(timeText, sizeof(timeText), "%d:%02d / %d:%02d", positionMs / 60000,
+			(positionMs / 1000) % 60, durationMs / 60000, (durationMs / 1000) % 60);
+
+		const ImVec2 timeSize = smallFont->CalcTextSizeA(smallSize, FLT_MAX, 0.0f, timeText);
+
+		drawList->AddText(smallFont, smallSize,
+			ImVec2(textRight - timeSize.x, barY + barH + 3.0f * scaleY),
+			ImGui::GetColorU32(ImVec4(0.72f, 0.7f, 0.73f, alpha)), timeText);
+	}
+
+	// Placeholder transport controls until proper icons exist.
+	ImGui::PushFont(smallFont);
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.855f, 0.106f, 0.325f, 0.5f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.855f, 0.106f, 0.325f, 0.8f));
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.855f, 0.106f, 0.325f, 1.0f));
+
+	const ImVec2 buttonSize(78.0f * scaleY, 24.0f * scaleY);
+	const float buttonsY = barY + barH + 20.0f * scaleY;
+
+	ImGui::SetCursorScreenPos(ImVec2(textLeft, buttonsY));
+
+	char loopLabel[24];
+	snprintf(loopLabel, sizeof(loopLabel), "LOOP %s", CrimsonMusicSwitcher::PlayingLoopEnabled() ? "ON" : "OFF");
+
+	if (ImGui::Button(loopLabel, buttonSize)) {
+		if (CrimsonMusicSwitcher::TogglePlayingLoop()) {
+			bannerShownAt = ImGui::GetTime();
+		}
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("PREV", buttonSize)) {
+		if (CrimsonMusicSwitcher::PreviousSong()) {
+			bannerShownAt = ImGui::GetTime();
+		}
+	}
+
+	ImGui::SameLine();
+	if (ImGui::Button("NEXT", buttonSize)) {
+		if (CrimsonMusicSwitcher::SkipSong()) {
+			bannerShownAt = ImGui::GetTime();
+		}
+	}
+
+	ImGui::PopStyleColor(3);
+	ImGui::PopStyleVar();
+	ImGui::PopFont();
+
+	// Just a maker's mark, bottom right.
+	ImFont* labelFont = UI::g_ImGuiFont_Benguiat[11.0f];
+	const float labelSize = labelFont->FontSize * scaleY;
+	const char* label = "MUSIC SWITCHER";
+	const ImVec2 labelExtent = labelFont->CalcTextSizeA(labelSize, FLT_MAX, 0.0f, label);
+
+	drawList->AddText(labelFont, labelSize,
+		ImVec2(farCorner.x - pad - labelExtent.x, origin.y + size.y - pad * 0.6f - labelSize),
+		ImGui::GetColorU32(ImVec4(0.62f, 0.62f, 0.65f, 0.32f * alpha)), label);
+
+	ImGui::End();
+	ImGui::PopStyleVar(2);
+	ImGui::PopStyleColor(2);
 }
 
 
@@ -4402,6 +4657,8 @@ void WorldSpacePlayerIcons(const PlayerActorData& actorData, const char* name, c
 
 
 void InitTextures(ID3D11Device* pd3dDevice) {
+	g_hudDevice = pd3dDevice;
+
 	InitRedOrbTexture(pd3dDevice);
 	InitStyleRankTextures(pd3dDevice);
 	InitLockOnTexture(pd3dDevice);

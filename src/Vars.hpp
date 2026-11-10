@@ -176,7 +176,7 @@ enum {
     RANGED_WEAPON_COUNT_DANTE = 5,
     CREATE_ENEMY_COUNT        = 30,
     SAVE_COUNT                = 10,
-    HOTKEY_COUNT              = 7,
+    HOTKEY_COUNT              = 9,
 };
 
 
