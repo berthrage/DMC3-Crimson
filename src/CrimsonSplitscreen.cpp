@@ -43,12 +43,15 @@ struct Render {
 	ID3D11DeviceContext* deviceContext; // 0x10
 	IDXGISwapChain* swapChain;          // 0x18
 	RenderTarget renderTargets[28];     // 0x20
+	char pad1[0x128];                   // 0x1280
+	ID3D11Texture2D* ghostTexture;      // 0x13A8 previous frame the ghosting pass samples
 };
 
 constexpr uintptr_t RENDER_OFFSET           = 0xC0B410;
 constexpr uintptr_t CAMERA_CTRL_PTR_OFFSET  = 0xC8FBD0;
 constexpr uintptr_t SCENE_STATE_PTR_OFFSET  = 0xCF2330;
 constexpr uintptr_t SUBMIT_DRAW_LIST_OFFSET = 0x32D8C0;
+constexpr uintptr_t RESOLVE_FRAME_OFFSET       = 0x427B0; // ResolveFrame_sub_1400427B0
 constexpr uintptr_t UPDATE_PLAYER_INPUT_OFFSET = 0x1EBCF0;
 constexpr uintptr_t UPDATE_MIST_OFFSET         = 0x31AE10;
 constexpr size_t SCENE_CAMERA_MATRIX = 0x100; // pSceneStateCursor_140CF2330: 4x4 view matrix of the current tick
@@ -155,6 +158,24 @@ struct Cells {
 Cells s_cells;
 int s_lastViewCount = 0;
 
+// The ghosting pass blends the game's ghost target, which holds the previous presented frame. Frames
+// alternate between players, so every view would ghost the other player's view: each player's last
+// view is kept here and handed to the ghost target for that player's frame.
+struct GhostViews {
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex[PLAYER_COUNT];
+	bool valid[PLAYER_COUNT] = {};
+	UINT width = 0;
+	UINT height = 0;
+	UINT mips = 0;
+	DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+};
+GhostViews s_ghostViews;
+// The game's own ghost texture while one of the saved views stands in for it.
+ID3D11Texture2D* s_ghostGameTexture = nullptr;
+ID3D11Texture2D* s_ghostInstalledTexture = nullptr;
+
+void RestoreGhostTarget();
+
 // Saved camera state per player, see CAM_REGION_SIZE.
 struct CameraSlots {
 	uint8_t state[PLAYER_COUNT][CAM_REGION_COUNT][CAM_MAX_REGION_SIZE] = {};
@@ -185,6 +206,7 @@ typedef void(__fastcall* UpdateMistFn)(__int64, uint8_t*);
 typedef void(__fastcall* CockpitFn)(uint8_t*);
 typedef __int64(__fastcall* UpdateCameraFn)(__int64);
 typedef __int64(__fastcall* UpdateCameraCtrlFn)(uint8_t*);
+typedef __int64(__fastcall* ResolveFrameFn)(__int64);
 std::unique_ptr<Utility::Detour_t> s_submitDrawListHook;
 std::unique_ptr<Utility::Detour_t> s_updatePlayerInputHook;
 std::unique_ptr<Utility::Detour_t> s_updateMistHook;
@@ -193,6 +215,7 @@ std::unique_ptr<Utility::Detour_t> s_lockOnCursorUpdateHook;
 std::unique_ptr<Utility::Detour_t> s_updateCameraOrbitHook;
 std::unique_ptr<Utility::Detour_t> s_updateCameraBossHook;
 std::unique_ptr<Utility::Detour_t> s_updateCameraCtrlHook;
+std::unique_ptr<Utility::Detour_t> s_resolveFrameHook;
 
 // g_viewedCameraPlayer is advanced right after every drawn frame, so while a
 // frame is being drawn it still holds the player that frame was built for.
@@ -230,9 +253,11 @@ int s_lastCameraIndex[PLAYER_COUNT] = { -1, -1, -1, -1 };
 
 void ResetSplitState() {
 	s_mistCameraMatrixValid = false;
+	RestoreGhostTarget();
 	for (int p = 0; p < PLAYER_COUNT; ++p) {
 		s_camSlots.valid[p]        = false;
 		s_cells.valid[p]           = false;
+		s_ghostViews.valid[p]      = false;
 		g_splitscreenCamCopyValid[p] = false;
 		s_projectionSlots.valid[p] = false;
 		s_lastCameraIndex[p]       = -1;
@@ -501,6 +526,71 @@ bool CreateCells(Render* render, const D3D11_TEXTURE2D_DESC& frameDesc, bool qua
 	return true;
 }
 
+bool GhostingEnabled() {
+	return activeCrimsonConfig.System.BlendingEffects.ghosting && !activeCrimsonConfig.System.BlendingEffects.disableAll;
+}
+
+bool CreateGhostViews(ID3D11Device* device, const D3D11_TEXTURE2D_DESC& frameDesc) {
+	s_ghostViews = GhostViews{};
+	D3D11_TEXTURE2D_DESC desc{};
+	desc.Width            = frameDesc.Width;
+	desc.Height           = frameDesc.Height;
+	desc.MipLevels        = frameDesc.MipLevels;
+	desc.ArraySize        = 1;
+	desc.Format           = TypedFormat(frameDesc.Format);
+	desc.SampleDesc.Count = 1;
+	desc.Usage            = D3D11_USAGE_DEFAULT;
+	for (int i = 0; i < PLAYER_COUNT; ++i) {
+		if (FAILED(device->CreateTexture2D(&desc, nullptr, s_ghostViews.tex[i].GetAddressOf()))) {
+			return false;
+		}
+	}
+	s_ghostViews.width  = desc.Width;
+	s_ghostViews.height = desc.Height;
+	s_ghostViews.mips   = desc.MipLevels;
+	s_ghostViews.format = frameDesc.Format;
+	return true;
+}
+
+// Keeps the view this frame was built for, before the cells are composited over the frame.
+void CaptureGhostView(Render* render, ID3D11Texture2D* frame, const D3D11_TEXTURE2D_DESC& frameDesc, int player) {
+	if (!s_ghostViews.tex[0] || s_ghostViews.width != frameDesc.Width || s_ghostViews.height != frameDesc.Height ||
+		s_ghostViews.mips != frameDesc.MipLevels || s_ghostViews.format != frameDesc.Format) {
+		if (!CreateGhostViews(render->device, frameDesc)) {
+			return;
+		}
+	}
+	render->deviceContext->CopySubresourceRegion(s_ghostViews.tex[player].Get(), 0, 0, 0, 0, frame, 0, nullptr);
+	s_ghostViews.valid[player] = true;
+}
+
+// Hands the ghosting pass player's own last view instead of the frame the other player drew.
+void InstallGhostView(int player) {
+	if (s_ghostInstalledTexture || player < 0 || player >= PLAYER_COUNT || !s_ghostViews.valid[player]) {
+		return;
+	}
+	auto* render = reinterpret_cast<Render*>(appBaseAddr + RENDER_OFFSET);
+	if (!render->ghostTexture) {
+		return;
+	}
+	s_ghostGameTexture = render->ghostTexture;
+	s_ghostInstalledTexture = s_ghostViews.tex[player].Get();
+	render->ghostTexture = s_ghostInstalledTexture;
+}
+
+// Puts the game's own ghost texture back so the end of frame copy lands where the game expects it.
+void RestoreGhostTarget() {
+	if (!s_ghostInstalledTexture) {
+		return;
+	}
+	auto* render = reinterpret_cast<Render*>(appBaseAddr + RENDER_OFFSET);
+	if (render->ghostTexture == s_ghostInstalledTexture) {
+		render->ghostTexture = s_ghostGameTexture;
+	}
+	s_ghostGameTexture = nullptr;
+	s_ghostInstalledTexture = nullptr;
+}
+
 void Composite(Render* render, int player, int viewCount) {
 	ID3D11Texture2D* frame = render->renderTargets[0].texture;
 	D3D11_TEXTURE2D_DESC desc{};
@@ -522,6 +612,10 @@ void Composite(Render* render, int player, int viewCount) {
 	auto* ctx = render->deviceContext;
 	const UINT cellW = desc.Width / 2;
 	const UINT cellH = quads ? desc.Height / 2 : desc.Height;
+
+	if (GhostingEnabled()) {
+		CaptureGhostView(render, frame, desc, player);
+	}
 
 	if (quads && s_cells.mipSource) {
 		ctx->CopySubresourceRegion(s_cells.mipSource.Get(), 0, 0, 0, 0, frame, 0, nullptr);
@@ -574,8 +668,20 @@ __int64 __fastcall SubmitDrawListHook(int a1) {
 			std::memcpy(s_projectionSlots.matrix[player], scene + SCENE_PROJECTION_MATRIX, SCENE_CAMERA_MATRIX_SIZE);
 			s_projectionSlots.valid[player] = true;
 		}
+		RestoreGhostTarget();
 		Composite(render, player, viewCount);
 		SwapCameraState(cameraCtrl, player, viewCount);
+	}
+	return result;
+}
+
+// ResolveFrame_sub_1400427B0 copies the finished frame into the game's ghost target. The next frame is
+// built for another player, so it gets that player's own last view from there on.
+__int64 __fastcall ResolveFrameHook(__int64 render) {
+	const auto original = s_resolveFrameHook->GetTrampoline<ResolveFrameFn>();
+	const __int64 result = original(render);
+	if (GhostingEnabled() && CrimsonSplitscreen::ViewCount() >= 2) {
+		InstallGhostView(FramePlayer());
 	}
 	return result;
 }
@@ -1344,6 +1450,10 @@ void InitHooks() {
 	s_updateCameraCtrlHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + UPDATE_CAMERA_CTRL_OFFSET, &UpdateCameraCtrlHook, 0, "UpdateCameraCtrl_sub_140055B90");
 	s_updateCameraCtrlHook->Toggle(true);
+
+	s_resolveFrameHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + RESOLVE_FRAME_OFFSET, &ResolveFrameHook, 0, "ResolveFrame_sub_1400427B0");
+	s_resolveFrameHook->Toggle(true);
 }
 
 } // namespace CrimsonSplitscreen
