@@ -1,6 +1,7 @@
 // Note: "Actor System" refers to the Crimson Character System (CCS) in the UI
 #include <thread>
 #include <chrono>
+#include <cstring>
 #include <math.h>
 #include <ctime>
 #include <iostream>
@@ -40,6 +41,7 @@
 #include "CrimsonEfk.hpp"
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
+#include "CrimsonHighFPSFixes.hpp"
 // @Remove
 #define g_enableLockOnFixes true
 
@@ -2227,7 +2229,7 @@ void UpdateActorDante(PlayerActorDataDante& actorData) {
         }
     }
 
-    // func_2EE060(actorData.var_6410, 60);
+    // func_2EE060(actorData.inputHistory, 60);
     // /*
     // dmc3.exe+2134C6 - 48 8D 8E 10640000 - lea rcx,[rsi+00006410]
     // dmc3.exe+2134CD - BA 3C000000       - mov edx,0000003C
@@ -2584,7 +2586,14 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
 	}
 
     //auto actorBaseAddr = CreatePlayerCharFunc(selectedCharacter, 0, false);
-    auto actorBaseAddr = CreatePlayerCharFunc_1DE820(selectedCharacter, 0, false);
+    // The actor id stays 0: the engine uses it as the player-actor pool index for
+    // lock-on and only vanilla's own Doppelganger populates slot 1.
+    // With Adv. Doppelganger off the clone is a real vanilla clone (isClone = 1), so the engine applies
+    // every clone restriction and clone animation it has (see CPlIsClone_sub_1401F78B0).
+    bool vanillaDoppelgangerClone = (entityIndex == ENTITY::CLONE) && !arkham2Actor &&
+                                    (selectedCharacter == CHARACTER::DANTE) &&
+                                    !activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+    auto actorBaseAddr = CreatePlayerCharFunc_1DE820(selectedCharacter, 0, vanillaDoppelgangerClone);
     if (!actorBaseAddr) {
         return 0;
     }
@@ -2687,7 +2696,7 @@ template <typename T> byte8* CreatePlayerActor(uint8 playerIndex, uint8 characte
     }
 
     if (entityIndex == ENTITY::MAIN) {
-        func_2EE060(actorData.var_6410, 60);
+        func_2EE060(actorData.inputHistory, 60);
         /*
         dmc3.exe+2134C6 - 48 8D 8E 10640000 - lea rcx,[rsi+00006410]
         dmc3.exe+2134CD - BA 3C000000       - mov edx,0000003C
@@ -2958,7 +2967,19 @@ void SpawnActors() {
                 continue;
             }
 
-            actorData.cloneActorBaseAddr = SpawnActor(playerIndex, characterIndex, ENTITY::CLONE);
+            bool vanillaDoppelganger = (characterData.character == CHARACTER::DANTE) &&
+                !activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+            if (vanillaDoppelganger) {
+                // Vanilla's Doppelganger is a plain Dante that shares the main's loadout; it has no
+                // loadout of its own, so the CCS Doppelganger tab is ignored.
+                auto& cloneCharacterData         = GetCharacterData(playerIndex, characterIndex, ENTITY::CLONE);
+                CharacterData savedCharacterData = cloneCharacterData;
+                cloneCharacterData               = characterData;
+                actorData.cloneActorBaseAddr = SpawnActor(playerIndex, characterIndex, ENTITY::CLONE);
+                cloneCharacterData           = savedCharacterData;
+            } else {
+                actorData.cloneActorBaseAddr = SpawnActor(playerIndex, characterIndex, ENTITY::CLONE);
+            }
         }
     }
 
@@ -3111,6 +3132,76 @@ void DeactivateDevilHaywire(PlayerActorData& actorData) {
     }
 }
 
+// CPlSetModelEffectMode_sub_1401FCB10: mode 6 is the dark overlay vanilla puts on its clone, coloured by
+// the VFX Colors "Doppelganger" entry (read at dmc3.exe+1FCD73); mode 7 clears it. UpdatePlayerActorInput
+// only asks for 6 on a real clone (isClone), so the CCS clone is switched over to it.
+static uint32 g_doppelgangerOverlayColor[PLAYER_COUNT][CHARACTER_COUNT] = {};
+
+// Dante's clone follows Adv. Doppelganger, Vergil's follows Mirage Trigger.
+static bool IsDoppelgangerOverlayEnabled(uint8 character) {
+    if (character == CHARACTER::DANTE) {
+        return activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+    }
+    if (character == CHARACTER::VERGIL) {
+        return activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger;
+    }
+    return false;
+}
+
+static bool IsDoppelgangerOverlayClone(PlayerActorData& actorData) {
+    return actorData.newIsClone && actorData.newEntityIndex == ENTITY::CLONE &&
+           actorData.newPlayerIndex < PLAYER_COUNT && actorData.newCharacterIndex < CHARACTER_COUNT &&
+           IsDoppelgangerOverlayEnabled(actorData.character);
+}
+
+static uint32 GetDoppelgangerOverlayColor(uint8 character) {
+    return (character == CHARACTER::VERGIL) ? *reinterpret_cast<uint32*>(activeConfig.Color.Doppelganger.vergilClone)
+                                            : *reinterpret_cast<uint32*>(activeConfig.Color.Doppelganger.clone);
+}
+
+// Replaces the constant mode 6 stores at dmc3.exe+1FCD73 (actor+0x3A28, the overlay colour), so each
+// character's clone takes its own entry from the VFX Colors tab.
+void SetCloneOverlayColor(byte8* actorBaseAddr) {
+    if (!actorBaseAddr) {
+        return;
+    }
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    actorData.color = GetDoppelgangerOverlayColor(actorData.character);
+}
+
+static void ApplyDoppelgangerOverlay(PlayerActorData& cloneActorData) {
+    using SetModelEffectMode_t = uint64(__fastcall*)(byte8*, uint32, int32, float);
+    reinterpret_cast<SetModelEffectMode_t>(appBaseAddr + 0x1FCB10)(cloneActorData, 6, 0, 0.0f);
+
+    if (cloneActorData.newPlayerIndex < PLAYER_COUNT && cloneActorData.newCharacterIndex < CHARACTER_COUNT) {
+        g_doppelgangerOverlayColor[cloneActorData.newPlayerIndex][cloneActorData.newCharacterIndex] =
+            GetDoppelgangerOverlayColor(cloneActorData.character);
+    }
+}
+
+uint64 SetModelEffectModeWrapper(byte8* actorBaseAddr, uint32 mode, int32 color, float param) {
+    using SetModelEffectMode_t = uint64(__fastcall*)(byte8*, uint32, int32, float);
+
+    bool overlayClone = false;
+    if (mode == 7 && actorBaseAddr && activeConfig.Actor.enable) {
+        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        if (IsDoppelgangerOverlayClone(actorData)) {
+            mode         = 6;
+            overlayClone = true;
+        }
+    }
+
+    auto result = reinterpret_cast<SetModelEffectMode_t>(appBaseAddr + 0x1FCB10)(actorBaseAddr, mode, color, param);
+
+    if (overlayClone) {
+        auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+        g_doppelgangerOverlayColor[actorData.newPlayerIndex][actorData.newCharacterIndex] =
+            GetDoppelgangerOverlayColor(actorData.character);
+    }
+
+    return result;
+}
+
 void ActivateDoppelganger(PlayerActorData& actorData) {
     LogFunction(actorData.operator byte8*());
     auto& characterData = GetCharacterData(actorData);
@@ -3123,6 +3214,7 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     auto weapon              = GetMeleeWeapon(actorData);
 
     SetMemory(actorData.var_6438, 0, (actorData.var_6440 * 46));
+    CrimsonHighFPSFixes::DoppelgangerInputHistoryReset(actorData.inputHistory);
     /*
     dmc3.exe+1E9222 - 33 D2             - xor edx,edx
     dmc3.exe+1E92A3 - 48 63 87 40640000 - movsxd rax,dword ptr [rdi+00006440]
@@ -3131,12 +3223,37 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
     dmc3.exe+1E92B5 - E8 30D91500       - call dmc3.exe+346BEA
     */
 
-    actorData.cloneRate = 0;
+    // Keep the player-selected Doppelganger delay on resummon; vanilla resets it
+    // to the fastest setting, but the Adv. Doppelganger exposes it as a setting.
+    if ((!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger &&
+        !activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger) || actorData.cloneRate > 2) {
+        actorData.cloneRate = 0;
+    }
     if (cloneActorData.character == CHARACTER::DANTE) {
         cloneActorData.meleeWeaponIndex  = actorData.meleeWeaponIndex;
         cloneActorData.rangedWeaponIndex = actorData.rangedWeaponIndex;
         crimsonPlayer[cloneActorData.newPlayerIndex].lockCloneStyle = false;
+
+        if (activeCrimsonGameplay.Gameplay.Dante.advDoppelganger && activeConfig.Actor.enable) {
+            ApplyDoppelgangerOverlay(cloneActorData);
+        }
+
+        // Vanilla: summoning the Doppelganger cancels an active Devil Trigger.
+        if (!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger && actorData.devil) {
+            actorData.devil   = false;
+            actorData.var_3EC4 = *reinterpret_cast<float*>(actorData.actionData[3] + 0x1F0);
+            DeactivateDevil(actorData, false);
+        }
+
+        // The vanilla clone can't switch styles; it keeps the style it was summoned with.
+        if (!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
+            cloneActorData.style      = actorData.style;
+            cloneActorData.styleLevel = heldStyleExpDataDante.missionStyleLevels[actorData.style];
+        }
     } else if (cloneActorData.character == CHARACTER::VERGIL) {
+        if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger && activeConfig.Actor.enable) {
+            ApplyDoppelgangerOverlay(cloneActorData);
+        }
         cloneCharacterData.meleeWeaponCount = 3;
         cloneCharacterData.meleeWeapons[0] = WEAPON::YAMATO_VERGIL;
         cloneCharacterData.meleeWeapons[1] = WEAPON::BEOWULF_VERGIL;
@@ -3179,7 +3296,9 @@ void ActivateDoppelganger(PlayerActorData& actorData) {
 // 		}
 //     }
     
-    CrimsonSDL::PlayDoppelgangerIn(actorData.newPlayerIndex);
+    if (activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
+        CrimsonSDL::PlayDoppelgangerIn(actorData.newPlayerIndex);
+    }
 	// Elec Loop VFX on Doppel -- WIP
 // 	createEffectBank = 3;
 // 	createEffectID = 60;
@@ -3207,7 +3326,8 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
         //checks if lockon held
         bool lockOnDown = (gamepad.buttons[0] & GetBinding(BINDING::LOCK_ON)) != 0;
         //the cloneStatus check makes sure this is a dante decomission vs cutscene decomission.
-        if (!lockOnDown && actorData.cloneStatus != CLONE_STATUS::ACTIVE && activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync) {
+        if (!lockOnDown && actorData.cloneStatus != CLONE_STATUS::ACTIVE && activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync &&
+            activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
             actorData.cloneStatus = CLONE_STATUS::ACTIVE;
             return;
         }
@@ -3232,7 +3352,9 @@ void DeactivateDoppelganger(PlayerActorData& actorData) {
 
     EndMotion(cloneActorData);
 
-    CrimsonSDL::PlayDoppelgangerOut(actorData.newPlayerIndex);
+    if (activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
+        CrimsonSDL::PlayDoppelgangerOut(actorData.newPlayerIndex);
+    }
     actorData.doppelganger = false;
     
 }
@@ -3349,7 +3471,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     auto& gamepad = GetGamepad(actorData.newGamepad);
     bool styleDown = (gamepad.buttons[0] & GetBinding(BINDING::STYLE_ACTION)) != 0;
     if (actorData.character == CHARACTER::DANTE && actorData.style == STYLE::DOPPELGANGER) {
-        if (styleDown && actorData.newEntityIndex == ENTITY::MAIN) {
+        if (styleDown && actorData.newEntityIndex == ENTITY::MAIN && activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
             crimsonPlayer[playerIndex].lockCloneStyle = true;
             return;
         }
@@ -3472,11 +3594,214 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
     hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 }
 
+// Vanilla's Doppelganger repurposes Devil Trigger while the clone is out: the transformation is
+// blocked and the button adjusts the clone's input delay. Crimson's Doppelganger leaves DT alone, so
+// this only applies to Dante with Adv. Doppelganger off.
+bool UsesVanillaDoppelgangerDT(PlayerActorData& actorData) {
+    return (actorData.character == CHARACTER::DANTE) && !activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+}
+
+// Replaces the check at dmc3.exe+1E776E: [actor+6362] set means the vanilla early out.
+bool DoppelgangerBlocksDevilTrigger(PlayerActorData& actorData) {
+    return actorData.doppelganger && UsesVanillaDoppelgangerDT(actorData);
+}
+
+static constexpr uint32 kDoppelgangerInputSnapshotSize = 0x2E;
+static constexpr uint32 kDoppelgangerInputDelayFrames[3] = {1, 30, 60};
+
+struct DoppelgangerDelayTapState {
+    bool pending = false;
+    std::chrono::steady_clock::time_point lastTap = {};
+};
+
+static DoppelgangerDelayTapState g_doppelgangerDelayTap[PLAYER_COUNT][CHARACTER_COUNT];
+static constexpr long long kDoppelgangerDelayTapWindowMs = 250;
+
+// Copies the main's recorded input, delayed by cloneRate, into the clone's input block, the same
+// as the engine does in PreCPlController (dmc3.exe+1F8927).
+void ReplayDelayedInputToClone(PlayerActorData& mainActorData) {
+    if (!mainActorData.cloneActorBaseAddr) {
+        return;
+    }
+
+    // 0x6410 is the engine's input history: +0x28 buffer, +0x3C ready flag.
+    auto historyBuffer = *reinterpret_cast<byte8**>(mainActorData.inputHistory + 0x28);
+    bool historyReady  = *reinterpret_cast<byte8*>(mainActorData.inputHistory + 0x3C) != 0;
+    if (!historyReady || !historyBuffer) {
+        return;
+    }
+
+    uint32 delayIndex = mainActorData.cloneRate;
+    if (delayIndex > 2) {
+        delayIndex = 0;
+    }
+    auto snapshot = CrimsonHighFPSFixes::DoppelgangerInputHistoryGetDelayed(
+        mainActorData.inputHistory, -static_cast<int32>(kDoppelgangerInputDelayFrames[delayIndex]));
+    memcpy(mainActorData.cloneActorBaseAddr + 0x74E0, snapshot, kDoppelgangerInputSnapshotSize);
+}
+
+// Stands in for the calls to UpdatePlayerInput_sub_1401EBCF0 (dmc3.exe+1F84F1, +1F7C05). The clone's
+// own update refills its input from the live pad, which would cancel the Doppelganger delay, so the
+// delayed snapshot is put back as soon as it returns.
+uint64 UpdatePlayerInputWrapper(byte8* actorBaseAddr) {
+    using UpdatePlayerInput_t = uint64(__fastcall*)(byte8*);
+    auto result = reinterpret_cast<UpdatePlayerInput_t>(appBaseAddr + 0x1EBCF0)(actorBaseAddr);
+
+    if (!activeConfig.Actor.enable || !actorBaseAddr) {
+        return result;
+    }
+    auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+    if (!actorData.newIsClone || actorData.newEntityIndex != ENTITY::CLONE) {
+        return result;
+    }
+
+    auto mainBase = GetNewActorData(actorData.newPlayerIndex, actorData.newCharacterIndex, ENTITY::MAIN).baseAddr;
+    if (!mainBase) {
+        return result;
+    }
+    auto& mainData = *reinterpret_cast<PlayerActorData*>(mainBase);
+    // Mirage Trigger activates from C++ and never marks the clone status active, only the doppelganger flag.
+    bool cloneOut = mainData.cloneStatus == CLONE_STATUS::ACTIVE || mainData.doppelganger;
+    if (mainData.cloneActorBaseAddr == actorBaseAddr && cloneOut) {
+        static uint32 s_loggedRate = 0xFFFFFFFF;
+        if (s_loggedRate != mainData.cloneRate) {
+            s_loggedRate = mainData.cloneRate;
+            Log("Doppelganger delayed input applied to clone (rate %u)", mainData.cloneRate);
+        }
+        ReplayDelayedInputToClone(mainData);
+    }
+
+    return result;
+}
+
+// Drives the CCS Doppelganger input delay. Records the main actor's input in the
+// engine history ring and replays it to the clone with the selected delay, even
+// after leaving the Doppelganger style. For Dante, double-tap D-pad Left cycles
+// the delay; a single tap still switches to Gunslinger.
+void DoppelgangerInputDelayController(PlayerActorData& actorData) {
+    if (actorData.newEntityIndex != ENTITY::MAIN) {
+        return;
+    }
+
+    // Every clone skips UpdatePlayerInput's live refill now, so drive all of them
+    // from the recorded ring (1 frame by default, same as vanilla).
+    if (!actorData.cloneActorBaseAddr) {
+        return;
+    }
+    bool danteEnabled = actorData.character == CHARACTER::DANTE &&
+        activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+
+    // Vanilla Doppelganger: the Devil Trigger button cycles the delay (dmc3.exe+1E8F00). Crimson
+    // patches out the original call in UpdatePlayerAI (+1E25C8), so it is made here instead.
+    if (UsesVanillaDoppelgangerDT(actorData) && actorData.doppelganger && actorData.quicksilverStage != 1) {
+        using CPlDoppelgangerAdjustInputDelay_t = char(__fastcall*)(byte8*);
+        reinterpret_cast<CPlDoppelgangerAdjustInputDelay_t>(appBaseAddr + 0x1E8F00)(reinterpret_cast<byte8*>(&actorData));
+    }
+
+    auto playerIndex = actorData.newPlayerIndex;
+    if (playerIndex >= PLAYER_COUNT) {
+        return;
+    }
+
+    bool cloneActive = actorData.doppelganger || actorData.cloneStatus == CLONE_STATUS::ACTIVE;
+
+    // One press counts once even when the game keeps the pressed flag up for several ticks (high FPS).
+    // Every character the player has equipped has its own main actor running this, so the tap state
+    // is kept per character.
+    const auto characterIndex = actorData.newCharacterIndex;
+    if (characterIndex >= CHARACTER_COUNT) {
+        return;
+    }
+    static bool s_leftDown[PLAYER_COUNT][CHARACTER_COUNT] = {};
+    const auto leftBind = GetBinding(BINDING::FILE_SCREEN);
+    bool leftDown = ((actorData.buttons[2] | actorData.buttons[0]) & leftBind) != 0;
+    bool leftTapped = leftDown && !s_leftDown[playerIndex][characterIndex];
+    s_leftDown[playerIndex][characterIndex] = leftDown;
+
+    // The overlay colour can be changed in the VFX Colors tab while the clone is out.
+    if (cloneActive && characterIndex < CHARACTER_COUNT && IsDoppelgangerOverlayEnabled(actorData.character) &&
+        g_doppelgangerOverlayColor[playerIndex][characterIndex] != GetDoppelgangerOverlayColor(actorData.character)) {
+        ApplyDoppelgangerOverlay(*reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr));
+    }
+
+    // ToggleStyleFixes forces the engine's ring block for every style, so the
+    // engine already records and replays whenever the clone is marked active.
+    bool engineHandlesInput = actorData.cloneStatus == CLONE_STATUS::ACTIVE;
+
+    // The engine records into its input history only while the clone is active; the time-stamped
+    // copy (CrimsonHighFPSFixes) is fed through the same Push.
+    if (!engineHandlesInput) {
+        CrimsonHighFPSFixes::DoppelgangerInputHistoryPush(actorData.inputHistory, reinterpret_cast<byte8*>(&actorData.buttons[0]));
+    }
+
+    if (!engineHandlesInput && cloneActive) {
+        ReplayDelayedInputToClone(actorData);
+    }
+
+    // Dante adjusts the delay only inside the Doppelganger style, so the
+    // double-tap Left switch back to that style keeps working in other styles.
+    if (!danteEnabled || !cloneActive || actorData.style != STYLE::DOPPELGANGER) {
+        g_doppelgangerDelayTap[playerIndex][characterIndex].pending = false;
+        return;
+    }
+
+    auto& tap = g_doppelgangerDelayTap[playerIndex][characterIndex];
+    bool otherStylePressed = (actorData.buttons[2] &
+        (GetBinding(BINDING::ITEM_SCREEN) | GetBinding(BINDING::MAP_SCREEN) | GetBinding(BINDING::EQUIP_SCREEN))) != 0;
+    auto now = std::chrono::steady_clock::now();
+
+    if (leftTapped) {
+        Log("Doppelganger delay tap (rate %u)\n", actorData.cloneRate);
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - tap.lastTap).count();
+        if (tap.pending && elapsed <= kDoppelgangerDelayTapWindowMs) {
+            actorData.cloneRate = (actorData.cloneRate >= 2) ? 0 : actorData.cloneRate + 1;
+            Log("Doppelganger input delay: %u frames\n", kDoppelgangerInputDelayFrames[actorData.cloneRate]);
+            tap.pending = false;
+        } else {
+            tap.pending = true;
+            tap.lastTap = now;
+        }
+    } else if (tap.pending) {
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - tap.lastTap).count();
+        if (otherStylePressed || elapsed > kDoppelgangerDelayTapWindowMs) {
+            bool switchToGunslinger = !otherStylePressed && actorData.style != STYLE::GUNSLINGER;
+            tap.pending = false;
+            if (switchToGunslinger) {
+                StyleSwitch(reinterpret_cast<byte8*>(&actorData), STYLE::GUNSLINGER);
+            }
+        }
+    }
+}
+
+static bool IsVergilUpSummonUndoable(const VergilDoppelganger& vergilDopp, int windowMs, std::chrono::steady_clock::time_point now) {
+    return vergilDopp.upSummonUndoable &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - vergilDopp.upSummonTime).count() <= windowMs;
+}
+
+// Rolls back an Up Mirage Trigger that turned out to be the first half of a character-switch double-tap.
+static void UndoVergilUpSummon(PlayerActorData& actorData, VergilDoppelganger& vergilDopp) {
+    vergilDopp.upSummonUndoable = false;
+    if (!actorData.doppelganger) {
+        return;
+    }
+    DeactivateDoppelganger(actorData);
+    actorData.doppelganger = false;
+    vergilDopp.drainStart = false;
+    vergilDopp.miragePoints = vergilDopp.upSummonMiragePoints;
+    vergilDopp.cooldownTime = 0;
+    vergilDopp.activationDirection = 0xFF;
+}
+
 void StyleSwitchController(byte8* actorBaseAddr) {
 	if (!actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	// Vanilla's Doppelganger can't switch styles.
+	if (actorData.newEntityIndex == ENTITY::CLONE && actorData.character == CHARACTER::DANTE &&
+		!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
+		return;
+	}
 	auto& playerData = GetPlayerData(actorData);
 	auto& characterData = GetCharacterData(actorData);
 	auto playerIndex = actorData.newPlayerIndex;
@@ -3515,6 +3840,10 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 	CrimsonFX::StyleSwitchDrawText(actorBaseAddr);
 	//ExpConfig::UpdateStylesExpertises(actorBaseAddr, actorData.style);
+
+	if (actorData.newEntityIndex == ENTITY::MAIN) {
+		DoppelgangerInputDelayController(actorData);
+	}
 
 	{
 		// Doppelganger StyleSwitch
@@ -3571,6 +3900,10 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 		};
 
     // --- STYLE SWITCH / BUTTON HANDLING ---
+	bool doppelDelayMode = activeCrimsonGameplay.Gameplay.Dante.advDoppelganger &&
+		actorData.character == CHARACTER::DANTE &&
+		actorData.style == STYLE::DOPPELGANGER &&
+		(actorData.doppelganger || actorData.cloneStatus == CLONE_STATUS::ACTIVE);
 	if (actorData.character == CHARACTER::DANTE) {
 		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
 			// Record pre-switch style for potential reversion on character switch return
@@ -3590,7 +3923,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 			resetDoubleTap(charSwitchDoubleTap[playerIndex]);
 		}
 
-		if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
+		if (!doppelDelayMode && actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 1) {
 			StyleSwitch(actorBaseAddr, 1); // GUNSLINGER
 			resetDoubleTap(quickDoubleTap[playerIndex]);
 			resetDoubleTap(charSwitchDoubleTap[playerIndex]);
@@ -3608,7 +3941,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
 
 		handleDoubleTap(doppDoubleTap[playerIndex],
-			actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN),
+			!doppelDelayMode && (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) != 0,
 			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
 		// --- END DOUBLE TAP HANDLING ---
 
@@ -3623,6 +3956,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 
 		if (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN) && actorData.style != 5 && 
             doppDoubleTap[playerIndex].canChange &&
+			!doppelDelayMode &&
 			!actorData.newIsClone &&
 			sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
 
@@ -3631,31 +3965,64 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 		}
 
 	} else if (actorData.character == CHARACTER::VERGIL) {
-		if (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN) && actorData.style != 2) {
-			// Record pre-switch style for potential reversion on character switch return
-			auto& state = charSwitchStyleState[playerIndex][actorData.newCharacterIndex];
-			state.preSwitchStyle = actorData.style;
-			state.styleChangeTime = std::chrono::steady_clock::now();
+		// Down toggles Vergil between Dark Slayer and Quicksilver.
+		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN)) {
+			if (actorData.style == 2 && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
+				StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
+			} else if (actorData.style != 2) {
+				// Record pre-switch style for potential reversion on character switch return
+				auto& state = charSwitchStyleState[playerIndex][actorData.newCharacterIndex];
+				state.preSwitchStyle = actorData.style;
+				state.styleChangeTime = std::chrono::steady_clock::now();
 
-			StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
+				StyleSwitch(actorBaseAddr, 2); // DARKSLAYER
+			}
 		}
 
-		if (actorData.buttons[2] & GetBinding(BINDING::EQUIP_SCREEN) && actorData.style != 4 && !actorData.newIsClone && activeCrimsonGameplay.Cheats.Vergil.quicksilverStyle) {
-			StyleSwitch(actorBaseAddr, 4); // QUICKSILVER
-		}
-
-		// MIRAGE TRIGGER - ACTIVATES DOPPELGANGER WITH ONE BUTTON PRESS FOR VERGIL -- consumes Mirage Gauge
 		auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
-		if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger &&
+		auto now = std::chrono::steady_clock::now();
+		const int doubleTapWindow = charSwitchDoubleTap[playerIndex].bufferDuration;
+
+		// Up also double-taps into a character switch (see CharacterSwitchController): the summon is
+		// instant and gets undone if the second tap lands inside the window.
+		const bool isActive = playerData.activeCharacterIndex == actorData.newCharacterIndex;
+		bool upTapped = (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) &&
+			isActive && now >= vergilDopp.ignoreUpUntil;
+		bool leftTapped = (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) != 0;
+		bool rightTapped = (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) != 0;
+
+		if (vergilDopp.upSummonUndoable) {
+			if (!isActive || !actorData.doppelganger || !IsVergilUpSummonUndoable(vergilDopp, doubleTapWindow, now)) {
+				vergilDopp.upSummonUndoable = false;
+			} else if (upTapped) {
+				upTapped = false; // second tap, the character switch takes it from here
+			}
+		}
+
+		// Mirage Trigger: Left/Up/Right summon the doppelganger with max, medium
+		// or no input delay. A different direction while active changes the delay,
+		// the same direction dismisses it.
+		uint8 mirageDirection = 0xFF;
+		if (leftTapped) {
+			mirageDirection = 2;
+		} else if (upTapped) {
+			mirageDirection = 1;
+		} else if (rightTapped) {
+			mirageDirection = 0;
+		}
+
+		if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger && mirageDirection != 0xFF &&
             //disable for bob fight
             !(IsArkham2Actor(actorData) && !arkhamFightData.dantePartner) &&
-			(actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN) || actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN))
-			&& actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
-
-			vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
+			actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
 
 			if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
+				const float miragePointsBeforeSummon = vergilDopp.miragePoints;
+				vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
+				vergilDopp.activationDirection = mirageDirection;
 				ActivateDoppelganger(actorData);
+				actorData.cloneRate = mirageDirection;
+				Log("Doppelganger input delay: %u frames\n", kDoppelgangerInputDelayFrames[mirageDirection]);
 				// Make Top Left HUD Visible briefly after MirageTrigger
 				hudData.topLeftAlpha = 127.0f;
 				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
@@ -3665,18 +4032,30 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 					// Calculate the amount of time that has already passed based on the current DT
 					vergilDopp.drainTime = (1.0f - (vergilDopp.miragePoints / maxMiragePointsAmount)) * vergilDopp.totalDrainDuration;
 					vergilDopp.drainStart = true;
-					
 				}
 
 				actorData.doppelganger = true;
+
+				if (mirageDirection == 1 && playerData.characterCount > 1) {
+					vergilDopp.upSummonUndoable = true;
+					vergilDopp.upSummonTime = now;
+					vergilDopp.upSummonMiragePoints = miragePointsBeforeSummon;
+				}
 			} else if (actorData.doppelganger) {
-				DeactivateDoppelganger(actorData);
+				vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
 				// Make Top Left HUD Visible briefly after MirageTrigger
 				hudData.topLeftAlpha = 127.0f;
 				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
-				actorData.doppelganger = false;
-				vergilDopp.drainStart = false;
+				if (vergilDopp.activationDirection == mirageDirection) {
+					DeactivateDoppelganger(actorData);
+					actorData.doppelganger = false;
+					vergilDopp.drainStart = false;
+				} else {
+					vergilDopp.activationDirection = mirageDirection;
+					actorData.cloneRate = mirageDirection;
+					Log("Doppelganger input delay: %u frames\n", kDoppelgangerInputDelayFrames[mirageDirection]);
+				}
 			}
 		}
 
@@ -4465,7 +4844,7 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     if (actorData.mode == ACTOR_MODE::MISSION_18) {
         //actorData.mode = ACTOR_MODE::DEFAULT;
         //return true;
-    } else if (actorData.var_3F19) {
+    } else if (actorData.weaponSwitchLocked) {
         return false;
     }
 
@@ -4759,7 +5138,11 @@ void CharacterSwitchController() {
             return false;
         };
 
-        if (IsDoppelgangerActive()) {
+        // An Up Mirage Trigger still inside the double-tap window must not block the second tap.
+        const bool upSummonInWindow = IsVergilUpSummonUndoable(
+            crimsonPlayer[playerIndex].vergilDoppelganger, charSwitchDoubleTap[playerIndex].bufferDuration,
+            std::chrono::steady_clock::now());
+        if (IsDoppelgangerActive() && !upSummonInWindow) {
             continue;
         }
 
@@ -4819,6 +5202,16 @@ void CharacterSwitchController() {
                 charSwitchDoubleTap[playerIndex].trackerRunning = false;
                 charSwitchDoubleTap[playerIndex].canChange = false;
                 charSwitchDoubleTap[playerIndex].tapCount = 0;
+
+                // The pressed flag can carry over to the character switched into (Vergil's Mirage Trigger is also on Up).
+                {
+                    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
+                    if (activeActorData.character == CHARACTER::VERGIL &&
+                        IsVergilUpSummonUndoable(vergilDopp, charSwitchDoubleTap[playerIndex].bufferDuration, std::chrono::steady_clock::now())) {
+                        UndoVergilUpSummon(activeActorData, vergilDopp);
+                    }
+                    vergilDopp.ignoreUpUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+                }
 
                 // If departing character briefly used Trickster/Darkslayer (<500ms),
                 // mark for style reversion so they return to their original style
@@ -8757,34 +9150,14 @@ void ToggleColor(bool enable) {
 
         static Function func = {};
 
-        constexpr byte8 sect0[] = {
-            push_rax,
-            0x48,
-            0xB8,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00, // mov rax
-            0x8B,
-            0x00, // mov eax,[rax]
-            0x89,
-            0x87,
-            0x28,
-            0x3A,
-            0x00,
-            0x00, // mov [rdi+00003A28],eax
-            pop_rax,
+        constexpr byte8 sect1[] = {
+            mov_rcx_rdi,
         };
 
         if (!run) {
             backupHelper.Save(addr, size);
-            func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
-            CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeConfig.Color.Doppelganger.clone;
+            func = old_CreateFunction(SetCloneOverlayColor, jumpAddr, true, true, 0, sizeof(sect1));
+            CopyMemory(func.sect1, sect1, sizeof(sect1));
         }
 
         if (enable) {
@@ -9159,8 +9532,10 @@ void UpdateActorSpeed(byte8* baseAddr) {
                 }
 
                 CrimsonGameplay::DMC4Mobility(actorBaseAddr);
-                // Doppelganger's attacks can now hold/increase your style meter
-                CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
+                if (activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {
+                    // Doppelganger's attacks can now hold/increase your style meter
+                    CrimsonGameplay::StyleMeterDoppelganger(actorBaseAddr);
+                }
 
                 CrimsonGameplay::InCombatDetection();
 
@@ -9551,6 +9926,15 @@ void ToggleMainActorFixes(bool enable) {
     /*
     dmc3.exe+1F5FC6 - 83 B9 C8CA0100 01 - cmp dword ptr [rcx+0001CAC8],01
     dmc3.exe+1F5FCD - 48 8B D9          - mov rbx,rcx
+    */
+
+    // Crimson clones skip UpdatePlayerInput's live pad refill, otherwise the
+    // delayed Doppelganger input would be overwritten every frame.
+    Write<uint32>(
+        (appBaseAddr + 0x1EBD17 + 2), (enable) ? offsetof(PlayerActorData, newIsClone) : offsetof(PlayerActorData, id));
+    /*
+    dmc3.exe+1EBD17 - 80 B9 18010000 00 - cmp byte ptr [rcx+00000118],00
+    dmc3.exe+1EBD1E - 0F85 9B000000    - jnz dmc3.exe+1EBDBF
     */
 }
 
@@ -11421,6 +11805,60 @@ void Toggle(bool enable) {
         }
     }
 
+    // Input Update Wrapper
+    {
+        auto addr             = (appBaseAddr + 0x1F84F1);
+        auto addr2            = (appBaseAddr + 0x1F7C05);
+        constexpr uint32 size = 5;
+        /*
+        dmc3.exe+1F84F1 - call dmc3.exe+1EBCF0 { in PreCPlController }
+        dmc3.exe+1F7C05 - call dmc3.exe+1EBCF0 { in UpdatePlayerActorInput }
+        */
+
+        static Function func = {};
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+            backupHelper.Save(addr2, size);
+            func = old_CreateFunction(UpdatePlayerInputWrapper, 0, true, false);
+        }
+
+        if (enable) {
+            WriteCall(addr, func.addr, (size - 5));
+            WriteCall(addr2, func.addr, (size - 5));
+        } else {
+            backupHelper.Restore(addr);
+            backupHelper.Restore(addr2);
+        }
+    }
+
+    // Model Effect Mode Wrapper
+    {
+        auto addr             = (appBaseAddr + 0x1F7CC4);
+        auto addr2            = (appBaseAddr + 0x1F7D4A);
+        constexpr uint32 size = 5;
+        /*
+        dmc3.exe+1F7CC4 - call dmc3.exe+1FCB10 { in UpdatePlayerActorInput, non-clone: mode 7 }
+        dmc3.exe+1F7D4A - call dmc3.exe+1FCB10 { in UpdatePlayerActorInput, clone: mode 6, Vergil 7 }
+        */
+
+        static Function func = {};
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+            backupHelper.Save(addr2, size);
+            func = old_CreateFunction(SetModelEffectModeWrapper, 0, true, false);
+        }
+
+        if (enable) {
+            WriteCall(addr, func.addr, (size - 5));
+            WriteCall(addr2, func.addr, (size - 5));
+        } else {
+            backupHelper.Restore(addr);
+            backupHelper.Restore(addr2);
+        }
+    }
+
     // Weapon Switch Controller Dante
     {
         auto addr             = (appBaseAddr + 0x1E25EB);
@@ -11689,15 +12127,47 @@ void Toggle(bool enable) {
         dmc3.exe+1E25C8 - 75 08    - jne dmc3.exe+1E25D2
         dmc3.exe+1E25CA - 48 8B CB - mov rcx,rbx
         */
+        // The vanilla delay cycler is called from DoppelgangerInputDelayController instead.
     }
 
     // Devil Disable Doppelganger Check
     {
-        Write<byte8>((appBaseAddr + 0x1E7775), (enable) ? 0xEB : 0x75);
+        auto addr             = (appBaseAddr + 0x1E776E);
+        auto jumpAddr         = (appBaseAddr + 0x1E7785);
+        constexpr uint32 size = 9;
         /*
+        dmc3.exe+1E776E - 80 BF 62630000 01 - cmp byte ptr [rdi+00006362],01
         dmc3.exe+1E7775 - 75 0E             - jne dmc3.exe+1E7785
         dmc3.exe+1E7777 - 40 88 B7 AF3E0000 - mov [rdi+00003EAF],sil
+        dmc3.exe+1E777E - 32 C0             - xor al,al
+        dmc3.exe+1E7780 - E9 xxxxxxxx       - jmp dmc3.exe+1E7926
         */
+
+        static Function func = {};
+
+        constexpr byte8 sect1[] = {
+            mov_rcx_rdi,
+        };
+        constexpr byte8 sect2[] = {
+            0x84, 0xC0,                         // test al,al
+            0x0F, 0x85, 0x00, 0x00, 0x00, 0x00, // jne dmc3.exe+1E7777
+            0xE9, 0x00, 0x00, 0x00, 0x00,       // jmp dmc3.exe+1E7785
+        };
+
+        if (!run) {
+            backupHelper.Save(addr, size);
+            func = old_CreateFunction(DoppelgangerBlocksDevilTrigger, jumpAddr, true, false, 0, sizeof(sect1), sizeof(sect2));
+            CopyMemory(func.sect1, sect1, sizeof(sect1));
+            CopyMemory(func.sect2, sect2, sizeof(sect2));
+            WriteAddress((func.sect2 + 2), (appBaseAddr + 0x1E7777), 6);
+            WriteAddress((func.sect2 + 8), (appBaseAddr + 0x1E7785), 5);
+        }
+
+        if (enable) {
+            WriteJump(addr, func.addr, (size - 5));
+        } else {
+            backupHelper.Restore(addr);
+        }
     }
 
     // Devil Button Check
@@ -14343,7 +14813,7 @@ void EventDelete() {
        
 
         if (actorData.newEntityIndex == ENTITY::MAIN) {
-            func_2EDFC0(actorData.var_6410);
+            func_2EDFC0(actorData.inputHistory);
             func_337710(actorData.var_6458);
             /*
             dmc3.exe+212013 - 48 8D 8B 10640000 - lea rcx,[rbx+00006410]
@@ -14485,6 +14955,7 @@ void PlayerActorLoop(byte8* actorBaseAddr) {
     if (!activeConfig.Actor.enable) {
         return;
     }
+
 
     if (!actorBaseAddr) {
         return;

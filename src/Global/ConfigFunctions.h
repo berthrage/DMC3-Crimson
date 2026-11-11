@@ -240,7 +240,22 @@ void LoadConfigGameplay() {
 		return;
 	}
 
+	// Configs saved before Adv. Doppelganger existed don't carry the key; Crimson
+	// mode makes it obligatory, so they must not fall out of the preset.
+	// Checked before ParseConfig, which adds missing members to the root.
+	bool hasAdvDoppelganger = false;
+	if (crimsonConfigGameplayRoot.IsObject() && crimsonConfigGameplayRoot.HasMember("Gameplay") &&
+		crimsonConfigGameplayRoot["Gameplay"].IsObject() && crimsonConfigGameplayRoot["Gameplay"].HasMember("Dante") &&
+		crimsonConfigGameplayRoot["Gameplay"]["Dante"].IsObject()) {
+		hasAdvDoppelganger = crimsonConfigGameplayRoot["Gameplay"]["Dante"].HasMember("advDoppelganger");
+	}
+
 	ParseConfig(crimsonConfigGameplayRoot, queuedCrimsonGameplay);
+
+	if (!hasAdvDoppelganger && queuedCrimsonGameplay.GameMode.preset == GAMEMODEPRESETS::CRIMSON) {
+		queuedCrimsonGameplay.Gameplay.Dante.advDoppelganger = true;
+	}
+
 	CopyMemory(&activeCrimsonGameplay, &queuedCrimsonGameplay, sizeof(activeCrimsonGameplay));
 
 	SaveConfigGameplay();

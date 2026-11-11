@@ -2835,6 +2835,11 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 		return;
 	}
 
+	bool disableDoppelgangerConfig = (entityIndex == ENTITY::CLONE) &&
+		(mainQueuedCharacterData.character == CHARACTER::DANTE) &&
+		!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+	GUI_PushDisable(disableDoppelgangerConfig);
+
 	ImGui::Text("");
 	ImGui::PushStyleColor(ImGuiCol_CheckMark, checkmarkColor);
 
@@ -2960,10 +2965,26 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 				}
 				//if we are dante and haven't unlocked doppelganger, we shouldn't show this menu option.
 				if (!queuedCharacterData.character == CHARACTER::DANTE || sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]) {
+					const bool danteNeedsAdv = (queuedCharacterData.character == CHARACTER::DANTE) &&
+						!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger;
+					const bool vergilNeedsMirage = (queuedCharacterData.character == CHARACTER::VERGIL) &&
+						!activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger;
+					const bool disableCloneCombo = danteNeedsAdv || vergilNeedsMirage;
+
+					GUI_PushDisable(disableCloneCombo);
 					if (UI::Combo("Doppelganger", ddmkCharacter2PNames, queuedCharacterDataClone.character)) {
 						ApplyDefaultCharacterData(queuedCharacterDataClone, queuedCharacterDataClone.character, playerIndex, characterIndex);
 
 						Actor_UpdateIndices();
+					}
+					GUI_PopDisable(disableCloneCombo);
+
+					if (disableCloneCombo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+						ImGui::SetTooltip(danteNeedsAdv
+							? "Disabled because Adv. Doppelganger is off. Vanilla's Doppelganger is always a copy of Dante, "
+							  "with his weapons and costume.\nTurn on Adv. Doppelganger in Gameplay Options to configure it."
+							: "Disabled because Mirage Trigger is off.\nTurn on Mirage Trigger in Gameplay Options to configure "
+							  "Vergil's Doppelganger.");
 					}
 				}
 
@@ -3067,6 +3088,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 	ImGui::PopStyleColor();
 
 	if (queuedCharacterData.character != CHARACTER::DANTE && queuedCharacterData.character != CHARACTER::VERGIL) {
+		GUI_PopDisable(disableDoppelgangerConfig);
 		return;
 	}
 
@@ -3242,6 +3264,7 @@ void Actor_CharacterTab(uint8 playerIndex, uint8 characterIndex, uint8 entityInd
 			ImGui::EndTable();
 
 		}
+	GUI_PopDisable(disableDoppelgangerConfig);
 	ImGui::PopFont();
 }
 
@@ -12119,6 +12142,11 @@ void VisualSection(size_t defaultFontSize) {
 	ImGui::SameLine();
 	ImGui::Text("Doppelganger");
 
+    ImGui::SameLine();
+	GUI_Color2("", activeConfig.Color.Doppelganger.vergilClone, queuedConfig.Color.Doppelganger.vergilClone);
+	ImGui::SameLine();
+	ImGui::Text("Mirage Trigger Doppelganger");
+
 
 	if (GUI_Button("DMC3 Default")) {
 		CopyMemory(&queuedConfig.Color, &colorPresets.ColorDMC3Default, sizeof(queuedConfig.Color));
@@ -13036,6 +13064,23 @@ void DanteGameplayOptions() {
 			ImGui::TableNextColumn();
 
 			GUI_PushDisable(!activeConfig.Actor.enable);
+			GUI_Checkbox2("Adv. Doppelganger",
+				activeCrimsonGameplay.Gameplay.Dante.advDoppelganger,
+				queuedCrimsonGameplay.Gameplay.Dante.advDoppelganger,
+				activeCrimsonGameplayMask.Gameplay.Dante.advDoppelganger);
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+			ImGui::SameLine();
+			TooltipHelper("(?)", "(Dante Only) Makes Dante's Doppelganger a full copy of his Actor System loadout, with its own Weapons and Styles.\n"
+				"While in Doppelganger Style with the clone out, double-tap D-pad Left to cycle the clone's attack delay (1, 30 or 60 frames).\n"
+				"The delay keeps applying after switching to another Style, and a single D-pad Left still switches to Gunslinger.\n"
+				"Off uses the vanilla Doppelganger instead: the Devil Trigger button adjusts the clone's attack delay while it is out\n"
+				"(Devil Trigger can't be used until it's dismissed), and summoning it cancels an active Devil Trigger.");
+			GUI_PopDisable(!activeConfig.Actor.enable);
+
+			ImGui::TableNextColumn();
+
+			GUI_PushDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.advDoppelganger);
 			GUI_Checkbox2("Doppelganger Split Sync",
 				activeCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
 				queuedCrimsonGameplay.Gameplay.Dante.doppelgangerSplitSync,
@@ -13047,7 +13092,7 @@ void DanteGameplayOptions() {
 				"While in Doppelganger Style, press Lock-On + Style Action to summon or dismiss Doppelganger. \n"
 				"Pressing Style Action without Lock-On lets you change Weapons and Styles exclusively for Doppelganger,\n"
 				"causing it to desync from Dante's current Style configuration until resummoned.");
-			GUI_PopDisable(!activeConfig.Actor.enable);
+			GUI_PopDisable(!activeConfig.Actor.enable || !activeCrimsonGameplay.Gameplay.Dante.advDoppelganger);
 
 			ImGui::TableNextColumn();
 
@@ -13318,7 +13363,8 @@ void VergilGameplayOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Press Left or Right D-Pad to summon Doppelganger.\n"
+			TooltipHelper("(?)", "Press D-pad Left, Up or Right to summon Doppelganger with max, medium or no attack delay.\n"
+			"Press a different direction while it is out to change the delay, or the same direction to dismiss it.\n"
 			"Vergil's Doppelganger uses a separate resource called Mirage Gauge, indicated on his HUD as a white bar.\n"
 			"Mirage Gauge refills like DT (but is separate from it), and can be turned on/off at will, without a minimum amount required.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
@@ -13427,7 +13473,7 @@ void VergilCheatOptions() {
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 			ImGui::SameLine();
-			TooltipHelper("(?)", "Enables Quicksilver for Vergil. Swap to it with D-Pad Downwards. Swap back to Darkslayer with D-Pad Up.");
+			TooltipHelper("(?)", "Enables Quicksilver for Vergil. Press D-Pad Down to toggle between Quicksilver and Darkslayer.");
 			GUI_PopDisable(!activeConfig.Actor.enable);
 
 			ImGui::TableNextColumn();

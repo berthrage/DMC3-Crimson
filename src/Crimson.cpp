@@ -45,6 +45,7 @@
 #include "UI/WeaponWheel.hpp"
 #include "CrimsonHighFPSFixes.hpp"
 #include "CrimsonMusicSwitcher.hpp"
+#include "CrashHandler.hpp"
 
 
 
@@ -61,6 +62,8 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         InitLog("logs", "Crimson.txt");
 
         Log("Session started.");
+
+        InstallCrashHandler(".\\logs\\CrimsonCrash.dmp");
 
         if (!Core_Memory_Init()) {
             Log("Core_Memory_Init failed.");

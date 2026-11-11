@@ -101,6 +101,7 @@ CrimsonConfigGameplay CreateVanillaPreset() {
 	dante.swapHammerVocalnoInputs = false;
 	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
+	dante.advDoppelganger = false;
 	dante.quickGrapple = false;
 
 	// Vergil section
@@ -175,6 +176,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	//dante.swapDancePierceInputs = false;
 	dante.chargedShotgunLaunches = false;
 	dante.doppelgangerSplitSync = false;
+	dante.advDoppelganger = false;
 	dante.quickGrapple = false;
 
 	// Vergil section
@@ -263,6 +265,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.artemisFixCloseRange = true;
 	dante.groundTrick = true;
 	dante.swapDancePierceInputs = true;
+	dante.advDoppelganger = true;
 
 	// Vergil section
 	auto& vergil = preset.Gameplay.Vergil;
@@ -391,6 +394,7 @@ const CrimsonConfigGameplayMask STYLE_SWITCHER_MASK = [] {
 	mask.Gameplay.Dante.artemisFixCloseRange = false;
 	mask.Gameplay.Dante.swapDancePierceInputs = false;
 	mask.Gameplay.Dante.swapHammerVocalnoInputs = false;
+	mask.Gameplay.Dante.advDoppelganger = false;
 	
 	mask.Gameplay.Vergil.trickUpNoLockOn = false;
 	mask.Gameplay.Vergil.swordFormationsShortcut = false;

@@ -3511,12 +3511,16 @@ extern DamageDataAddrOffsets damageDataOffsets;
 
 
 struct PlayerActorDataBase : ActorDataBase {
-    _(80);
+    _(56);
+    byte8* shadowObject; // 0x100 // created by CPlSetShadowMode_sub_1401FC7E0 when shadow == 2
+    _(16);
     uint8 id; // 0x118
     _(3);
-    bool32 isClone;    // 0x11C
-    uint32 visibility; // 0x120
-    _(156);
+    bool32 isClone;    // 0x11C // vanilla clone flag, CPlIsClone_sub_1401F78B0; ~60 engine functions branch on it
+    uint32 visibility; // 0x120 // 0 hidden (vanilla clone), 1 shown
+    _(44);
+    vec4 scale; // 0x150 // (1, 1, 1, 1), scales the rows of the actor matrix at 0x180
+    _(96);
     float horizontalPull;           // 0x1C0
     float horizontalPullMultiplier; // 0x1C4
     _(56);
@@ -3537,10 +3541,11 @@ struct PlayerActorDataBase : ActorDataBase {
     uint8 weaponMotionState[16];        // 0x39C0
     uint32 nextActionRequestPolicy[16]; // 0x39D0
     uint8 var_3A10[8];                  // 0x3A10
-    uint32 shadow;                      // 0x3A18
-    uint32 lastShadow;                  // 0x3A1C
-    _(8);
-    byte32 color; // 0x3A28
+    uint32 shadow;                      // 0x3A18 // 0 off, 1 on, 2 shadow object at 0x100, 3 locked
+    uint32 lastShadow;                  // 0x3A1C // shadow request deferred while doppelganger is set (0x6362)
+    uint32 modelEffectMode;             // 0x3A20 // CPlSetModelEffectMode_sub_1401FCB10, 6 = clone dark overlay, 7 = clear
+    float modelEffectParam;             // 0x3A24
+    byte32 color; // 0x3A28 // overlay RGBA of the model effect modes (mode 6: Doppelganger colour)
     _(212);
     RecoveryData recoveryData[3]; // 0x3B00
     byte8 var_3C50[2];            // 0x3C50
@@ -3599,7 +3604,7 @@ struct PlayerActorDataBase : ActorDataBase {
     uint8 wallHikeCount; // 0x3F13
     bool enableAirRaid;  // 0x3F14
     _(4);
-    bool var_3F19; // 0x3F19
+    bool weaponSwitchLocked; // 0x3F19 // set blocks the weapon switch (sub_1401EA8E0 returns early)
     _(138);
     uint8 action;     // 0x3FA4
     uint8 lastAction; // 0x3FA5
@@ -3652,9 +3657,9 @@ struct PlayerActorDataBase : ActorDataBase {
     uint32 var_63D0;         // 0x63D0
     uint32 quicksilverStage; // 0x63D4
     _(56);
-    byte8 var_6410[40]; // 0x6410
-    byte8* var_6438;    // 0x6438
-    uint32 var_6440;    // 0x6440
+    byte8 inputHistory[40]; // 0x6410 // CPlInputHistory ring: +0x28 buffer, +0x30 capacity (61), +0x38 index, +0x3C ready; 0x2E bytes per snapshot
+    byte8* var_6438;    // 0x6438 // ring buffer (same as inputHistory + 0x28)
+    uint32 var_6440;    // 0x6440 // ring capacity (same as inputHistory + 0x30)
     _(12);
     uint32 cloneRate;               // 0x6450
     uint32 cloneStatus;             // 0x6454
@@ -3721,6 +3726,10 @@ static_assert(offsetof(PlayerActorDataBase, nextActionRequestPolicy) == 0x39D0);
 static_assert(offsetof(PlayerActorDataBase, var_3A10) == 0x3A10);
 static_assert(offsetof(PlayerActorDataBase, shadow) == 0x3A18);
 static_assert(offsetof(PlayerActorDataBase, lastShadow) == 0x3A1C);
+static_assert(offsetof(PlayerActorDataBase, modelEffectMode) == 0x3A20);
+static_assert(offsetof(PlayerActorDataBase, modelEffectParam) == 0x3A24);
+static_assert(offsetof(PlayerActorDataBase, shadowObject) == 0x100);
+static_assert(offsetof(PlayerActorDataBase, scale) == 0x150);
 static_assert(offsetof(PlayerActorDataBase, color) == 0x3A28);
 static_assert(offsetof(PlayerActorDataBase, recoveryData) == 0x3B00);
 static_assert(offsetof(PlayerActorDataBase, var_3C50) == 0x3C50);
@@ -3760,7 +3769,7 @@ static_assert(offsetof(PlayerActorDataBase, airHikeCount) == 0x3F11);
 static_assert(offsetof(PlayerActorDataBase, kickJumpCount) == 0x3F12);
 static_assert(offsetof(PlayerActorDataBase, wallHikeCount) == 0x3F13);
 static_assert(offsetof(PlayerActorDataBase, enableAirRaid) == 0x3F14);
-static_assert(offsetof(PlayerActorDataBase, var_3F19) == 0x3F19);
+static_assert(offsetof(PlayerActorDataBase, weaponSwitchLocked) == 0x3F19);
 static_assert(offsetof(PlayerActorDataBase, action) == 0x3FA4);
 static_assert(offsetof(PlayerActorDataBase, lastAction) == 0x3FA5);
 static_assert(offsetof(PlayerActorDataBase, bufferedAction) == 0x3FA8);
@@ -3795,7 +3804,7 @@ static_assert(offsetof(PlayerActorDataBase, guardTimer) == 0x6388);
 static_assert(offsetof(PlayerActorDataBase, var_638C) == 0x638C);
 static_assert(offsetof(PlayerActorDataBase, var_63D0) == 0x63D0);
 static_assert(offsetof(PlayerActorDataBase, quicksilverStage) == 0x63D4);
-static_assert(offsetof(PlayerActorDataBase, var_6410) == 0x6410);
+static_assert(offsetof(PlayerActorDataBase, inputHistory) == 0x6410);
 static_assert(offsetof(PlayerActorDataBase, var_6438) == 0x6438);
 static_assert(offsetof(PlayerActorDataBase, var_6440) == 0x6440);
 static_assert(offsetof(PlayerActorDataBase, cloneRate) == 0x6450);
@@ -5360,6 +5369,7 @@ struct ColorPresets {
 		} Royalguard;
 		struct {
 			uint8 clone[4] = { 16, 16, 16, 48 };
+			uint8 vergilClone[4] = { 15, 75, 123, 48 };
 		} Doppelganger;
 		struct {
 			uint8 dante[5][4] = {
@@ -5396,6 +5406,7 @@ struct ColorPresets {
 		} Royalguard;
 		struct {
 			uint8 clone[4] = { 16, 16, 16, 48 };
+			uint8 vergilClone[4] = { 15, 75, 123, 48 };
 		} Doppelganger;
 		struct {
 			uint8 dante[5][4] = {
@@ -5933,6 +5944,12 @@ struct VergilDoppelganger {
     float drainTime = 0;
     float totalDrainDuration = 12.0f;
     bool drainStart = false;
+    uint8 activationDirection = 0xFF; // 0xFF = none, else 0 right/haste, 1 up/medium, 2 left/max
+    // Up is shared with the double-tap character switch: the summon is instant and undone by a second tap.
+    bool upSummonUndoable = false;
+    float upSummonMiragePoints = 0;
+    std::chrono::steady_clock::time_point upSummonTime = {};
+    std::chrono::steady_clock::time_point ignoreUpUntil = {};
 };
 
 namespace JDC_STATE {

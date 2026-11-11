@@ -4466,9 +4466,7 @@ void BackToForwardInputs(byte8* actorBaseAddr) {
     auto lockOn        = actorData.lockOn;
     auto tiltDirection = GetRelativeTiltDirection(actorData);
     auto playerIndex   = actorData.newPlayerIndex;
-    auto& gamepad      = GetGamepad(actorData.newGamepad);
-    auto radius        = gamepad.leftStickRadius;
-    auto pos           = gamepad.leftStickPosition;
+    auto radius        = GetActorLeftStickRadius(actorData);
     uint8 deadzone = 100;
     auto& b2F = (actorData.newEntityIndex == 0) ? crimsonPlayer[playerIndex].b2F : crimsonPlayer[playerIndex].b2FClone;
 

@@ -82,6 +82,7 @@ struct CrimsonConfigGameplayMask {
 			bool swapHammerVocalnoInputs = true;
 			bool chargedShotgunLaunches = true;
 			bool doppelgangerSplitSync = true;
+			bool advDoppelganger = true;
 			bool quickGrapple = true;
 
 			static constexpr auto Metadata() {
@@ -114,6 +115,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("swapHammerVocalnoInputs", &Dante::swapHammerVocalnoInputs),
 					std::make_pair("chargedShotgunLaunches", &Dante::chargedShotgunLaunches),
 					std::make_pair("doppelgangerSplitSync", &Dante::doppelgangerSplitSync),
+					std::make_pair("advDoppelganger", &Dante::advDoppelganger),
 					std::make_pair("quickGrapple", &Dante::quickGrapple)
 				);
 			}

@@ -626,6 +626,230 @@ void FixWpNunchakuCerberusCollisions(bool enable) {
 	run = enable;
 }
 
+// Vanilla Doppelganger input history (CPlInputHistory, PlayerActorData+0x6410) is a ring indexed in
+// ticks: {1, 30, 60} entries back. Ticks run once per rendered frame, so at higher frame rates the
+// delay got shorter. The history is mirrored here with timestamps and read back by time instead.
+namespace {
+
+constexpr uint32 kInputSnapshotSize = 0x2E;
+constexpr uint32 kInputHistoryCapacity = 2048;
+constexpr uint32 kInputHistorySlotCount = 8;
+constexpr double kVanillaFrameSeconds = 1.0 / 60.0;
+constexpr double kInputHistoryMaxTickSeconds = 0.1;
+
+struct InputHistoryEntry {
+	double time;
+	byte8 data[0x30];
+};
+
+struct InputHistorySlot {
+	byte8* ring;
+	byte8* buffer;
+	uint32 head;
+	uint32 count;
+	double clock;
+	int64 lastTick;
+	InputHistoryEntry entries[kInputHistoryCapacity];
+};
+
+InputHistorySlot g_inputHistorySlots[kInputHistorySlotCount];
+byte8 g_zeroInputSnapshot[0x30] = {};
+
+byte8* RingBuffer(byte8* ring) {
+	return *reinterpret_cast<byte8**>(ring + 0x28);
+}
+
+InputHistorySlot* FindInputHistorySlot(byte8* ring) {
+	if (!ring) {
+		return nullptr;
+	}
+	for (auto& slot : g_inputHistorySlots) {
+		if (slot.ring == ring) {
+			return &slot;
+		}
+	}
+	return nullptr;
+}
+
+void ResetInputHistorySlot(InputHistorySlot& slot) {
+	slot.head = 0;
+	slot.count = 0;
+	slot.lastTick = 0;
+	slot.buffer = RingBuffer(slot.ring);
+}
+
+InputHistorySlot& AcquireInputHistorySlot(byte8* ring) {
+	if (auto slot = FindInputHistorySlot(ring)) {
+		return *slot;
+	}
+	InputHistorySlot* target = &g_inputHistorySlots[0];
+	for (auto& slot : g_inputHistorySlots) {
+		if (!slot.ring) {
+			target = &slot;
+			break;
+		}
+		if (slot.lastTick < target->lastTick) {
+			target = &slot;
+		}
+	}
+	target->ring = ring;
+	target->clock = 0.0;
+	ResetInputHistorySlot(*target);
+	return *target;
+}
+
+} // namespace
+
+// Replaces the calls to CPlInputHistory_Push_sub_1402EDFE0 in PreCPlController_sub_1401F83A0
+// (dmc3.exe+1F8905, +1F8D8E).
+uint64 DoppelgangerInputHistoryPush(byte8* ring, byte8* input) {
+	using Push_t = uint64(__fastcall*)(byte8*, byte8*);
+	auto result = reinterpret_cast<Push_t>(appBaseAddr + 0x2EDFE0)(ring, input);
+
+	if (!ring || !input || !*(ring + 0x3C) || !RingBuffer(ring)) {
+		return result;
+	}
+
+	auto& slot = AcquireInputHistorySlot(ring);
+	if (slot.buffer != RingBuffer(ring)) {
+		ResetInputHistorySlot(slot);
+	}
+
+	LARGE_INTEGER freq = {};
+	LARGE_INTEGER now = {};
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&now);
+
+	// The clock only advances while the game ticks: a pause or a long hitch counts as one vanilla frame.
+	double dt = kVanillaFrameSeconds;
+	if (slot.lastTick && freq.QuadPart) {
+		dt = static_cast<double>(now.QuadPart - slot.lastTick) / static_cast<double>(freq.QuadPart);
+		if (dt <= 0.0 || dt > kInputHistoryMaxTickSeconds) {
+			dt = kVanillaFrameSeconds;
+		}
+	}
+	slot.lastTick = now.QuadPart;
+	slot.clock += dt;
+
+	auto& entry = slot.entries[slot.head];
+	entry.time = slot.clock;
+	memcpy(entry.data, input, kInputSnapshotSize);
+	slot.head = (slot.head + 1) % kInputHistoryCapacity;
+	if (slot.count < kInputHistoryCapacity) {
+		slot.count++;
+	}
+
+	return result;
+}
+
+// Replaces the calls to CPlInputHistory_GetDelayed_sub_1402EE040 (dmc3.exe+1F8922, +1F8DAB). The
+// offset is -frames at 60 fps; the snapshot returned is the one recorded that long ago in real time.
+byte8* DoppelgangerInputHistoryGetDelayed(byte8* ring, int32 offset) {
+	using GetDelayed_t = byte8*(__fastcall*)(byte8*, int32);
+	auto original = reinterpret_cast<GetDelayed_t>(appBaseAddr + 0x2EE040);
+
+	auto slot = ring ? FindInputHistorySlot(ring) : nullptr;
+	if (!slot || slot->count == 0 || offset >= 0 || slot->buffer != RingBuffer(ring)) {
+		return original(ring, offset);
+	}
+
+	const double target = slot->clock - static_cast<double>(-offset) * kVanillaFrameSeconds;
+	auto entryAt = [&](uint32 age) -> InputHistoryEntry& {
+		return slot->entries[(slot->head + kInputHistoryCapacity - 1 - age) % kInputHistoryCapacity];
+	};
+
+	uint32 found = slot->count;
+	for (uint32 age = 0; age < slot->count; age++) {
+		if (entryAt(age).time <= target) {
+			found = age;
+			break;
+		}
+	}
+
+	if (found == slot->count) {
+		// Not enough history yet: the ring was just cleared, so vanilla hands back an empty input.
+		return (slot->count == kInputHistoryCapacity) ? entryAt(slot->count - 1).data : g_zeroInputSnapshot;
+	}
+
+	// Pick whichever recorded tick lies closest to the target time.
+	if (found > 0 && (entryAt(found - 1).time - target) < (target - entryAt(found).time)) {
+		found--;
+	}
+	return entryAt(found).data;
+}
+
+// Replaces the memset in the ring clear of CPlStyleActionController_sub_1401E8F80 (dmc3.exe+1E92B5).
+void* DoppelgangerInputHistoryClearBuffer(void* buffer, int value, size_t size) {
+	auto result = memset(buffer, value, size);
+	for (auto& slot : g_inputHistorySlots) {
+		if (slot.ring && slot.buffer == buffer) {
+			ResetInputHistorySlot(slot);
+		}
+	}
+	return result;
+}
+
+void DoppelgangerInputHistoryReset(byte8* ring) {
+	if (auto slot = FindInputHistorySlot(ring)) {
+		ResetInputHistorySlot(*slot);
+	}
+}
+
+void FixDoppelgangerInputDelay(bool enable) {
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	/*
+	dmc3.exe+1F8905 - call dmc3.exe+2EDFE0 { Push }
+	dmc3.exe+1F8D8E - call dmc3.exe+2EDFE0 { Push }
+	dmc3.exe+1F8922 - call dmc3.exe+2EE040 { GetDelayed }
+	dmc3.exe+1F8DAB - call dmc3.exe+2EE040 { GetDelayed }
+	dmc3.exe+1E92B5 - call memset { ring clear on activation }
+	*/
+	constexpr uint32 size = 5;
+	static byte8* pushAddrs[2]       = {appBaseAddr + 0x1F8905, appBaseAddr + 0x1F8D8E};
+	static byte8* getDelayedAddrs[2] = {appBaseAddr + 0x1F8922, appBaseAddr + 0x1F8DAB};
+	static byte8* clearAddr          = appBaseAddr + 0x1E92B5;
+	static Function pushFunc         = {};
+	static Function getDelayedFunc   = {};
+	static Function clearFunc        = {};
+
+	if (!run) {
+		for (auto addr : pushAddrs) {
+			backupHelper.Save(addr, size);
+		}
+		for (auto addr : getDelayedAddrs) {
+			backupHelper.Save(addr, size);
+		}
+		backupHelper.Save(clearAddr, size);
+		pushFunc       = old_CreateFunction(DoppelgangerInputHistoryPush, 0, true, false);
+		getDelayedFunc = old_CreateFunction(DoppelgangerInputHistoryGetDelayed, 0, true, false);
+		clearFunc      = old_CreateFunction(DoppelgangerInputHistoryClearBuffer, 0, true, false);
+	}
+
+	if (enable) {
+		for (auto addr : pushAddrs) {
+			WriteCall(addr, pushFunc.addr, (size - 5));
+		}
+		for (auto addr : getDelayedAddrs) {
+			WriteCall(addr, getDelayedFunc.addr, (size - 5));
+		}
+		WriteCall(clearAddr, clearFunc.addr, (size - 5));
+	} else {
+		for (auto addr : pushAddrs) {
+			backupHelper.Restore(addr);
+		}
+		for (auto addr : getDelayedAddrs) {
+			backupHelper.Restore(addr);
+		}
+		backupHelper.Restore(clearAddr);
+	}
+
+	run = enable;
+}
+
 void MenuAnimationFixes(bool enable) {
 	static bool run = false;
 
@@ -651,6 +875,7 @@ void ToggleAllFixes(bool enable) {
 	FixCPl021Shl01SummonedSwordsInitialTravel(enable);
 	FixSecretMissionTimerFPS(enable);
 	FixWpNunchakuCerberusCollisions(enable);
+	FixDoppelgangerInputDelay(enable);
 	MenuAnimationFixes(enable);
 }
 

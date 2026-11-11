@@ -438,6 +438,7 @@ void CreateMembers(Config& config_) {
             auto& config2 = config.Doppelganger;
 
             CreateArray<uint8, 4>(member2, "clone", config2.clone);
+            CreateArray<uint8, 4>(member2, "vergilClone", config2.vergilClone);
         }
 
 
@@ -800,6 +801,7 @@ void ToJSON(Config& config_) {
             auto& config2 = config.Doppelganger;
 
             SetArray<uint8, 4>(member2["clone"], config2.clone);
+            SetArray<uint8, 4>(member2["vergilClone"], config2.vergilClone);
         }
 
         {
@@ -1117,6 +1119,7 @@ void ToConfig(Config& config_) {
             auto& member2 = member["Doppelganger"];
 
             GetArray<uint8, 4>(config2.clone, member2["clone"]);
+            GetArray<uint8, 4>(config2.vergilClone, member2["vergilClone"]);
         }
 
         {

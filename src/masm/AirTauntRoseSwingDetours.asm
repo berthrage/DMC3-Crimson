@@ -21,18 +21,22 @@ SwingRoseAirTauntInertiaAndSpawnShlDetour PROC
 
 CheckIfInAirTauntRoseState:
     PushAllRegs
-    add rsp, 28h
+    mov r12, rsp
+    and rsp, -16
+    sub rsp, 20h
     call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall]  ; check if in Air Taunt Rose state
-    sub rsp, 28h
+    mov rsp, r12
     cmp al, 1
     jne OriginalCode
     PopAllRegs
 
 SpawmCPl000Shl10e: ; (NevanShl, that's going to become Rose)
     PushAllRegs
-    add rsp, 28h
+    mov r12, rsp
+    and rsp, -16
+    sub rsp, 20h
     call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall]  ; start the delayed spawn instead of spawning immediately
-    sub rsp, 28h
+    mov rsp, r12
     PopAllRegs
 
 AdjustRoseThrowInertia:
@@ -59,9 +63,16 @@ SwingRoseAirTauntInertiaAndSpawnShlDetour ENDP
 ; Called from C++ once the spawn delay elapses. Restores the register state the
 ; spawn call used to see from the detour above (player in rcx, rbx and rdi).
 SpawnNevanShlRose PROC
+    push rbx
+    push rdi
+    sub rsp, 28h
     mov rdi, rcx
     mov rbx, rcx
-    jmp qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]  ; CPlNevanShlSpawnType1_sub_1402127F0
+    call qword ptr [g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall]  ; CPlNevanShlSpawnType1_sub_1402127F0
+    add rsp, 28h
+    pop rdi
+    pop rbx
+    ret
 SpawnNevanShlRose ENDP
 
 .DATA
@@ -75,10 +86,12 @@ NevanShlMarkRoseModeDetour PROC
 
 CheckIfShouldMarkRose:
     PushAllRegs
-    add rsp, 28h
     mov rcx, rax ; rax holds the Shl actor here; the check resolves the owner player from the Shl's playerActorAddr
+    mov r12, rsp
+    and rsp, -16
+    sub rsp, 20h
     call qword ptr [g_NevanShlMarkRoseMode_CheckCall]  ; mark as Rose if in Air Taunt Rose state or delayed spawn in progress
-    sub rsp, 28h
+    mov rsp, r12
     cmp al, 1
     jne OriginalCode
     PopAllRegs

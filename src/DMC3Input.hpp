@@ -86,26 +86,39 @@ extern CrimsonInput::BindPair(*activeConfigInputs[PLAYER_COUNT][2])[NUM_GAMEPADB
 
 #endif
 
+// The Doppelganger runs on delayed input, so its stick comes from its own (replayed) input block;
+// the live pad is only right for the main actor.
+inline uint16 GetActorLeftStickPosition(PlayerActorData& actorData) {
+    if (actorData.newEntityIndex == ENTITY::CLONE) {
+        return actorData.leftStickPosition;
+    }
+    return static_cast<uint16>(GetGamepad(actorData.newGamepad).leftStickPosition);
+}
+
+inline uint16 GetActorLeftStickRadius(PlayerActorData& actorData) {
+    if (actorData.newEntityIndex == ENTITY::CLONE) {
+        return actorData.leftStickRadius;
+    }
+    return static_cast<uint16>(GetGamepad(actorData.newGamepad).leftStickRadius);
+}
+
 inline uint16 GetRelativeTilt(PlayerActorData& actorData) {
-    auto& gamepad       = GetGamepad(actorData.newGamepad);
     uint16 relativeTilt = 0;
 
-
-    relativeTilt = (actorData.actorCameraDirection - gamepad.leftStickPosition);
+    relativeTilt = (actorData.actorCameraDirection - GetActorLeftStickPosition(actorData));
 
     return relativeTilt;
 }
 
 inline uint8 GetRelativeTiltDirection(PlayerActorData& actorData) {
-    auto& gamepad       = GetGamepad(actorData.newGamepad);
     uint16 relativeTilt = 0;
     using namespace ACTION_DANTE;
 
-    if (gamepad.leftStickRadius < LEFT_STICK_DEADZONE) {
+    if (GetActorLeftStickRadius(actorData) < LEFT_STICK_DEADZONE) {
         return TILT_DIRECTION::NEUTRAL;
     }
 
-    relativeTilt = (actorData.actorCameraDirection - gamepad.leftStickPosition);
+    relativeTilt = (actorData.actorCameraDirection - GetActorLeftStickPosition(actorData));
 
     {
         uint16 value = (relativeTilt - 0x6000);

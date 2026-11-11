@@ -81,6 +81,7 @@ struct Config {
 		} Royalguard;
 		struct {
 			uint8 clone[4] = { 16, 16, 16, 48 };
+			uint8 vergilClone[4] = { 15, 75, 123, 48 };
 		} Doppelganger;
 		struct {
 			uint8 dante[5][4] = {
