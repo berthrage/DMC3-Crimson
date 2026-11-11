@@ -183,6 +183,8 @@ file(GLOB MAIN_SRC
     Config.cpp
     Config.hpp
     Crimson.cpp 
+    CrashHandler.cpp
+    CrashHandler.hpp
     CrimsonConfig.cpp
     CrimsonConfig.hpp
     CrimsonConfigGameplay.cpp

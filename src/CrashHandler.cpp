@@ -35,6 +35,11 @@ static HANDLE gDumpThread = nullptr;
 // not working in DLL_PROCESS_ATTACH :(
 //static HANDLE gDumpThread = nullptr;
 static bool gCrashed = false;
+static HANDLE gDumpDone = nullptr;
+static volatile LONG gStopDumpThread = 0;
+static size_t gCrashMemoryBase = 0;
+static DWORD gLastDumpCode = 0;
+static DWORD64 gLastDumpAddress = 0;
 
 static MINIDUMP_EXCEPTION_INFORMATION gMei{};
 static LPTOP_LEVEL_EXCEPTION_FILTER gPrevExceptionFilter = nullptr;
@@ -42,12 +47,16 @@ static LPTOP_LEVEL_EXCEPTION_FILTER gPrevExceptionFilter = nullptr;
 #define MSGBOX_TITLE "Crimson Crash Handler"
 
 template <typename... Args> void Append(const char* format, Args... args) {
-    int ret = snprintf(gCrashMemory + crashMemoryOffset, sizeof(gCrashMemory), format, args...);
+    if (crashMemoryOffset >= sizeof(gCrashMemory) - 1) {
+        return;
+    }
+    int ret = snprintf(gCrashMemory + crashMemoryOffset, sizeof(gCrashMemory) - crashMemoryOffset, format, args...);
     if (ret == -1) {
         MessageBoxA(NULL, "Bro... we crashed... in a crash handler :facepalm:", MSGBOX_TITLE, MB_ICONERROR);
         return;
     }
-    crashMemoryOffset += ret;
+    size_t room = sizeof(gCrashMemory) - crashMemoryOffset - 1;
+    crashMemoryOffset += ((size_t)ret < room) ? (size_t)ret : room;
 }
 
 static const char* ExceptionFromCode(UINT code) {
@@ -101,6 +110,98 @@ static const char* ExceptionFromCode(UINT code) {
     }
 }
 
+// Exceptions that are never expected during normal play. A handled C++ exception
+// or a debugger breakpoint must not produce a dump.
+static bool IsFatalExceptionCode(DWORD code) {
+    switch (code) {
+    case EXCEPTION_ACCESS_VIOLATION:
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+    case EXCEPTION_DATATYPE_MISALIGNMENT:
+    case EXCEPTION_ILLEGAL_INSTRUCTION:
+    case EXCEPTION_PRIV_INSTRUCTION:
+    case EXCEPTION_INT_DIVIDE_BY_ZERO:
+    case EXCEPTION_INT_OVERFLOW:
+    case EXCEPTION_STACK_OVERFLOW:
+    case EXCEPTION_INVALID_HANDLE:
+    case EXCEPTION_IN_PAGE_ERROR:
+    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+    case STATUS_HEAP_CORRUPTION:
+    case STATUS_STACK_BUFFER_OVERRUN:
+    case STATUS_FATAL_APP_EXIT:
+    case 0xC000000D: // STATUS_INVALID_PARAMETER, raised by ntdll heap checks
+    case 0xC0000417: // STATUS_INVALID_CRUNTIME_PARAMETER
+    case 0xC0000602: // STATUS_FAIL_FAST_EXCEPTION
+        return true;
+    default:
+        return false;
+    }
+}
+
+struct ModuleRange {
+    DWORD64 base;
+    DWORD64 size;
+    char name[MAX_MODULE_NAME32 + 1];
+};
+
+static ModuleRange gModuleRanges[512];
+static size_t gModuleRangeCount = 0;
+
+static void SnapshotModuleRanges() {
+    gModuleRangeCount = 0;
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+    if (snap == INVALID_HANDLE_VALUE) {
+        return;
+    }
+    MODULEENTRY32 mod;
+    mod.dwSize = sizeof(mod);
+    BOOL cont = Module32First(snap, &mod);
+    while (cont && gModuleRangeCount < (sizeof(gModuleRanges) / sizeof(gModuleRanges[0]))) {
+        auto& entry = gModuleRanges[gModuleRangeCount++];
+        entry.base = (DWORD64)mod.modBaseAddr;
+        entry.size = mod.modBaseSize;
+        strncpy_s(entry.name, mod.szModule, _TRUNCATE);
+        cont = Module32Next(snap, &mod);
+    }
+    CloseHandle(snap);
+}
+
+static const char* ModuleNameForAddress(DWORD64 address, DWORD64* offsetOut) {
+    if (gModuleRangeCount == 0) {
+        SnapshotModuleRanges();
+    }
+    for (size_t i = 0; i < gModuleRangeCount; i++) {
+        if (address >= gModuleRanges[i].base && address < gModuleRanges[i].base + gModuleRanges[i].size) {
+            if (offsetOut) {
+                *offsetOut = address - gModuleRanges[i].base;
+            }
+            return gModuleRanges[i].name;
+        }
+    }
+    return nullptr;
+}
+
+// Return addresses left on the stack, so the call chain is visible without a debugger.
+static void AppendStackScan(DWORD64 stackPointer) {
+    Append("\n-------- Stack scan start ----------\n\n");
+    for (int i = 0; i < 0x400; i++) {
+        DWORD64 address = stackPointer + (DWORD64)i * sizeof(DWORD64);
+        MEMORY_BASIC_INFORMATION mbi{};
+        if (VirtualQuery((LPCVOID)address, &mbi, sizeof(mbi)) != sizeof(mbi)) {
+            break;
+        }
+        if (mbi.State != MEM_COMMIT || (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS))) {
+            break;
+        }
+        DWORD64 value = *(const DWORD64*)address;
+        DWORD64 offset = 0;
+        const char* module = ModuleNameForAddress(value, &offset);
+        if (module) {
+            Append("  [%02d] rsp+0x%03X = %s+0x%I64X\n", i, i * 8, module, offset);
+        }
+    }
+    Append("\n-------- Stack scan end ----------\n\n");
+}
+
 void GetExceptionInfo(EXCEPTION_POINTERS* excPointers) {
     if (!excPointers) {
         return;
@@ -111,7 +212,13 @@ void GetExceptionInfo(EXCEPTION_POINTERS* excPointers) {
     DWORD excCode = excRecord->ExceptionCode;
     Append("Exception: %08X %s\n", (int)excCode, ExceptionFromCode(excCode));
 
-    Append("Faulting IP: %08X", (DWORD64)excRecord->ExceptionAddress);
+    DWORD64 faultOffset = 0;
+    const char* faultModule = ModuleNameForAddress((DWORD64)excRecord->ExceptionAddress, &faultOffset);
+    if (faultModule) {
+        Append("Faulting IP: %016I64X (%s+0x%I64X)", (DWORD64)excRecord->ExceptionAddress, faultModule, faultOffset);
+    } else {
+        Append("Faulting IP: %016I64X", (DWORD64)excRecord->ExceptionAddress);
+    }
     if ((EXCEPTION_ACCESS_VIOLATION == excCode) || (EXCEPTION_IN_PAGE_ERROR == excCode)) {
         int readWriteFlag = (int)excRecord->ExceptionInformation[0];
         DWORD64 dataVirtAddr = (DWORD64)excRecord->ExceptionInformation[1];
@@ -143,6 +250,8 @@ void GetExceptionInfo(EXCEPTION_POINTERS* excPointers) {
 
     Append("\nCrashed thread: %08X\n", GetCurrentThread());
 
+    AppendStackScan(ctx->Rsp);
+
     Append("\n-------- Exception information end ----------\n\n");
 }
 
@@ -152,7 +261,7 @@ static bool GetModules() {
     bool isWine = false;
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
     if (snap == INVALID_HANDLE_VALUE) {
-        return true;
+        return false;
     }
 
     MODULEENTRY32 mod;
@@ -239,85 +348,115 @@ static BOOL CALLBACK OpenMiniDumpCallback(void*, PMINIDUMP_CALLBACK_INPUT input,
     }
 }
 
-#if USE_THREAD
-static DWORD WINAPI CrashDumpThread(LPVOID param) {
-    WaitForSingleObject(gDumpEvent, INFINITE);
-#else
-static DWORD WINAPI CrashDumpProc() {
-#endif
+static void WriteCrashDump() {
     if (!gCrashed) {
-        return 0;
+        return;
     }
 
+    crashMemoryOffset = gCrashMemoryBase;
+    gCrashMemory[crashMemoryOffset] = 0;
     BuildCrashInfoText();
 
-    Log("CrashDumpThread\n");
+    Log("WriteCrashDump\n");
 
-    DWORD n = GetEnvironmentVariableA("CRIMSON_FULLDUMP", nullptr, 0);
-    bool fullDump = (0 != n);
+    if (!minidump_write_dump) {
+        InitializeDbgHelp();
+    }
+    if (!minidump_write_dump) {
+        Log("WriteCrashDump: MiniDumpWriteDump unavailable\n");
+    } else {
+        DWORD n = GetEnvironmentVariableA("CRIMSON_FULLDUMP", nullptr, 0);
+        bool fullDump = (0 != n);
 
-    HANDLE hFile = CreateFile(gCrashFilePath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, nullptr);
-    if (INVALID_HANDLE_VALUE == hFile) {
-        return 0;
+        HANDLE hFile = CreateFile(gCrashFilePath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, nullptr);
+        if (INVALID_HANDLE_VALUE == hFile) {
+            Log("WriteCrashDump: CreateFile failed %u\n", GetLastError());
+        } else {
+            MINIDUMP_TYPE type = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory | MiniDumpWithHandleData );
+            if (fullDump) {
+                type = (MINIDUMP_TYPE)(type | MiniDumpWithDataSegs | MiniDumpWithCodeSegs | MiniDumpWithHandleData);
+            }
+            MINIDUMP_CALLBACK_INFORMATION mci = {OpenMiniDumpCallback, nullptr};
+
+            BOOL ok = minidump_write_dump(GetCurrentProcess(), GetCurrentProcessId(), hFile, type, &gMei, nullptr, &mci);
+            Log("WriteCrashDump: MiniDumpWriteDump %s (%08X)\n", ok ? "ok" : "failed", ok ? 0 : (unsigned int)GetLastError());
+            CloseHandle(hFile);
+        }
     }
 
-    MINIDUMP_TYPE type = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory | MiniDumpWithHandleData );
-    if (fullDump) {
-        type = (MINIDUMP_TYPE)(type | MiniDumpWithDataSegs | MiniDumpWithCodeSegs | MiniDumpWithHandleData);
-#if 0
-        type =
-            (MINIDUMP_TYPE)(type | MiniDumpWithPrivateReadWriteMemory);
-#endif
+    // Crash report next to the dump, independent of the log file.
+    char textPath[MAX_PATH];
+    snprintf(textPath, sizeof(textPath), "%s.txt", gCrashFilePath);
+    HANDLE hText = CreateFile(textPath, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (INVALID_HANDLE_VALUE != hText) {
+        DWORD written = 0;
+        WriteFile(hText, gCrashMemory, (DWORD)::strlen(gCrashMemory), &written, nullptr);
+        CloseHandle(hText);
     }
-    MINIDUMP_CALLBACK_INFORMATION mci = {OpenMiniDumpCallback, nullptr};
 
-    minidump_write_dump(GetCurrentProcess(), GetCurrentProcessId(), hFile, type, &gMei, nullptr, &mci);
-
-    CloseHandle(hFile);
     // Log function cuts off symbolls if string exceeds 2048 chars... sigh
     size_t length = ::strlen(gCrashMemory);
-    for (int i = 0; i < length; i += 2048) {
+    for (size_t i = 0; i < length; i += 2048) {
         Log<false>(gCrashMemory + i);
     }
-    return 0;
+}
+
+static DWORD WINAPI CrashDumpThread(LPVOID) {
+    for (;;) {
+        WaitForSingleObject(gDumpEvent, INFINITE);
+        if (gStopDumpThread) {
+            return 0;
+        }
+        WriteCrashDump();
+        SetEvent(gDumpDone);
+    }
+}
+
+// per msdn, MiniDumpWriteDump() doesn't write the callstack of the calling
+// thread correctly, so the dump is written from a helper thread.
+static void RunCrashDump(DWORD timeoutMs) {
+    if (!gDumpThread || WaitForSingleObject(gDumpThread, 0) == WAIT_OBJECT_0) {
+        WriteCrashDump();
+        return;
+    }
+    ResetEvent(gDumpDone);
+    SetEvent(gDumpEvent);
+    if (WaitForSingleObject(gDumpDone, timeoutMs) != WAIT_OBJECT_0) {
+        Log("RunCrashDump: dump thread did not finish\n");
+    }
 }
 
 static LONG WINAPI CrashDumpVectoredExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) {
-#if 1
-    if (exceptionInfo->ExceptionRecord->ExceptionCode != STATUS_HEAP_CORRUPTION) {
+    if (!exceptionInfo || !exceptionInfo->ExceptionRecord) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
-#endif
-
-    //    gReducedLogging = true;
-    Log("CrashDumpVectoredExceptionHandler\n");
-
-    static bool wasHere = false;
-    if (wasHere) {
-        Log("CrashDumpVectoredExceptionHandler: wasHere set\n");
-        return EXCEPTION_CONTINUE_SEARCH; // Note: or should TerminateProcess()?
+    if (!IsFatalExceptionCode(exceptionInfo->ExceptionRecord->ExceptionCode)) {
+        return EXCEPTION_CONTINUE_SEARCH;
     }
 
-    wasHere = true;
-    gCrashed = true;
+    DWORD code = exceptionInfo->ExceptionRecord->ExceptionCode;
+    DWORD64 address = (DWORD64)exceptionInfo->ExceptionRecord->ExceptionAddress;
+    // A handled exception thrown repeatedly from one place is dumped once; a
+    // different fault later overwrites the dump.
+    if (gLastDumpCode == code && gLastDumpAddress == address) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+    gLastDumpCode = code;
+    gLastDumpAddress = address;
 
+    DWORD64 offset = 0;
+    const char* module = ModuleNameForAddress(address, &offset);
+    Log("CrashDumpVectoredExceptionHandler: code %08X at %s+0x%I64X\n", (unsigned int)code, module ? module : "?", offset);
+
+    gCrashed = true;
     gMei.ThreadId = GetCurrentThreadId();
     gMei.ExceptionPointers = exceptionInfo;
-    // DOES NOT WORK IN DLL_PROCESS_ATTACH
-#if USE_THREAD
-    // per msdn (which is backed by my experience), MiniDumpWriteDump() doesn't
-    // write callstack for the calling thread correctly. We use msdn-recommended
-    // work-around of spinning a thread to do the writing
-    SetEvent(gDumpEvent);
-    WaitForSingleObject(gDumpThread, INFINITE);
-#else
-    CrashDumpProc();
-#endif
+    RunCrashDump(30000);
 
-    ShowCrashHandlerMessage();
-    TerminateProcess(GetCurrentProcess(), 1);
-
+    // Let normal exception handling continue: if nothing handles it, the
+    // unhandled filter reports and terminates. This keeps a recoverable
+    // access violation from killing the game.
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -335,20 +474,15 @@ static LONG WINAPI CrashDumpExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) 
     }
 
     wasHere = true;
-    gCrashed = true;
 
-    gMei.ThreadId = GetCurrentThreadId();
-    gMei.ExceptionPointers = exceptionInfo;
-#if USE_THREAD
-    // per msdn (which is backed by my experience), MiniDumpWriteDump() doesn't
-    // write callstack for the calling thread correctly. We use msdn-recommended
-    // work-around of spinning a thread to do the writing
-
-    SetEvent(gDumpEvent);
-    WaitForSingleObject(gDumpThread, INFINITE);
-#else
-    CrashDumpProc();
-#endif
+    bool alreadyDumped = gLastDumpCode == exceptionInfo->ExceptionRecord->ExceptionCode
+        && gLastDumpAddress == (DWORD64)exceptionInfo->ExceptionRecord->ExceptionAddress;
+    if (!alreadyDumped) {
+        gCrashed = true;
+        gMei.ThreadId = GetCurrentThreadId();
+        gMei.ExceptionPointers = exceptionInfo;
+        RunCrashDump(INFINITE);
+    }
 
     ShowCrashHandlerMessage();
     TerminateProcess(GetCurrentProcess(), 1);
@@ -562,6 +696,13 @@ void InstallCrashHandler(const char* crashFilePath) {
         return;
     }
 
+    // Both the injector and Crimson.dll install this; only the first one does.
+    HANDLE singleton = CreateEventA(nullptr, TRUE, FALSE, "Local\\CrimsonCrashHandlerInstalled");
+    if (singleton && GetLastError() == ERROR_ALREADY_EXISTS) {
+        CloseHandle(singleton);
+        return;
+    }
+
     gCrashFilePath = (char*)crashFilePath;
 
     Log("InstallCrashHandler:\n  crashFilePath: '%s'\n", crashFilePath );
@@ -574,11 +715,11 @@ void InstallCrashHandler(const char* crashFilePath) {
     }
 
     BuildSystemInfo();
+    gCrashMemoryBase = crashMemoryOffset;
 
-    // DOES NOT WORK IN DLL_PROCESS_ATTACH!
-#if USE_THREAD
     gDumpEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    if (!gDumpEvent) {
+    gDumpDone = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    if (!gDumpEvent || !gDumpDone) {
         Log("InstallCrashHandler: skipping because !gDumpEvent\n");
         return;
     }
@@ -587,7 +728,6 @@ void InstallCrashHandler(const char* crashFilePath) {
         Log("InstallCrashHandler: skipping because !gDumpThread\n");
         return;
     }
-#endif
     gPrevExceptionFilter = SetUnhandledExceptionFilter(CrashDumpExceptionHandler);
     // 1 means that our handler will be called first, 0 would be: last
     AddVectoredExceptionHandler(1, CrashDumpVectoredExceptionHandler);
@@ -600,27 +740,26 @@ void InstallCrashHandler(const char* crashFilePath) {
     ::set_unexpected(onUnexpected);
 
     s_crashHandlerInstalled = true;
+    Log("InstallCrashHandler: installed\n");
 }
 
 void UninstallCrashHandler() {
-#if USE_THREAD
     if (!gDumpEvent || !gDumpThread) {
         return;
     }
-#endif
 
     if (gPrevExceptionFilter) {
         SetUnhandledExceptionFilter(gPrevExceptionFilter);
     }
 
-#if USE_THREAD
+    gStopDumpThread = 1;
     SetEvent(gDumpEvent);
     WaitForSingleObject(gDumpThread, 1000); // 1 sec
 
     CloseHandle(gDumpThread);
     CloseHandle(gDumpEvent);
-#endif
 }
+
 
 // Tests that various ways to crash will generate crash report.
 // Commented-out because they are ad-hoc. Left in code because
