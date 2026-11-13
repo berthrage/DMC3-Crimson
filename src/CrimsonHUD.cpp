@@ -41,6 +41,7 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonTimers.hpp"
 #include "CrimsonMusicSwitcher.hpp"
+#include "CrimsonStyleMeterAnim.hpp"
 #include "CrimsonUtil.hpp"
 #include "UI\EmbeddedImages.hpp"
 #include "CrimsonGUI.hpp"
@@ -777,6 +778,64 @@ static float g_stylishPtsOutOfCombatTimer = 0.0f;
 // The view the style meter windows are being drawn for (-1 = the whole screen), see StyleMeterWindows.
 static int s_styleView = -1;
 
+// Same entrance as the vanilla meter: the letter and word fly in from the right, stretched 2x wide, at 60 frames a second.
+// Offsets are in vanilla HUD units (640 x 448).
+static constexpr float kVanillaHudUnit = 1080.0f / 448.0f; // pixels per HUD unit at 1080p
+static constexpr float kVanillaFlashFrame = 10.0f; // the whole meter flashes here, then dims 6 / 127 a frame
+static constexpr float kVanillaFlashDecayPerFrame = 6.0f / 127.0f;
+static constexpr float kStyleLetterPivot = 0.65f; // where the stretch pivots, as a fraction of the sprite width
+static constexpr float kStyleWordPivot = 0.19f;
+static constexpr float kStyleWordMaxTravel = 270.0f; // longest word run in the tracks, so the window can fit it
+static constexpr float kStyleWordMaxRise = 40.0f;
+
+// Experiment switches, one per part of the meter. Crimson = the original skewed pop-in, Vanilla = the vanilla clips.
+// Both on Crimson gives the old meter, both on Vanilla gives the vanilla one.
+enum class StyleMeterAnimSource { Crimson, Vanilla };
+static constexpr StyleMeterAnimSource kStyleLetterAnim = StyleMeterAnimSource::Vanilla; // A, B, C, D...
+static constexpr StyleMeterAnimSource kStyleTextAnim = StyleMeterAnimSource::Crimson; // "ope!", "razy", ...
+static constexpr bool kVanillaLetters = kStyleLetterAnim == StyleMeterAnimSource::Vanilla;
+static constexpr bool kVanillaText = kStyleTextAnim == StyleMeterAnimSource::Vanilla;
+
+// Timings of the original Crimson entrance, in seconds.
+static constexpr float kCrimsonAnimDuration = 0.32f;
+static constexpr float kStyleTextDelay = 0.49f; // seconds until the text starts moving (Crimson was 0.64 originally)
+static constexpr float kCrimsonTextAnimDuration = 0.22f;
+static constexpr float kCrimsonFlashDuration = 0.6f;
+
+static CrimsonStyleMeterAnim::Sample SampleStyleMeterTrack(int track, float frame) {
+	using namespace CrimsonStyleMeterAnim;
+	if (track < 0 || frame >= kFrameCount - 1) {
+		return { 0.0f, 0.0f, 1.0f };
+	}
+	frame = (std::max)(frame, 0.0f);
+	const int index = static_cast<int>(frame);
+	const float t = frame - index;
+	const Sample& a = kTracks[track].frames[index];
+	const Sample& b = kTracks[track].frames[index + 1];
+	return { ImLerp(a.dx, b.dx, t), ImLerp(a.dy, b.dy, t), ImLerp(a.sx, b.sx, t) };
+}
+
+// First frame where the track starts to travel sideways; the words wait off screen until then.
+static float StyleMeterTrackStartFrame(int track) {
+	using namespace CrimsonStyleMeterAnim;
+	if (track < 0) {
+		return 0.0f;
+	}
+	for (int i = 1; i < kFrameCount; ++i) {
+		if (kTracks[track].frames[i].dx != kTracks[track].frames[0].dx) {
+			return static_cast<float>(i - 1);
+		}
+	}
+	return 0.0f;
+}
+
+// Moves a sprite by the sample (y up) and stretches it sideways around its pivot.
+static void ApplyStyleMeterSample(const CrimsonStyleMeterAnim::Sample& sample, float pivot, float unitPx, ImVec2& pos, ImVec2& size) {
+	pos.x += (1.0f - sample.sx) * pivot * size.x + sample.dx * unitPx;
+	pos.y -= sample.dy * unitPx;
+	size.x *= sample.sx;
+}
+
 // Position / size transform of the style meter of a view (HUD.cpp); identity when none applies.
 static TopLeftHudSync GetStyleMeterSync(int view) {
 	TopLeftHudSync sync;
@@ -805,7 +864,6 @@ void StyleMeterWindowRank(
 	uint32 auraColor,
 	uint32 fillColor,
 	uint32 textColor,
-	float animIntensity = 1.0f,
 	ImVec2 windowPos = ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 	bool sSStyle = false,
 	bool sSSStyle = false,
@@ -816,10 +874,14 @@ void StyleMeterWindowRank(
 	StyleMeterAnimState& state = animStatesPerView[s_styleView + 1][currentRank];
 	int& prevGlobalStyleRank = prevGlobalStyleRanks[s_styleView + 1];
 
-	const float animDuration = 0.32f;
-	const float textDelay = 0.64f;
-	const float textAnimDuration = 0.22f;
-	const float flashDuration = 0.6f;
+	// The animation runs until the flash has faded and the text (if it's the Crimson one) has landed.
+	const float flashEnd = kVanillaLetters
+		? (kVanillaFlashFrame - 1.0f + 1.0f / kVanillaFlashDecayPerFrame) / CrimsonStyleMeterAnim::kFramesPerSecond
+		: kCrimsonFlashDuration;
+	const float wordTail = (CrimsonStyleMeterAnim::kFrameCount - StyleMeterTrackStartFrame(CrimsonStyleMeterAnim::kRankTracks[currentRank - 1].word)) / CrimsonStyleMeterAnim::kFramesPerSecond;
+	const float textEnd = kStyleTextDelay + (kVanillaText ? wordTail : kCrimsonTextAnimDuration);
+	const float animEnd = (std::max)(flashEnd, textEnd);
+	const float crimsonIntensity = currentRank >= 5 ? 1.5f : 1.0f; // how far the Crimson pop-in starts from
 
 	float fillRatio = 0.0f;
 	bool active = false;
@@ -867,6 +929,9 @@ void StyleMeterWindowRank(
 	if (!state.prevActive && active && currentRank > prevGlobalStyleRank) {
 		state.animTimer = 0.0f;
 		state.animating = true;
+		if constexpr (kVanillaLetters || kVanillaText) {
+			state.fade.alpha = 1.0f; // vanilla shows the new rank fully opaque right away
+		}
 	}
 	state.prevActive = active;
 
@@ -882,7 +947,7 @@ void StyleMeterWindowRank(
 	// --- Animation update ---
 	if (state.animating) {
 		state.animTimer += deltaTime;
-		if (state.animTimer > animDuration + textDelay + textAnimDuration)
+		if (state.animTimer > animEnd)
 			state.animating = false;
 	}
 
@@ -913,10 +978,14 @@ void StyleMeterWindowRank(
 	poppedColor.w = state.fade.alpha;
 
 	// --- Flash color logic ---
+	const float animFrames = state.animTimer * CrimsonStyleMeterAnim::kFramesPerSecond;
 	float flashT = 0.0f;
-	if (state.animating && state.animTimer < flashDuration) {
-		flashT = 1.0f - (state.animTimer / flashDuration);
-		flashT = ImClamp(flashT, 0.0f, 1.0f);
+	if constexpr (kVanillaLetters) {
+		if (state.animating && animFrames + 1.0f >= kVanillaFlashFrame) {
+			flashT = ImClamp(1.0f - (animFrames + 1.0f - kVanillaFlashFrame) * kVanillaFlashDecayPerFrame, 0.0f, 1.0f);
+		}
+	} else if (state.animating && state.animTimer < kCrimsonFlashDuration) {
+		flashT = ImClamp(1.0f - (state.animTimer / kCrimsonFlashDuration), 0.0f, 1.0f);
 	}
 	ImVec4 poppedColorV = poppedColor;
 	ImVec4 whiteV = ImVec4(1.0f, 1.0f, 1.0f, state.fade.alpha);
@@ -924,16 +993,14 @@ void StyleMeterWindowRank(
 	ImColor flashBg(flashBgV);
 
 	ImColor fillColorC = ImColor(ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(fillColor)));
-	if (state.animating && state.animTimer < animDuration) {
+	if constexpr (kVanillaLetters) {
+		fillColorC = ImColor(ImLerp(fillColorC.Value, whiteV, flashT));
+	} else if (state.animating && state.animTimer < kCrimsonAnimDuration) {
 		fillColorC = ImColor(ImLerp(poppedColorV, whiteV, flashT));
 	}
 	fillColorC.Value.w = state.fade.alpha;
 
 	ImColor highlightColor = white;
-	if (state.animating && state.animTimer < animDuration) {
-		highlightColor = ImColor(ImLerp(white, whiteV, flashT));
-	}
-	highlightColor.Value.w = state.fade.alpha;
 
 	float extraLeft = (g_uiSize.y - 100.0f * scaleFactorY);
 	ImVec2 adjustedWindowPos = ImVec2(windowPos.x - extraLeft, windowPos.y);
@@ -952,84 +1019,92 @@ void StyleMeterWindowRank(
 		ImGuiWindowFlags_NoBackground);
 	HudViewClipGuard meterClip(s_styleView);
 
-	float animScale = 1.0f;
-	float animAngle = 0.0f;
-	float skewT = 1.0f;
-	ImVec2 animOffset(0, 0);
-	if (state.animating && state.animTimer < animDuration) {
-		float t = ImClamp(state.animTimer / animDuration, 0.0f, 1.0f);
+	const auto& rankTracks = CrimsonStyleMeterAnim::kRankTracks[currentRank - 1];
+	const float unitPx = kVanillaHudUnit * scaleFactorY;
 
-		auto easeInOut = [](float t) {
-			return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
-			};
+	// Original Crimson pop-in: slides in from the right, shrinks from 2.8x, skewed and wobbling.
+	float crimsonScale = 1.0f;
+	float crimsonAngle = 0.0f;
+	float crimsonSkewT = 1.0f;
+	ImVec2 crimsonOffset(0.0f, 0.0f);
+	if constexpr (!kVanillaLetters) {
+		if (state.animating && state.animTimer < kCrimsonAnimDuration) {
+			float t = ImClamp(state.animTimer / kCrimsonAnimDuration, 0.0f, 1.0f);
 
-		float phase1 = 0.55f;
-		float centerDist = meterSize.x * animIntensity;
+			auto easeInOut = [](float t) {
+				return t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+				};
 
-		if (t < phase1) {
-			float t1 = easeInOut(t / phase1);
-			animOffset.x = centerDist * (1.0f - t1);
-			skewT = t1 * 0.5f;
-			animScale = 2.8f - 1.2f * t1;
-			animAngle = (1.0f - t1) * 0.18f * sinf(t1 * 8.0f);
-		} else {
-			float t2 = easeInOut((t - phase1) / (1.0f - phase1));
-			animOffset.x = ImLerp(0.0f, 0.0f, t2);
-			skewT = 0.5f + t2 * 0.5f;
-			animScale = 1.6f - 0.6f * t2;
-			animAngle = (1.0f - t2) * 0.08f * sinf(t2 * 8.0f);
-		}
+			float phase1 = 0.55f;
+			float centerDist = meterSize.x * crimsonIntensity;
 
-		if (t > 0.96f) {
-			float snapT = (t - 0.96f) / 0.04f;
-			animScale = ImLerp(animScale, 1.0f, snapT);
-			animAngle = ImLerp(animAngle, 0.0f, snapT);
-			animOffset.x = ImLerp(animOffset.x, 0.0f, snapT);
-			skewT = ImLerp(skewT, 1.0f, snapT);
+			if (t < phase1) {
+				float t1 = easeInOut(t / phase1);
+				crimsonOffset.x = centerDist * (1.0f - t1);
+				crimsonSkewT = t1 * 0.5f;
+				crimsonScale = 2.8f - 1.2f * t1;
+				crimsonAngle = (1.0f - t1) * 0.18f * sinf(t1 * 8.0f);
+			} else {
+				float t2 = easeInOut((t - phase1) / (1.0f - phase1));
+				crimsonSkewT = 0.5f + t2 * 0.5f;
+				crimsonScale = 1.6f - 0.6f * t2;
+				crimsonAngle = (1.0f - t2) * 0.08f * sinf(t2 * 8.0f);
+			}
+
+			if (t > 0.96f) {
+				float snapT = (t - 0.96f) / 0.04f;
+				crimsonScale = ImLerp(crimsonScale, 1.0f, snapT);
+				crimsonAngle = ImLerp(crimsonAngle, 0.0f, snapT);
+				crimsonOffset.x = ImLerp(crimsonOffset.x, 0.0f, snapT);
+				crimsonSkewT = ImLerp(crimsonSkewT, 1.0f, snapT);
+			}
 		}
 	}
 
-	ImVec2 center = ImGui::GetCursorScreenPos() + meterSize * 0.5f + animOffset;
-	ImVec2 renderSize = meterSize * animScale;
-	ImVec2 renderPos = center - renderSize * 0.5f;
-	ImVec2 renderPosExtraLeft = ImVec2(renderPos.x + extraLeft, renderPos.y);
-	ImVec2 actualRenderPos = renderPosExtraLeft;
+	struct LetterPose {
+		ImVec2 pos;
+		ImVec2 size;
+		float angle;
+		float skewT;
+	};
+	auto letterPose = [&](int track, ImVec2 restPos) {
+		LetterPose pose = { restPos, meterSize, 0.0f, 1.0f };
+		if constexpr (kVanillaLetters) {
+			const auto sample = SampleStyleMeterTrack(state.animating ? track : -1, animFrames);
+			ApplyStyleMeterSample(sample, kStyleLetterPivot, unitPx, pose.pos, pose.size);
+		} else {
+			pose.pos = restPos + crimsonOffset + meterSize * ((1.0f - crimsonScale) * 0.5f);
+			pose.size = meterSize * crimsonScale;
+			pose.angle = crimsonAngle;
+			pose.skewT = crimsonSkewT;
+		}
+		return pose;
+	};
 
-	ImVec2 renderPosSSStyle = ImVec2(renderPos.x - (50.0f * scaleFactorY * kStyleMeterScale), renderPos.y + (50.0f * scaleFactorY * kStyleMeterScale));
-	ImVec2 renderPosSSStyleExtraLeft = ImVec2(renderPosSSStyle.x + extraLeft, renderPosSSStyle.y);
-	ImVec2 actualRenderPosSSStyle = renderPosSSStyleExtraLeft;
-	ImVec2 renderPosSSSStyle = ImVec2(renderPos.x - (100.0f * scaleFactorY * kStyleMeterScale), renderPos.y + (20.0f * scaleFactorY * kStyleMeterScale));
-	ImVec2 renderPosSSSStyleExtraLeft = ImVec2(renderPosSSSStyle.x + extraLeft, renderPosSSSStyle.y);
-	ImVec2 actualRenderPosSSSStyle = renderPosSSSStyleExtraLeft;
+	const ImVec2 bodyRestPos = ImVec2(ImGui::GetCursorScreenPos().x + extraLeft, ImGui::GetCursorScreenPos().y);
+	const ImVec2 SSStyleRestPos = ImVec2(bodyRestPos.x - (50.0f * scaleFactorY * kStyleMeterScale), bodyRestPos.y + (50.0f * scaleFactorY * kStyleMeterScale));
+	const ImVec2 SSSStyleRestPos = ImVec2(bodyRestPos.x - (100.0f * scaleFactorY * kStyleMeterScale), bodyRestPos.y + (20.0f * scaleFactorY * kStyleMeterScale));
+
+	auto drawLetter = [&](const LetterPose& pose) {
+		if (bgTexture2) {
+			RenderSkewedTexture(bgTexture2, pose.pos, pose.size, flashBg, pose.angle, pose.skewT);
+		}
+		RenderSkewedMeterWithFill(fillTexture, pose.pos, pose.size, fillRatio, fillColorC, pose.angle, pose.skewT);
+		RenderSkewedTexture(bgTexture, pose.pos, pose.size, flashBg, pose.angle, pose.skewT);
+		RenderSkewedTexture(bgHighlightTexture, pose.pos, pose.size, highlightColor, pose.angle, pose.skewT);
+	};
 
 	if (sSSStyle) {
-		if (bgTexture2) {
-			RenderSkewedTexture(bgTexture2, actualRenderPosSSSStyle, renderSize, flashBg, animAngle, skewT);
-		}
-		RenderSkewedMeterWithFill(fillTexture, actualRenderPosSSSStyle, renderSize, fillRatio, fillColorC, animAngle, skewT);
-		RenderSkewedTexture(bgTexture, actualRenderPosSSSStyle, renderSize, flashBg, animAngle, skewT);
-		RenderSkewedTexture(bgHighlightTexture, actualRenderPosSSSStyle, renderSize, highlightColor, animAngle, skewT);
+		drawLetter(letterPose(rankTracks.extraB, SSSStyleRestPos));
 	}
-
 	if (sSStyle || sSSStyle) {
-		if (bgTexture2) {
-			RenderSkewedTexture(bgTexture2, actualRenderPosSSStyle, renderSize, flashBg, animAngle, skewT);
-		}
-		RenderSkewedMeterWithFill(fillTexture, actualRenderPosSSStyle, renderSize, fillRatio, fillColorC, animAngle, skewT);
-		RenderSkewedTexture(bgTexture, actualRenderPosSSStyle, renderSize, flashBg, animAngle, skewT);
-		RenderSkewedTexture(bgHighlightTexture, actualRenderPosSSStyle, renderSize, highlightColor, animAngle, skewT);
+		drawLetter(letterPose(rankTracks.extraA, SSStyleRestPos));
 	}
-
-	if (bgTexture2) {
-		RenderSkewedTexture(bgTexture2, actualRenderPos, renderSize, flashBg, animAngle, skewT);
-	}
-	RenderSkewedMeterWithFill(fillTexture, actualRenderPos, renderSize, fillRatio, fillColorC, animAngle, skewT);
-	RenderSkewedTexture(bgTexture, actualRenderPos, renderSize, flashBg, animAngle, skewT);
-	RenderSkewedTexture(bgHighlightTexture, actualRenderPos, renderSize, highlightColor, animAngle, skewT);
+	drawLetter(letterPose(rankTracks.letter, bodyRestPos));
 
 	ImGui::End();
 
-	// --- Text Animation: delayed, ease in-out, straight ---
+	// --- Text: vanilla clip or the original Crimson slide ---
 	ImVec2 textSize = ImVec2(1000.0f * scaleFactorY * 0.55f * kStyleMeterScale, 243.0f * scaleFactorY * 0.55f * kStyleMeterScale);
 	ImVec2 textWindowPos = ImVec2(windowPos.x + (194.0f * scaleFactorY * kStyleMeterScale), windowPos.y + (125.0f * scaleFactorY * kStyleMeterScale));
 	ImVec4 textColorHex = ImGui::ColorConvertU32ToFloat4(UI::SwapColorEndianness(textColor));
@@ -1043,8 +1118,16 @@ void StyleMeterWindowRank(
 	ImVec4 poppedTextColor;
 	ImGui::ColorConvertHSVtoRGB(hT, sT, vT, poppedTextColor.x, poppedTextColor.y, poppedTextColor.z);
 	poppedTextColor.w = state.fade.alpha;
+	if constexpr (kVanillaText) {
+		poppedTextColor = ImLerp(poppedTextColor, whiteV, flashT);
+	}
+
+	// The vanilla word needs room to come in from the right and rise above its spot without getting clipped.
+	const float wordTravelPx = kVanillaText ? kStyleWordMaxTravel * unitPx : 0.0f;
+	const float wordRisePx = kVanillaText ? kStyleWordMaxRise * unitPx : 0.0f;
+	textWindowPos.y -= wordRisePx;
 	ImGui::SetNextWindowPos(textWindowPos, ImGuiCond_Always);
-	ImGui::SetNextWindowSize(textSize + ImVec2(50.0f, 50.0f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(textSize + ImVec2(50.0f + wordTravelPx, 50.0f + wordRisePx), ImGuiCond_Always);
 
 	ImGui::Begin(HudViewWindowName("StyleMeterText", s_styleView), nullptr,
 		ImGuiWindowFlags_NoTitleBar |
@@ -1056,20 +1139,28 @@ void StyleMeterWindowRank(
 		ImGuiWindowFlags_NoBackground);
 	HudViewClipGuard textClip(s_styleView);
 
-	float textAnimT = 1.0f;
-	if (state.animating) {
-		if (state.animTimer > textDelay) {
-			float t = ImClamp((state.animTimer - textDelay) / textAnimDuration, 0.0f, 1.0f);
-			textAnimT = t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
-		} else {
-			textAnimT = 0.0f;
+	ImVec2 wordPos = ImGui::GetCursorScreenPos() + ImVec2(0.0f, wordRisePx);
+	ImVec2 wordSize = textSize;
+	if constexpr (kVanillaText) {
+		// The vanilla word sits off screen until its clip starts it, so line that start up with the text delay.
+		const float wordStartFrame = StyleMeterTrackStartFrame(rankTracks.word);
+		const float wordFrames = animFrames - (kStyleTextDelay * CrimsonStyleMeterAnim::kFramesPerSecond - wordStartFrame);
+		const auto wordSample = SampleStyleMeterTrack(state.animating ? rankTracks.word : -1, wordFrames);
+		ApplyStyleMeterSample(wordSample, kStyleWordPivot, unitPx, wordPos, wordSize);
+	} else {
+		float textAnimT = 1.0f;
+		if (state.animating) {
+			if (state.animTimer > kStyleTextDelay) {
+				float t = ImClamp((state.animTimer - kStyleTextDelay) / kCrimsonTextAnimDuration, 0.0f, 1.0f);
+				textAnimT = t < 0.5f ? 4.0f * t * t * t : 1.0f - powf(-2.0f * t + 2.0f, 3.0f) / 2.0f;
+			} else {
+				textAnimT = 0.0f;
+			}
 		}
+		wordPos.x += (1.0f - textAnimT) * -meterSize.x * 1.2f * crimsonIntensity;
 	}
-	ImVec2 textAnimOffset = ImVec2((1.0f - textAnimT) * -meterSize.x * 1.2f * animIntensity, 0.0f);
-
-	ImVec2 textPos = ImGui::GetCursorScreenPos() + textAnimOffset;
-	RenderTexture(textTexture, textPos, textSize, poppedTextColor);
-	RenderTexture(textHighlightTexture, textPos, textSize, white);
+	RenderTexture(textTexture, wordPos, wordSize, poppedTextColor);
+	RenderTexture(textHighlightTexture, wordPos, wordSize, white);
 
 	ImGui::End();
 }
@@ -1102,7 +1193,6 @@ static void StyleMeterWindowsView(int view) {
 		0x1f5d8aFF,
 		0xFFFFFFFF,
 		0x93beb9FF,
-		1.0f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
@@ -1120,7 +1210,6 @@ static void StyleMeterWindowsView(int view) {
 		0x2d6a4eFF,
 		0xFFFFFFFF,
 		0x8de7c9FF,
-		1.0f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
@@ -1138,7 +1227,6 @@ static void StyleMeterWindowsView(int view) {
 		0x887018FF,
 		0xFFFFFFFF,
 		0xd8cb78FF,
-		1.0f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
@@ -1156,7 +1244,6 @@ static void StyleMeterWindowsView(int view) {
 		0xbb5b10FF,
 		0xFFFFFFFF,
 		0xdea264FF,
-		1.0f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
@@ -1174,7 +1261,6 @@ static void StyleMeterWindowsView(int view) {
 		0x97418cFF,
 		0xFFFFFFFF,
 		0xdb86d4FF,
-		1.5f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		false,
 		false,
@@ -1192,7 +1278,6 @@ static void StyleMeterWindowsView(int view) {
 		0x632881FF,
 		0xFFFFFFFF,
 		0xb303ceFF,
-		1.5f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		true,
 		false,
@@ -1210,7 +1295,6 @@ static void StyleMeterWindowsView(int view) {
 		0x82141aFF,
 		0xf6bbadFF,
 		0xeb0024FF,
-		1.5f,
 		ImVec2(g_uiSize.x - (480.0 * scaleFactorY), 190.0f * scaleFactorY),
 		true,
 		true,
