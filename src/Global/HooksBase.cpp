@@ -248,12 +248,33 @@ static double g_targetFrameTime = 0.0; // seconds (0 = uncapped)
 static LARGE_INTEGER g_qpcFreq = {};
 static LARGE_INTEGER g_lastPresentTime = {};
 static bool g_fpsLimiterInitialized = false;
+static bool g_timerPeriodActive = false;
+static HANDLE g_limiterTimer = nullptr;
+static bool g_limiterTimerHighRes = false;
+
+// Only the last stretch of a frame is spun, the rest is a timer wait so the core isn't pinned
+// (matters under Wine/Proton where a hot spin thread gets throttled over time).
+static constexpr double kLimiterSpinMargin = 0.001;
+
+static void FPSLimiter_EnsureTimer() {
+	if (g_limiterTimer)
+		return;
+
+	g_limiterTimer = CreateWaitableTimerExW(nullptr, nullptr, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+	g_limiterTimerHighRes = (g_limiterTimer != nullptr);
+
+	if (!g_limiterTimer)
+		g_limiterTimer = CreateWaitableTimerW(nullptr, TRUE, nullptr);
+}
 
 void FPSLimiter_Init(double fps) {
 	if (fps <= 0.0) {
 		g_targetFrameTime = 0.0;
 		g_fpsLimiterInitialized = false;
-		timeEndPeriod(1);
+		if (g_timerPeriodActive) {
+			timeEndPeriod(1);
+			g_timerPeriodActive = false;
+		}
 		return;
 	}
 
@@ -263,7 +284,13 @@ void FPSLimiter_Init(double fps) {
 	g_targetFrameTime = 1.0 / fps;
 	g_fpsLimiterInitialized = true;
 
-	timeBeginPeriod(1);
+	FPSLimiter_EnsureTimer();
+
+	// Init runs on every cap change, so the period is only requested once.
+	if (!g_timerPeriodActive) {
+		timeBeginPeriod(1);
+		g_timerPeriodActive = true;
+	}
 }
 
 
@@ -287,17 +314,26 @@ void FPSLimiter_Apply() {
 	double remaining = g_targetFrameTime - elapsed;
 
 	if (remaining > 0.0) {
-		// Coarse sleep — only for large gaps to yield CPU, with generous margin
-		// to prevent oversleep from causing frame jitter.
-		if (remaining > 0.005) { // > 5ms
-			// Sleep only half the remaining time to guarantee we wake early
-			DWORD sleepMs = (DWORD)((remaining * 0.5) * 1000.0);
-			if (sleepMs > 0)
-				Sleep(sleepMs);
+		// Wait on the timer until just before the deadline, then spin the rest for accuracy.
+		const double sleepTime = remaining - kLimiterSpinMargin;
+		if (sleepTime > 0.0) {
+			bool waited = false;
+
+			if (g_limiterTimer) {
+				LARGE_INTEGER due;
+				due.QuadPart = -(LONGLONG)(sleepTime * 10000000.0);
+
+				if (SetWaitableTimer(g_limiterTimer, &due, 0, nullptr, nullptr, FALSE)) {
+					WaitForSingleObject(g_limiterTimer, INFINITE);
+					waited = true;
+				}
+			}
+
+			// Without a high resolution timer the wait can overshoot, so only sleep whole ms and leave extra margin.
+			if (!waited && sleepTime > 0.002)
+				Sleep((DWORD)((sleepTime - 0.001) * 1000.0));
 		}
 
-		// Fine spin wait — _mm_pause() yields the CPU hint that we're in a
-		// spin-loop, reducing power/thermal impact vs a pure busy-wait.
 		do {
 			_mm_pause();
 			QueryPerformanceCounter(&now);
