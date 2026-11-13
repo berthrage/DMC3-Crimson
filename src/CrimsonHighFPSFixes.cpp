@@ -850,6 +850,79 @@ void FixDoppelgangerInputDelay(bool enable) {
 	run = enable;
 }
 
+// UpdateTeleportEvent_sub_14023C100 (EVENT::TELEPORT) counts its sub-state frames and ramps the
+// transition effects (TeleportTransitionTick*) once per call, so the room transition plays faster
+// the higher the frame rate. It is stepped at 60 Hz in real time instead.
+namespace {
+
+constexpr uint32 kTeleportEventOffset = 0x23C100;
+constexpr uint32 kTeleportMaxCatchUpTicks = 4;
+constexpr double kTeleportMaxFrameSeconds = 0.1;
+
+using TeleportEventFn = uint64(__fastcall*)(byte8*);
+std::unique_ptr<Utility::Detour_t> s_teleportEventHook;
+int64 s_teleportLastFrame = 0;
+double s_teleportTickDebt = 0.0;
+
+uint64 __fastcall TeleportEventHook(byte8* scene) {
+	const auto original = s_teleportEventHook->GetTrampoline<TeleportEventFn>();
+	auto& eventData = *reinterpret_cast<EventData*>(scene);
+
+	LARGE_INTEGER freq = {};
+	LARGE_INTEGER now = {};
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&now);
+
+	// Sub-state 0 is the first call of the event and kicks the animation off, so it always runs.
+	if (*(scene + 0x24) == 0 || !s_teleportLastFrame || !freq.QuadPart) {
+		s_teleportLastFrame = now.QuadPart;
+		s_teleportTickDebt = 0.0;
+		return original(scene);
+	}
+
+	double dt = static_cast<double>(now.QuadPart - s_teleportLastFrame) / static_cast<double>(freq.QuadPart);
+	s_teleportLastFrame = now.QuadPart;
+	if (dt <= 0.0 || dt > kTeleportMaxFrameSeconds) {
+		dt = kVanillaFrameSeconds;
+	}
+
+	s_teleportTickDebt += dt;
+
+	uint64 result = 0;
+	for (uint32 i = 0; i < kTeleportMaxCatchUpTicks && s_teleportTickDebt >= kVanillaFrameSeconds; i++) {
+		s_teleportTickDebt -= kVanillaFrameSeconds;
+		result = original(scene);
+
+		// The last tick hands over to another event, which must not be ticked as a teleport.
+		if (eventData.event != EVENT::TELEPORT) {
+			s_teleportTickDebt = 0.0;
+			break;
+		}
+	}
+	s_teleportTickDebt = (std::min)(s_teleportTickDebt, kVanillaFrameSeconds);
+
+	return result;
+}
+
+} // namespace
+
+void FixTeleportTransitionSpeed(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	if (!s_teleportEventHook) {
+		s_teleportEventHook = std::make_unique<Detour_t>(
+			(uintptr_t)appBaseAddr + kTeleportEventOffset, &TeleportEventHook, 0, "UpdateTeleportEvent_sub_14023C100");
+	}
+	s_teleportEventHook->Toggle(enable);
+
+	run = enable;
+}
+
 void MenuAnimationFixes(bool enable) {
 	static bool run = false;
 
@@ -876,6 +949,7 @@ void ToggleAllFixes(bool enable) {
 	FixSecretMissionTimerFPS(enable);
 	FixWpNunchakuCerberusCollisions(enable);
 	FixDoppelgangerInputDelay(enable);
+	FixTeleportTransitionSpeed(enable);
 	MenuAnimationFixes(enable);
 }
 
