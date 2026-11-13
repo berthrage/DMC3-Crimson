@@ -17,6 +17,7 @@ set(MASM_SRC
     masm/GuardBreakToNormalBlock.asm
     masm/FixBallsHangHitSpeed.asm
     masm/FixBlendingEffects.asm
+    masm/FixEffectsFPS.asm
     masm/FixBossCam.asm
     masm/FixLockOnCamRelease.asm
     masm/FixClothPhysics.asm

@@ -164,6 +164,13 @@ extern "C" {
 	// FixWpNunchakuCerberusCollisions
 	std::uint64_t g_FixWpNunchakuCerberusCollisions_ReturnAddr;
 	void FixWpNunchakuCerberusCollisionsDetour();
+
+	// FixEffectsFPS -- Keeps the Moves VFX (PlayVFX / PlayVFX2 effects) from fading out at higher fps.
+	std::uint64_t g_FixEffectUVScroll_ReturnAddr;
+	void* g_FixEffectUVScroll_StepCall;
+	void FixEffectUVScrollDetour();
+	std::uint64_t g_FixGeneratorSpawnTimer_ReturnAddr;
+	void FixGeneratorSpawnTimerDetour();
 }
 
 void BlendingEffectsSpeedFixes(bool enable) {
@@ -210,6 +217,82 @@ void BlendingEffectsSpeedFixes(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x31A862, &FixBlendingEffect_Warp_Detour2, 6);
 	g_FixBlendingEffects_Warp_ReturnAddr2 = FixWarpHook2->GetReturnAddress();
 	FixWarpHook2->Toggle(enable);
+
+	run = enable;
+}
+
+// Model effects scroll their textures by whole units (4096 per tile): (int)(units * speed) in
+// CEffect_TickAnim_sub_1402E4970, then scaled by the same speed again inside the CDraw call. Both
+// round toward zero, so the scroll slows down quadratically and stops outright at high fps.
+// The fraction is carried per effect and the speed is only applied once.
+static void EffectUVScrollStep(byte8* effect, uint32 mesh, uint32 group) {
+	static std::unordered_map<byte8*, std::pair<float, float>> s_remainders;
+
+	if (s_remainders.size() > 512) {
+		s_remainders.clear();
+	}
+
+	auto data = *reinterpret_cast<byte8**>(effect + 0xF0);
+	auto speed = *reinterpret_cast<float*>(effect + 0x14);
+	auto& remainder = s_remainders[effect];
+
+	remainder.first += (float)data[0x1EE] * speed;
+	remainder.second += (float)data[0x1EF] * speed;
+	int scrollU = (int)remainder.first;
+	int scrollV = (int)remainder.second;
+	remainder.first -= (float)scrollU;
+	remainder.second -= (float)scrollV;
+
+	// CDraw internal +0x240 holds the effect speed the add-UV call multiplies by.
+	auto drawSpeed = reinterpret_cast<float*>(effect + 0x3C0);
+	auto savedSpeed = *drawSpeed;
+	*drawSpeed = 1.0f;
+
+	using AddUVOffset_t = void(__fastcall*)(void* draw, uint32 mesh, uint32 group, int scrollU, int scrollV);
+	auto draw = effect + 0x100;
+	reinterpret_cast<AddUVOffset_t*>(*reinterpret_cast<byte8**>(draw))[0xA8 / sizeof(void*)](draw, mesh, group, scrollU, scrollV);
+
+	*drawSpeed = savedSpeed;
+}
+
+void EffectsSpeedFixes(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	g_FixEffectUVScroll_StepCall = &EffectUVScrollStep;
+
+	// From CEffect_TickAnim_sub_1402E4970:
+	// dmc3.exe+2E4B2E - F3 0F 59 47 14       - mulss xmm0,[rdi+14]
+	// dmc3.exe+2E4B4A - 41 FF 93 A8 000000   - call qword ptr [r11+000000A8] { CDraw add UV offset }
+	static std::unique_ptr<Utility::Detour_t> FixEffectUVScrollHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2E4B2E, &FixEffectUVScrollDetour, 35);
+	g_FixEffectUVScroll_ReturnAddr = FixEffectUVScrollHook->GetReturnAddress();
+	FixEffectUVScrollHook->Toggle(enable);
+
+	// From CGenerator_Tick_sub_1402EBDC0:
+	// dmc3.exe+2EC1DC - F3 0F 11 87 0C 01 00 00 - movss [rdi+0000010C],xmm0 { spawn timer reset }
+	static std::unique_ptr<Utility::Detour_t> FixGeneratorSpawnTimerHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2EC1DC, &FixGeneratorSpawnTimerDetour, 8);
+	g_FixGeneratorSpawnTimer_ReturnAddr = FixGeneratorSpawnTimerHook->GetReturnAddress();
+	FixGeneratorSpawnTimerHook->Toggle(enable);
+
+	// From SpriteAnimStep_sub_1403228F0:
+	// dmc3.exe+322943 - F3 0F 5C 01 - subss xmm0,[rcx] { next frame length = duration - overshoot, should be + (overshoot is <= 0) }
+	static byte8* spriteAnimAddr = appBaseAddr + 0x322943;
+	static bool spriteAnimSaved = false;
+	if (!spriteAnimSaved) {
+		backupHelper.Save(spriteAnimAddr, 4);
+		spriteAnimSaved = true;
+	}
+	if (enable) {
+		Write<byte8>(spriteAnimAddr + 2, 0x58); // subss -> addss
+	} else {
+		backupHelper.Restore(spriteAnimAddr);
+	}
 
 	run = enable;
 }
@@ -1001,6 +1084,7 @@ void MenuAnimationFixes(bool enable) {
 
 void ToggleAllFixes(bool enable) {
 	BlendingEffectsSpeedFixes(enable);
+	EffectsSpeedFixes(enable);
 	BossCamFixes(enable);
 	LockOnCamReleaseFixes(enable);
 	StaggerGravityInertiaFix(enable);
