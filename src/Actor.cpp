@@ -3412,6 +3412,74 @@ void DoppDrain() {
     }
 }
 
+static constexpr uintptr_t kCDrawStride            = 0x780;
+static constexpr uintptr_t kCDrawEffectBlockOffset = 0x80;
+static constexpr uint32 kEffectActiveFlag          = 0x10000;
+static constexpr uint8 kEffectTypeIdle             = 0x32;
+
+// Same liveness check the engine does before touching a CDraw (CPlSetModelEffectMode_sub_1401FCB10).
+static CDrawEffectBlock* GetLiveEffectBlock(byte8* draw) {
+    auto vtable = *reinterpret_cast<uintptr_t*>(draw);
+    if (!vtable) {
+        return nullptr;
+    }
+    auto isLive = *reinterpret_cast<uintptr_t*>(vtable + 0x20);
+    if (!isLive || reinterpret_cast<uint8(__fastcall*)(byte8*)>(isLive)(draw) != 1) {
+        return nullptr;
+    }
+    return reinterpret_cast<CDrawEffectBlock*>(draw + kCDrawEffectBlockOffset);
+}
+
+template <typename Func> static void ForEachLiveEffectBlock(PlayerActorData& actorData, Func&& func) {
+    for (const auto& array : kActorCDrawArrays) {
+        for (uint32 i = 0; i < array.count; i++) {
+            auto block = GetLiveEffectBlock(reinterpret_cast<byte8*>(&actorData) + array.offset + kCDrawStride * i);
+            if (block) {
+                func(*block);
+            }
+        }
+    }
+}
+
+static bool IsModelOverlayBlock(const CDrawEffectBlock& block, uint32 rgba) {
+    if (!(block.flags & kEffectActiveFlag) || block.type != kEffectTypeIdle) {
+        return false;
+    }
+    for (uint32 channel = 0; channel < 4; channel++) {
+        if (block.target[channel] != ((rgba >> (8 * channel)) & 0xFF)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Type 0x32 is skipped by ModelEffect_Tick_sub_1402F6AA0, so the blend written here holds until the next call.
+void SetActorModelOverlay(PlayerActorData& actorData, uint32 rgba, float blend) {
+    using ModelEffectSetOverlayColor_t = uint64(__fastcall*)(CDrawEffectBlock*, uint32, float);
+    using ModelEffectBlock_t           = uint64(__fastcall*)(CDrawEffectBlock*);
+    auto setOverlayColor = reinterpret_cast<ModelEffectSetOverlayColor_t>(appBaseAddr + 0x2F6730);
+    auto commitOverlay   = reinterpret_cast<ModelEffectBlock_t>(appBaseAddr + 0x2F6DA0);
+
+    ForEachLiveEffectBlock(actorData, [&](CDrawEffectBlock& block) {
+        if (!IsModelOverlayBlock(block, rgba)) {
+            setOverlayColor(&block, rgba, 0.0f);
+            commitOverlay(&block);
+        }
+        block.blend = blend;
+    });
+}
+
+void ClearActorModelOverlay(PlayerActorData& actorData, uint32 rgba) {
+    using ModelEffectBlock_t = uint64(__fastcall*)(CDrawEffectBlock*);
+    auto clearEffect = reinterpret_cast<ModelEffectBlock_t>(appBaseAddr + 0x2F66C0);
+
+    ForEachLiveEffectBlock(actorData, [&](CDrawEffectBlock& block) {
+        if (IsModelOverlayBlock(block, rgba)) {
+            clearEffect(&block);
+        }
+    });
+}
+
 struct StyleSwitchAnimationState {
 	bool isPlaying = false;
 	std::chrono::steady_clock::time_point startTime;
@@ -3488,6 +3556,7 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 
 
 
+    const int previousStyle = actorData.style;
     actorData.style = style; // Changes the style.
 
     // Very important for proper Style EXP to function
@@ -3539,6 +3608,9 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
         styleColorIndex = style;
     }
 
+    if (previousStyle != style) {
+        CrimsonFX::StartStyleSwitchOverlay(actorData, styleColorIndex);
+    }
     // VFX - FLUX
     if (activeCrimsonConfig.StyleSwitchFX.Flux.enable) {
         uint32 actualColor = CrimsonUtil::Uint8toAABBGGRR(activeCrimsonConfig.StyleSwitchFX.Flux.fluxColor[styleColorIndex]);
@@ -3797,6 +3869,7 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 		return;
 	}
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(actorBaseAddr);
+	CrimsonFX::UpdateStyleSwitchOverlay(actorData);
 	// Vanilla's Doppelganger can't switch styles.
 	if (actorData.newEntityIndex == ENTITY::CLONE && actorData.character == CHARACTER::DANTE &&
 		!activeCrimsonGameplay.Gameplay.Dante.advDoppelganger) {

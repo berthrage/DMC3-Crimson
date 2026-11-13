@@ -390,10 +390,28 @@ struct CrimsonConfig {
 
 		} Text;
 
+		struct Overlay {
+			bool enable = true;
+			float intensity = 0.85f;      // peak blend toward the style colour, 0..1
+			float attackSeconds = 0.06f;
+			float releaseSeconds = 1.04f; // 1.1 s in total
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("enable", &StyleSwitchFX::Overlay::enable),
+					std::make_pair("intensity", &StyleSwitchFX::Overlay::intensity),
+					std::make_pair("attackSeconds", &StyleSwitchFX::Overlay::attackSeconds),
+					std::make_pair("releaseSeconds", &StyleSwitchFX::Overlay::releaseSeconds)
+				);
+			}
+
+		} Overlay;
+
 		static constexpr auto Metadata() {
 			return std::make_tuple(
 				std::make_pair("Flux", &StyleSwitchFX::Flux),
-				std::make_pair("Text", &StyleSwitchFX::Text)
+				std::make_pair("Text", &StyleSwitchFX::Text),
+				std::make_pair("Overlay", &StyleSwitchFX::Overlay)
 				);
 		}
 

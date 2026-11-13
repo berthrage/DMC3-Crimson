@@ -24,6 +24,8 @@ void MoveStyleSwitchFluxes(byte8* actorBaseAddr, EffekseerHandle* styleSwitchHan
 void StyleSwitchFlux(byte8* actorBaseAddr);
 void StyleSwitchDrawText(byte8* actorBaseAddr);
 void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr);
+void StartStyleSwitchOverlay(PlayerActorData& actorData, int styleColorIndex);
+void UpdateStyleSwitchOverlay(PlayerActorData& actorData);
 
 #pragma endregion
 

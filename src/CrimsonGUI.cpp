@@ -12011,6 +12011,47 @@ void VisualSection(size_t defaultFontSize) {
 	ImGui::Text("");
 
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
+	GUI_Checkbox2("STYLE SWITCH OVERLAY", activeCrimsonConfig.StyleSwitchFX.Overlay.enable, queuedCrimsonConfig.StyleSwitchFX.Overlay.enable);
+	ImGui::PopFont();
+
+	// Fine tuning lives in the config file for release builds.
+	if constexpr (debug) {
+		const float columnWidth = 0.5f * queuedConfig.globalScale;
+		const float rowWidth = 40.0f * queuedConfig.globalScale;
+
+		if (ImGui::BeginTable("StyleSwitchOverlayPropertiesTable", 3)) {
+
+			ImGui::TableSetupColumn("b1", 0, columnWidth * 0.5f);
+			ImGui::TableNextRow(0, rowWidth * 0.1f);
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<float>("Intensity", activeCrimsonConfig.StyleSwitchFX.Overlay.intensity, queuedCrimsonConfig.StyleSwitchFX.Overlay.intensity,
+				defaultCrimsonConfig.StyleSwitchFX.Overlay.intensity, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<float>("Attack (s)", activeCrimsonConfig.StyleSwitchFX.Overlay.attackSeconds, queuedCrimsonConfig.StyleSwitchFX.Overlay.attackSeconds,
+				defaultCrimsonConfig.StyleSwitchFX.Overlay.attackSeconds, 0.01f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			GUI_InputDefault2<float>("Fade (s)", activeCrimsonConfig.StyleSwitchFX.Overlay.releaseSeconds, queuedCrimsonConfig.StyleSwitchFX.Overlay.releaseSeconds,
+				defaultCrimsonConfig.StyleSwitchFX.Overlay.releaseSeconds, 0.05f, "%g", ImGuiInputTextFlags_EnterReturnsTrue);
+			ImGui::PopItemWidth();
+
+			ImGui::EndTable();
+		}
+	}
+
+	ImGui::Text("");
+
+	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 0.9f]);
     GUI_Checkbox2("STYLE SWITCH TEXT", activeCrimsonConfig.StyleSwitchFX.Text.textEnabled, queuedCrimsonConfig.StyleSwitchFX.Text.textEnabled);
 	ImGui::PopFont();
 

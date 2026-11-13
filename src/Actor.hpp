@@ -519,6 +519,8 @@ void SetNextScreen(EventData& eventData);
 #pragma endregion
 
 void DeactivateDevilHaywire(PlayerActorData& actorData);
+void SetActorModelOverlay(PlayerActorData& actorData, uint32 rgba, float blend);
+void ClearActorModelOverlay(PlayerActorData& actorData, uint32 rgba);
 
 template <typename T> void UpdateMotionArchives(T& actorData) {
 	constexpr uint8 count = (TypeMatch<T, PlayerActorDataDante>::value) ? static_cast<uint8>(countof(motionArchiveHelperDante))

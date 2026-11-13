@@ -2122,7 +2122,7 @@ uint8 ArtemisAirFireGate(uintptr_t actorAddr) {
 }
 
 // Style Meter repetition limit for the Artemis. Every volley raises a per-player "repetition level" that bleeds off while the
-// player isn't shooting; the style gained from a missile hit is scaled down by that level (see Research/Style-Meter.md).
+// player isn't shooting; the style gained from a missile hit is scaled down by that level.
 struct ArtemisStyleRepetition {
 	double level = 0.0;
 	std::chrono::steady_clock::time_point lastUpdate{};

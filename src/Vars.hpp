@@ -3075,6 +3075,31 @@ static_assert(offsetof(ModelData, Motion.timer) == 0x6B4);
 
 static_assert(sizeof(ModelData) == 1920);
 
+// The effect state of a CDraw, at ModelData + 0x80 (the block ModelEffect_* in dmc3.exe work on). The colour
+// shown is lerp(base colour, target, blend) per channel, stepped by ModelEffect_Tick_sub_1402F6AA0.
+struct CDrawEffectBlock {
+    byte8 pad_00[0xB0];
+    uint8 type;       // 0xB0 0 none, 0xA/0xB flash in, 0x14/0x29 hold, 0x1E/0x28 fade out, 0x32 idle (blend frozen)
+    uint8 prevType;   // 0xB1
+    uint8 phase;      // 0xB2
+    byte8 pad_B3;
+    float hold;       // 0xB4
+    float step;       // 0xB8 blend change per ModelEffect_Tick call
+    float blend;      // 0xBC 0 = base colour, 1.0 = target
+    uint32 target[4]; // 0xC0 R, G, B, A as ints
+    float holdTimer;  // 0xD0
+    byte8 pad_D4[0xC];
+    uint32 flags;     // 0xE0 0x10000 = effect active
+    byte8 pad_E4[0x14C];
+    uint32 color[4];  // 0x230 current R, G, B, A
+};
+
+static_assert(offsetof(CDrawEffectBlock, type) == 0xB0);
+static_assert(offsetof(CDrawEffectBlock, blend) == 0xBC);
+static_assert(offsetof(CDrawEffectBlock, target) == 0xC0);
+static_assert(offsetof(CDrawEffectBlock, flags) == 0xE0);
+static_assert(offsetof(CDrawEffectBlock, color) == 0x230);
+
 // $BodyPartDataStart
 
 struct BodyPartData {

@@ -22,7 +22,7 @@ void HUD_UpdateLockOn(uint8 character);
 void HUD_NoteReload(const char* what);
 
 // Checks every HUD model's heap block (still allocated, command slots inside it, no overlap with another model) and logs the
-// first problem of each kind. True when something is wrong. See Splitscreen-Plan.md, crash in the reticle draw.
+// first problem of each kind. True when something is wrong. crash in the reticle draw.
 bool HUD_AuditModels(const char* where);
 
 // Reloads all HUD models on the next tick; set after a HUD draw crash was caught.

@@ -1,4 +1,5 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
+#include <algorithm>
 #include <thread>
 #include <chrono>
 #include <math.h>
@@ -15,6 +16,7 @@
 #include "DMC3Input.hpp"
 #include "File.hpp"
 #include "Internal.hpp"
+#include "Actor.hpp"
 #include "ActorBase.hpp"
 #include "CrimsonGameplay.hpp"
 #include "Core/Core.hpp"
@@ -896,6 +898,79 @@ void SetStyleSwitchDrawTextTime(int style, byte8* actorBaseAddr) {
             }
         }
     }
+}
+
+static constexpr uint32 kModelEffectModeIdle = 7;
+static constexpr uint32 kNeutralDrawColor    = 0x80808080;
+
+struct StyleSwitchOverlayState {
+	bool active = false;
+	std::chrono::steady_clock::time_point start = {};
+	uint32 rgba = 0;
+};
+
+static StyleSwitchOverlayState g_styleSwitchOverlay[PLAYER_COUNT][CHARACTER_COUNT];
+
+// The overlay multiplies the model colour: style colour channels 0..1 scale the neutral colour by 0.4..1.6.
+static uint32 BuildStyleSwitchOverlayColor(const uint8 (&color)[4]) {
+	uint32 result = kNeutralDrawColor & 0xFF000000;
+	for (uint32 channel = 0; channel < 3; channel++) {
+		float baseChannel = static_cast<float>((kNeutralDrawColor >> (8 * channel)) & 0xFF);
+		float scale       = 0.4f + 1.6f * (color[channel] / 255.0f);
+		uint32 value      = static_cast<uint32>(std::clamp(baseChannel * scale, 0.0f, 255.0f));
+		result |= value << (8 * channel);
+	}
+	return result;
+}
+
+void StartStyleSwitchOverlay(PlayerActorData& actorData, int styleColorIndex) {
+	const auto& tint = activeCrimsonConfig.StyleSwitchFX.Overlay;
+	if (!tint.enable || !activeConfig.Actor.enable || actorData.character != CHARACTER::DANTE ||
+		actorData.newEntityIndex != ENTITY::MAIN || actorData.newPlayerIndex >= PLAYER_COUNT ||
+		actorData.newCharacterIndex >= CHARACTER_COUNT || styleColorIndex < 0 || styleColorIndex > 5) {
+		return;
+	}
+	// A vanilla model effect (cutscene colour, clone overlay) owns the blocks, leave it alone.
+	if (actorData.modelEffectMode != kModelEffectModeIdle) {
+		return;
+	}
+	auto& state  = g_styleSwitchOverlay[actorData.newPlayerIndex][actorData.newCharacterIndex];
+	state.rgba   = BuildStyleSwitchOverlayColor(activeCrimsonConfig.StyleSwitchFX.Flux.fluxColor[styleColorIndex]);
+	state.start  = std::chrono::steady_clock::now();
+	state.active = true;
+}
+
+// Fades in real time, the engine's own overlay fade is a fixed 30 ticks.
+void UpdateStyleSwitchOverlay(PlayerActorData& actorData) {
+	if (actorData.newEntityIndex != ENTITY::MAIN || actorData.newPlayerIndex >= PLAYER_COUNT ||
+		actorData.newCharacterIndex >= CHARACTER_COUNT) {
+		return;
+	}
+	auto& state = g_styleSwitchOverlay[actorData.newPlayerIndex][actorData.newCharacterIndex];
+	if (!state.active) {
+		return;
+	}
+
+	const auto& tint     = activeCrimsonConfig.StyleSwitchFX.Overlay;
+	const float attack   = (std::max)(tint.attackSeconds, 0.01f);
+	const float release  = (std::max)(tint.releaseSeconds, 0.01f);
+	const float seconds  = std::chrono::duration<float>(std::chrono::steady_clock::now() - state.start).count();
+	const bool finished  = seconds >= attack + release;
+	const bool takenOver = actorData.modelEffectMode != kModelEffectModeIdle;
+	if (finished || takenOver) {
+		ClearActorModelOverlay(actorData, state.rgba);
+		state.active = false;
+		return;
+	}
+
+	float blend = 0.0f;
+	if (seconds < attack) {
+		blend = seconds / attack;
+	} else {
+		float remaining = 1.0f - (seconds - attack) / release;
+		blend           = remaining * remaining;
+	}
+	SetActorModelOverlay(actorData, state.rgba, blend * std::clamp(tint.intensity, 0.0f, 1.0f));
 }
 
 #pragma endregion
