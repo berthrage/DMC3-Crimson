@@ -5,6 +5,7 @@
 #include "Utility/Detour.hpp"
 #include <intrin.h>
 #include <string>
+#include <unordered_map>
 #include "CrimsonUtil.hpp"
 #include "DMC3Input.hpp"
 #include "Global.hpp"
@@ -97,6 +98,14 @@ extern "C" {
 	std::uint64_t g_BossCamCustomPositioning_ReturnAddr;
 	bool* g_isMPCamActiveAddr = nullptr;
 
+	// FixLockOnCamRelease -- Fixes the camera staying on the lock-on framing after releasing lock-on.
+	void FixLockOnCamReleaseDetour1();
+	void FixLockOnCamReleaseDetour2();
+	void FixLockOnCamReleaseDetour3();
+	std::uint64_t g_FixLockOnCamRelease_ReturnAddr1;
+	std::uint64_t g_FixLockOnCamRelease_ReturnAddr2;
+	std::uint64_t g_FixLockOnCamRelease_ReturnAddr3;
+
 	// FixStaggerGravityInertia -- Fixes Y inertia behaving weirdly when you get Staggered.
 	void FixStaggerGravityDetour();
 	std::uint64_t g_FixStaggerGravity_ReturnAddr;
@@ -134,6 +143,9 @@ extern "C" {
 	void FixCStageSetSealDetour1();
 	void FixCStageSetSealDetour2();
 	void FixCStageSetSealDetour3();
+	std::uint64_t g_FixCStageSetSeal_ReturnAddr4;
+	void FixCStageSetSealDetour4();
+	void* g_FixCStageSetSeal_FadeStepCall;
 
 	// FixSummonedSwordsInitialTravel
 	std::uint64_t g_FixSummonedSwordsInitialTravel_ReturnAddr;
@@ -362,6 +374,37 @@ void LookAtBossCamFixes(bool enable) {
 	run = enable;
 }
 
+// SelectCameraMode_sub_140056950 keeps the player camera on the lock-on framing (mode 2) for a few frames
+// after lock-on is released. The frames and the per-frame movement they need are in frames, not time.
+void LockOnCamReleaseFixes(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// dmc3.exe+56A7F - 0F 2F 05 CE F5 46 00 - comiss xmm0,[dmc3.exe+4C6054] { (3.00) }
+	static std::unique_ptr<Utility::Detour_t> moveThresholdHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x56A7F, &FixLockOnCamReleaseDetour1, 7);
+	g_FixLockOnCamRelease_ReturnAddr1 = moveThresholdHook->GetReturnAddress();
+	moveThresholdHook->Toggle(enable);
+
+	// dmc3.exe+569D2 - 66 C7 83 EC 01 00 00 0A 00 - mov word ptr [rbx+000001EC],000A
+	static std::unique_ptr<Utility::Detour_t> releaseFramesHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x569D2, &FixLockOnCamReleaseDetour2, 9);
+	g_FixLockOnCamRelease_ReturnAddr2 = releaseFramesHook->GetReturnAddress();
+	releaseFramesHook->Toggle(enable);
+
+	// dmc3.exe+56ABD - C7 83 E4 01 00 00 00 00 70 41 - mov [rbx+000001E4],41700000 { (15.00) }
+	// dmc3.exe+56AC7 - C7 83 E8 01 00 00 00 00 70 41 - mov [rbx+000001E8],41700000 { (15.00) }
+	static std::unique_ptr<Utility::Detour_t> easingCapHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x56ABD, &FixLockOnCamReleaseDetour3, 20);
+	g_FixLockOnCamRelease_ReturnAddr3 = easingCapHook->GetReturnAddress();
+	easingCapHook->Toggle(enable);
+
+	run = enable;
+}
+
 void BossCamFixes(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -520,6 +563,18 @@ void FixCStaffRollCredits(bool enable) {
 	run = enable;
 }
 
+// The seal's alpha is a byte stepped by (int)(frameSpeed * 2), which truncates to 0 above 120fps.
+// Carries the fractional part per seal so the fade keeps its original duration.
+static int CStageSetSealFadeStep(float step, void* seal) {
+	static std::unordered_map<void*, float> s_remainders;
+
+	float& remainder = s_remainders[seal];
+	remainder += step;
+	int whole = (int)remainder;
+	remainder -= (float)whole;
+	return whole;
+}
+
 void FixCStageSetSeal(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -527,8 +582,16 @@ void FixCStageSetSeal(bool enable) {
 		return;
 	}
 
+	g_FixCStageSetSeal_FadeStepCall = &CStageSetSealFadeStep;
+
 	// From CStageSetSealHandAndAnim_sub_14026E910:
-	// dmc3.exe+26E9BD - F3 44 0F 2C C0 - cvttss2si r8d,xmm0 { fade logic truncation (bad) }
+	// dmc3.exe+26E984 - F3 44 0F 2C C0 - cvttss2si r8d,xmm0 { fade out step truncation (bad) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetSealHook4 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x26E984, &FixCStageSetSealDetour4, 5);
+	g_FixCStageSetSeal_ReturnAddr4 = fixCStageSetSealHook4->GetReturnAddress();
+	fixCStageSetSealHook4->Toggle(enable);
+
+	// dmc3.exe+26E9BD - F3 44 0F 2C C0 - cvttss2si r8d,xmm0 { fade in step truncation (bad) }
 	static std::unique_ptr<Utility::Detour_t> fixCStageSetSealHook1 =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x26E9BD, &FixCStageSetSealDetour1, 5);
 	g_FixCStageSetSeal_ReturnAddr1 = fixCStageSetSealHook1->GetReturnAddress();
@@ -939,6 +1002,7 @@ void MenuAnimationFixes(bool enable) {
 void ToggleAllFixes(bool enable) {
 	BlendingEffectsSpeedFixes(enable);
 	BossCamFixes(enable);
+	LockOnCamReleaseFixes(enable);
 	StaggerGravityInertiaFix(enable);
 	CStageSetGateSpawnFix(enable);
 	FixEnemyAttackCooldowns(enable);

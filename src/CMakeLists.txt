@@ -18,6 +18,7 @@ set(MASM_SRC
     masm/FixBallsHangHitSpeed.asm
     masm/FixBlendingEffects.asm
     masm/FixBossCam.asm
+    masm/FixLockOnCamRelease.asm
     masm/FixClothPhysics.asm
     masm/FixCrashArkhamPt2Doppel.asm
     masm/FixCrashArkhamPt2Grab.asm
