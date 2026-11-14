@@ -1960,15 +1960,9 @@ void ArtemisInstantChargeFill(PlayerActorDataDante* actorData) {
 
 	const uint32 before = getCount(lockOn);
 
-	// The charge refills with time since the last shot, like holding the button would. A shot restarted right away
-	// (Trickster's dash cancels the shot, then Shoot again) only gets a part of the full volley.
-	constexpr float rechargeSeconds = 0.6f;
-	static std::unordered_map<uintptr_t, std::chrono::steady_clock::time_point> lastShot;
-	const auto now = std::chrono::steady_clock::now();
-	auto& last = lastShot[reinterpret_cast<uintptr_t>(actorData)];
-	const float charge = std::min(std::chrono::duration<float>(now - last).count() / rechargeSeconds, 1.0f);
-	last = now;
-	const uint32 targetLocks = std::max<uint32>(1, static_cast<uint32>(std::lround(maxLocks * charge)));
+	// A tap is always a full charge. Restart spam is limited by the shot cancel block and the volley guard instead.
+	const float charge = 1.0f;
+	const uint32 targetLocks = maxLocks;
 
 	// Other players' lock-on entries carry the ranges seen from player 1, look from this actor instead.
 	std::string entries;
