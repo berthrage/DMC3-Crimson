@@ -126,6 +126,17 @@ extern "C" {
 	void FixEnemyAttackCooldownsDetour1();
 	void FixEnemyAttackCooldownsDetour2();
 
+	// FixEnemyBrainTimers -- Enemy AI gauges and waits that tick once per frame (DT gauge, zone gauge, action wait).
+	std::uint64_t g_FixEnemyZoneGauge_ReturnAddr;
+	std::uint64_t g_FixEnemyDTGauge_ReturnAddr;
+	std::uint64_t g_FixEnemyActionWait_ReturnAddr;
+	std::uint64_t g_FixEnemyActionSlide_ReturnAddr;
+	std::uint64_t g_EnemySpeedChannelAddr;
+	void FixEnemyZoneGaugeDetour();
+	void FixEnemyDTGaugeDetour();
+	void FixEnemyActionWaitDetour();
+	void FixEnemyActionSlideDetour();
+
 	// FixBloodgoyleStormFormTime
 	std::uint64_t g_FixBloodgoyleStormFormTime_ReturnAddr;
 	void FixBloodgoyleStormFormTimeDetour();
@@ -597,6 +608,46 @@ void FixEnemyAttackCooldowns(bool enable) {
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0xD90C6, &FixEnemyAttackCooldownsDetour2, 5);
 	g_FixEnemyAttackCooldowns_ReturnAddr2 = fixEnemyAttackCooldownsHook2->GetReturnAddress();
 	fixEnemyAttackCooldownsHook2->Toggle(enable);
+
+	run = enable;
+}
+
+// The enemy speed channel (dmc3.exe+CF2DA0) never carries the frame rate scale, so the CCom gauges that
+// add it every tick fill faster at high fps: enemies enter DT sooner and the zone gauge that triggers
+// their jumps / blinks fires more often. The CComAction wait and slide are plain per tick steps.
+void FixEnemyBrainTimers(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	g_EnemySpeedChannelAddr = (uintptr_t)&reinterpret_cast<float*>(appBaseAddr + 0xCF2D90)[SPEED::ENEMY_ACTOR];
+
+	// dmc3.exe+60DA8 - F3 0F 10 05 F0 1F C9 00 - movss xmm0,[dmc3.exe+CF2DA0]
+	static std::unique_ptr<Utility::Detour_t> fixEnemyZoneGaugeHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x60DA8, &FixEnemyZoneGaugeDetour, 8);
+	g_FixEnemyZoneGauge_ReturnAddr = fixEnemyZoneGaugeHook->GetReturnAddress();
+	fixEnemyZoneGaugeHook->Toggle(enable);
+
+	// dmc3.exe+61006 - F3 0F 10 0D 92 1D C9 00 - movss xmm1,[dmc3.exe+CF2DA0]
+	static std::unique_ptr<Utility::Detour_t> fixEnemyDTGaugeHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x61006, &FixEnemyDTGaugeDetour, 8);
+	g_FixEnemyDTGauge_ReturnAddr = fixEnemyDTGaugeHook->GetReturnAddress();
+	fixEnemyDTGaugeHook->Toggle(enable);
+
+	// dmc3.exe+61BB7 - F3 0F 5C 0D AD B9 2F 00 - subss xmm1,[dmc3.exe+35D56C]
+	static std::unique_ptr<Utility::Detour_t> fixEnemyActionWaitHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x61BB7, &FixEnemyActionWaitDetour, 8);
+	g_FixEnemyActionWait_ReturnAddr = fixEnemyActionWaitHook->GetReturnAddress();
+	fixEnemyActionWaitHook->Toggle(enable);
+
+	// dmc3.exe+61B41 - 0F 28 43 50 - movaps xmm0,[rbx+50]
+	// dmc3.exe+61B45 - 0F 58 43 40 - addps xmm0,[rbx+40]
+	static std::unique_ptr<Utility::Detour_t> fixEnemyActionSlideHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x61B41, &FixEnemyActionSlideDetour, 8);
+	g_FixEnemyActionSlide_ReturnAddr = fixEnemyActionSlideHook->GetReturnAddress();
+	fixEnemyActionSlideHook->Toggle(enable);
 
 	run = enable;
 }
@@ -1090,6 +1141,7 @@ void ToggleAllFixes(bool enable) {
 	StaggerGravityInertiaFix(enable);
 	CStageSetGateSpawnFix(enable);
 	FixEnemyAttackCooldowns(enable);
+	FixEnemyBrainTimers(enable);
 	FixBloodgoyleStormFormTime(enable);
 	FixCStaffRollCredits(enable);
 	FixCStageSetSeal(enable);

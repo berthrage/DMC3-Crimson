@@ -57,6 +57,7 @@ set(MASM_SRC
     masm/CheckMissionResultBPScreen.asm
     masm/NoAirLunarPhaseLift.asm
     masm/FixEnemyAttackCooldowns.asm
+    masm/FixEnemyBrainTimers.asm
     masm/FixBloodgoyleStormFormTime.asm
     masm/FixCStaffRollCredits.asm
     masm/MenuAnimationStep.asm
