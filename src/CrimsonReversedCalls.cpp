@@ -118,6 +118,22 @@ namespace CrimsonReversedCalls {
 		GAME_CALL_SAFE(0x217FF0, void, PlayerActorData&, uint8, uint32)(actorData, mode, unk3);
 	}
 
+	void RigidnessCPlPlayerCoat_sub_1402C9DC0(PhysicsData* physicsData, ModelData* modelData, byte8* boneMatrix, byte8* prevMatrix) {
+		GAME_CALL_SAFE(0x2C9DC0, void, PhysicsData*, ModelData*, byte8*, byte8*)(physicsData, modelData, boneMatrix, prevMatrix);
+	}
+
+	void ClothSnapToPose_sub_1402CA0A0(PhysicsData* physicsData, ModelData* modelData, byte8* boneMatrix, byte8* prevMatrixOut, int32 steps) {
+		GAME_CALL_SAFE(0x2CA0A0, void, PhysicsData*, ModelData*, byte8*, byte8*, int32)(physicsData, modelData, boneMatrix, prevMatrixOut, steps);
+	}
+
+	void CDrawEffectBlock_SetQuicksilverMatrix_sub_140302150(byte8* drawBlock) {
+		GAME_CALL_SAFE(0x302150, void, byte8*)(drawBlock);
+	}
+
+	void CDrawEffectBlock_ClearColorMatrix_sub_140302370(byte8* drawBlock) {
+		GAME_CALL_SAFE(0x302370, void, byte8*)(drawBlock);
+	}
+
 	
 
 }

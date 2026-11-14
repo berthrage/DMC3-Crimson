@@ -1066,6 +1066,12 @@ const char* costumeRespectsProgressionNames[] = {
 	"Crimson",
 };
 
+const char* danteAmuletNames[] = {
+	"Off",
+	"On",
+	"Permanent",
+};
+
 const char* cameraSensitivityNames[] = {
 	"Low (Vanilla Default)",
 	"Medium",
@@ -3509,7 +3515,6 @@ void CharacterSection(size_t defaultFontSize) {
 				"\n"
 				"'Crimson' updates Vergil's Costume at Mission 1.");
 
-
 			ImGui::EndTable();
 		}
 	}
@@ -5202,6 +5207,9 @@ void CameraSection(size_t defaultFontSize) {
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
+
+			activeCrimsonConfig.Camera.wallPullIn = false;
+			queuedCrimsonConfig.Camera.wallPullIn = false;
 		}
 
 		ImGui::SameLine();
@@ -12364,6 +12372,24 @@ void VisualSection(size_t defaultFontSize) {
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Brings several taunt animations from other DMC games. Taunts are cycled using Pseudo RNG.");
 			}
+			ImGui::SameLine();
+			GUI_CCSRequirementButton();
+
+			ImGui::TableNextColumn();
+
+			ImGui::PushItemWidth(itemWidth * smallerComboMult);
+			UI::Combo2("Dante's Amulet", danteAmuletNames, activeCrimsonConfig.Visual.danteAmulet, queuedCrimsonConfig.Visual.danteAmulet);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Keeps the amulet Dante wears with the coatless costume when he wears a coat.\n"
+					"\n"
+					"'Off' is the Vanilla behavior.\n"
+					"'On' shows it on coat costumes up to Mission 7, where the story loses it.\n"
+					"'Permanent' shows it on every Dante costume.\n"
+					"\n"
+					"Applies the next time Dante spawns.");
+			}
+			ImGui::PopItemWidth();
+
 			ImGui::SameLine();
 			GUI_CCSRequirementButton();
 

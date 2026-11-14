@@ -314,6 +314,8 @@ file(GLOB MAIN_SRC
     CrimsonMenuAnimation.hpp
     CrimsonStageInteraction.cpp
     CrimsonStageInteraction.hpp
+    CrimsonCostume.cpp
+    CrimsonCostume.hpp
     NvApiReflex.cpp
     NvApiReflex.hpp
 )

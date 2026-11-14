@@ -1,6 +1,7 @@
 // UNSTUPIFY(Disclaimer: by 5%)... POOOF
 #include "CrimsonEnemyAITarget.hpp"
 #include "CrimsonStageInteraction.hpp"
+#include "CrimsonCostume.hpp"
 #include "CrimsonMenuInput.hpp"
 #include "Core/Core.hpp"
 #include "Core/Input.hpp"
@@ -316,6 +317,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleStyleLevellingCCSFix(true);
 		CrimsonEnemyAITarget::EnemyAIMultiplayerTargettingDetours(true);
 		CrimsonStageInteraction::InitHooks();
+		CrimsonCostume::InitHooks();
 		CrimsonMenuInput::InitHooks();
         
         CrimsonDetours::ToggleGreenOrbsMPRegen(true);

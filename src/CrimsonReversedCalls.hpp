@@ -40,4 +40,8 @@ namespace CrimsonReversedCalls {
 	extern void ExecuteJDCMove_sub_14021C8A0(uintptr_t playerActorAddr);
 	extern void ShotgunFire_sub_140217FF0(PlayerActorData& actorData, uint8 mode = 8, uint32 unk3 = 0);
 	extern void ShotgunShlFire_sub_1401CA390(PlayerActorData& actorData, vec4& pos, vec4& pos2, uint8 mode = 0, uint16 shotType = 8);
+	extern void RigidnessCPlPlayerCoat_sub_1402C9DC0(PhysicsData* physicsData, ModelData* modelData, byte8* boneMatrix, byte8* prevMatrix);
+	extern void ClothSnapToPose_sub_1402CA0A0(PhysicsData* physicsData, ModelData* modelData, byte8* boneMatrix, byte8* prevMatrixOut, int32 steps);
+	extern void CDrawEffectBlock_SetQuicksilverMatrix_sub_140302150(byte8* drawBlock);
+	extern void CDrawEffectBlock_ClearColorMatrix_sub_140302370(byte8* drawBlock);
 }

@@ -42,6 +42,7 @@
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
 #include "CrimsonHighFPSFixes.hpp"
+#include "CrimsonCostume.hpp"
 // @Remove
 #define g_enableLockOnFixes true
 
@@ -1668,6 +1669,10 @@ template <typename T> void UpdateModel(T& actorData) {
     auto& costumeFileId = characterModelData.costumeFileId;
     auto& coat          = characterModelData.coat;
 
+    if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
+        actorData.newAmuletActive = false;
+    }
+
     auto& file = File_staticFiles[costumeFileId];
 
     byte8* modelFile   = 0;
@@ -1768,6 +1773,12 @@ template <typename T> void UpdateModel(T& actorData) {
         actorData.modelMetadata[0].vertices[0] = g_vertices[23];
         actorData.modelMetadata[0].vertices[1] = g_vertices[24];
         actorData.modelMetadata[0].vertices[2] = g_vertices[25];
+    }
+
+    if constexpr (TypeMatch<T, PlayerActorDataDante>::value) {
+        if (character == CHARACTER::DANTE && coat) {
+            CrimsonCostume::Register(actorData);
+        }
     }
 
     // Log("reach here. 7");

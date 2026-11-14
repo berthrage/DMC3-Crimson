@@ -489,6 +489,14 @@ enum {
 };
 };
 
+namespace DANTE_AMULET {
+enum {
+    OFF,
+    ON,
+    PERMANENT,
+};
+};
+
 namespace STYLE {
 enum {
     SWORDMASTER,
@@ -3974,6 +3982,19 @@ static_assert(offsetof(PlayerActorData, newAirRisingSunCount) == 0x1CAE4);
 static_assert(offsetof(PlayerActorData, newEffectIndices) == 0x1CAF0);
 static_assert(offsetof(PlayerActorData, newLastVar) == 0x1CB20);
 
+// Every CDraw array of a player actor: the vanilla one (modelData) and the ones the Actor System loads
+// (newModelData, newSubmodelData). A CCS actor only registers the new arrays, so modelData is skipped
+// by the liveness check there. The coat is one of the submodels.
+struct ActorCDrawArray {
+    uintptr_t offset;
+    uint32 count;
+};
+static constexpr ActorCDrawArray kActorCDrawArrays[] = {
+    {offsetof(PlayerActorData, modelData), 3},
+    {offsetof(PlayerActorData, newModelData), 6},
+    {offsetof(PlayerActorData, newSubmodelData), 11},
+};
+
 struct PlayerActorDataDante : PlayerActorDataBase {
     ModelData submodelData[5]; // 0x7540
     bool submodelInit[5];      // 0x9AC0
@@ -4051,7 +4072,17 @@ struct PlayerActorDataDante : PlayerActorDataBase {
     _(11);
     uint32 newEffectIndices[12]; // 0x1CAF0
     uint32 newLastVar;           // 0x1CB20
+    bool newAmuletActive;        // 0x1CB24 CrimsonDanteAmulet
+    bool newAmuletNeedsSnap;     // 0x1CB25
+    _(10);
+    vec4 newAmuletPrevMatrix[4];          // 0x1CB30
+    ModelMetadata newAmuletModelMetadata; // 0x1CB70
 };
+
+static_assert(offsetof(PlayerActorDataDante, newAmuletActive) == 0x1CB24);
+static_assert(offsetof(PlayerActorDataDante, newAmuletPrevMatrix) == 0x1CB30);
+static_assert(offsetof(PlayerActorDataDante, newAmuletModelMetadata) == 0x1CB70);
+static_assert(sizeof(PlayerActorDataDante) <= (128 * 1024));
 
 static_assert(offsetof(PlayerActorDataDante, submodelData) == 0x7540);
 static_assert(offsetof(PlayerActorDataDante, submodelInit) == 0x9AC0);
