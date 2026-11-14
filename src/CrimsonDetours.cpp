@@ -1809,6 +1809,7 @@ void InitDetours() {
 	CameraCtrlInitDetour();
 	CameraSwitchInitDetour();
 	CameraWallCheckDetour();
+	CameraSweepEyeDetour();
 	LdkInitDetour();
 	CrimsonEfk::EffekInitRenderHook();
 	CrimsonSplitscreen::InitHooks();

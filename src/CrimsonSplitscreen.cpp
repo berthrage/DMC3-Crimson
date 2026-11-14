@@ -22,6 +22,7 @@
 #include "HUD.hpp"
 #include "Vars.hpp"
 #include "CrimsonEnemyAITarget.hpp"
+#include "CrimsonCameraController.hpp"
 
 // Splitscreen works by multiplexing in time: each frame is a normal single-camera
 // frame, built for one player, and stored. The most recent frame of every player is
@@ -842,7 +843,10 @@ __int64 UpdateCameraForPlayer(UpdateCameraFn original, __int64 camera, bool foll
 
 // UpdateCameraOrbit_sub_140057520: third person camera, includes the lock-on camera mode.
 __int64 __fastcall UpdateCameraOrbitHook(__int64 cameraData) {
-	return UpdateCameraForPlayer(s_updateCameraOrbitHook->GetTrampoline<UpdateCameraFn>(), cameraData, true);
+	const bool restored = CrimsonCameraController::OrbitBegin(cameraData);
+	const __int64 result = UpdateCameraForPlayer(s_updateCameraOrbitHook->GetTrampoline<UpdateCameraFn>(), cameraData, true);
+	CrimsonCameraController::OrbitEnd(cameraData, restored);
+	return result;
 }
 
 // UpdateCameraBoss_sub_140050920

@@ -295,6 +295,7 @@ struct CrimsonConfig {
 		bool singlePlayerSharedCamera = true;
 		bool panoramicCam = true;
 		bool thirdPersonCamera = true;
+		bool wallPullIn = true;
 
 		static constexpr auto Metadata() {
 			return std::make_tuple(
@@ -315,7 +316,8 @@ struct CrimsonConfig {
 				std::make_pair("multiplayerCameraMode", &Camera::multiplayerCameraMode),
 				std::make_pair("singlePlayerSharedCamera", &Camera::singlePlayerSharedCamera),
 				std::make_pair("panoramicCam", &Camera::panoramicCam),
-                std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera)
+                std::make_pair("thirdPersonCamera", &Camera::thirdPersonCamera),
+                std::make_pair("wallPullIn", &Camera::wallPullIn)
 			);
 		}
 	} Camera;

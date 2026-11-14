@@ -5101,6 +5101,13 @@ void CameraSection(size_t defaultFontSize) {
 				"Can be switched during a multiplayer session with the Toggle Multiplayer Camera hotkey (Hotkeys tab).");
 			ImGui::PopItemWidth();
 
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Wall Pull-In", activeCrimsonConfig.Camera.wallPullIn, queuedCrimsonConfig.Camera.wallPullIn);
+			ImGui::SameLine();
+			TooltipHelper("(?)", "When the Third Person Camera hits a wall, it moves closer to the character instead of getting stuck,\n"
+				"so it can keep rotating around them.");
+
 			ImGui::EndTable();
 		}
 
@@ -5147,6 +5154,9 @@ void CameraSection(size_t defaultFontSize) {
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
+
+			activeCrimsonConfig.Camera.wallPullIn = false;
+			queuedCrimsonConfig.Camera.wallPullIn = false;
 		}
 
 		ImGui::SameLine();
@@ -5235,6 +5245,9 @@ void CameraSection(size_t defaultFontSize) {
 
 			activeCrimsonConfig.Camera.disableBossCamera = false;
 			queuedCrimsonConfig.Camera.disableBossCamera = false;
+
+			activeCrimsonConfig.Camera.wallPullIn = true;
+			queuedCrimsonConfig.Camera.wallPullIn = true;
 		}
 	}
 
@@ -9808,6 +9821,9 @@ void DebugOverlayWindow(size_t defaultFontSize) {
 			ImGui::Text("maxMirageGauge %g", crimsonPlayer[0].vergilDoppelganger.maxMiragePoints);
 			ImGui::Text("Vertical Pull Multiplier %g", actorData.verticalPullMultiplier);
 			ImGui::Text("cameraHittingWall: %u", g_cameraHittingWall);
+			ImGui::Text("wallPullIn active %d wanted %g hit %g resolved %g", CrimsonCameraController::g_wallPullIn.active,
+				CrimsonCameraController::g_wallPullIn.wantedDistance, CrimsonCameraController::g_wallPullIn.hitDistance,
+				CrimsonCameraController::g_wallPullIn.resolvedDistance);
 			ImGui::Text("actorData styleLevel: %u", actorData.styleLevel);
 			ImGui::Text("frameCOunt Mission: %u", missionData.frameCount);
 			ImGui::Text("heldStyleLevels sword: %u", heldStyleExpDataDante.accumulatedStyleLevels[0]);

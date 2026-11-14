@@ -3,6 +3,8 @@
 #include "../Core/Core.hpp"
 #include <memory>
 #include <array>
+#include <algorithm>
+#include <cmath>
 #include "imgui.h"
 #include <cassert>
 #include "Vars.hpp"
@@ -10,13 +12,19 @@
 #include "CrimsonPatches.hpp"
 #include "CrimsonOnTick.hpp"
 #include "Config.hpp"
+#include "CrimsonClock.hpp"
+#include "CrimsonSplitscreen.hpp"
 
 static std::unique_ptr<Utility::Detour_t> cameraControllerConstructionHook;
 static std::unique_ptr<Utility::Detour_t> cameraWallCheckHook;
+static std::unique_ptr<Utility::Detour_t> cameraSweepEyeHook;
 static std::unique_ptr<Utility::Detour_t> cameraSwitchAccessHook;
 static constexpr auto CTRL_PROC_OFFSET() { return 0x23EEF0; }
 static constexpr auto CAM_SWITCH_OFFSET() { return 0x055880; }
 static constexpr auto CAM_WALL_OFFSET() { return 0x2CD340; }
+static constexpr auto CAM_SWEEP_EYE_OFFSET() { return 0x0567E0; }
+static constexpr auto COLLISION_SET_LAYER_OFFSET() { return 0x05EBC0; }
+static constexpr auto COLLISION_SLIDE_OFFSET() { return 0x0601E0; }
 
 static bool s_cameraEnable{ true };
 
@@ -503,6 +511,203 @@ static bool __fastcall sub_1402CD340(int64_t a1, float *a2, int64_t a3) {
 	return res;
 }
 
+namespace CrimsonCameraController {
+	WallPullInReadout g_wallPullIn;
+}
+
+// Per player view (splitscreen swaps the camera memory between players).
+// The game derives next tick's eye from the eye it ends with, so the pulled-in eye must not be what it sees:
+// freeEye is what vanilla would have ended with without walls, pulledEye is what the player sees.
+struct WallPullInState {
+	bool valid = false;
+	bool touched = false;
+	float freeEye[3] = {};
+	float pulledEye[3] = {};
+	bool limitValid = false;
+	float limit = 0.0f;
+	float clearTime = 0.0f;
+	float lastFocus[3] = {};
+	double lastTime = 0.0;
+};
+static WallPullInState s_wallPullIn[4];
+
+static WallPullInState& WallPullInView() {
+	return s_wallPullIn[(std::clamp)(CrimsonSplitscreen::CameraPlayer(), 0, 3)];
+}
+
+static bool SamePoint(const vec4& point, const float* other) {
+	return fabsf(point.x - other[0]) < 0.05f && fabsf(point.y - other[1]) < 0.05f && fabsf(point.z - other[2]) < 0.05f;
+}
+
+static void SetPoint(vec4& point, const float* value) {
+	point.x = value[0];
+	point.y = value[1];
+	point.z = value[2];
+}
+
+// Called from the eye sweep, after the orbit moved the eye. Pulls the eye in along its own line to the lookat
+// when a wall is in the way and remembers the unobstructed eye for the next tick. Returns false when it could
+// not run and the vanilla sweep has to do the job.
+static bool PullEyeInFromWall(CameraData& camera) {
+	constexpr float probePadding = 24.0f;
+	constexpr float margin = 4.0f;
+	constexpr float minDistance = 28.0f;
+	constexpr float holdTime = 0.2f;
+	constexpr float releaseRate = 5.0f;
+	constexpr float releaseMinSpeed = 120.0f;
+	constexpr float noWall = 1.0e6f;
+
+	auto pool = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (!pool || !pool[5]) {
+		return false;
+	}
+	auto collision = pool[5] + 0x710;
+
+	// CollisionMoveSlide_sub_1400601E0 loads its points as aligned vectors.
+	alignas(16) float focus[4] = { camera.camcoords1.x, camera.camcoords1.y, camera.camcoords1.z, 1.0f };
+	alignas(16) float freeEye[4] = { camera.camcoords1b.x, camera.camcoords1b.y, camera.camcoords1b.z, 1.0f };
+	alignas(16) float probe[4] = {};
+
+	const float dx = freeEye[0] - focus[0];
+	const float dy = freeEye[1] - focus[1];
+	const float dz = freeEye[2] - focus[2];
+	const float freeDistance = sqrtf(dx * dx + dy * dy + dz * dz);
+	if (freeDistance <= 0.001f) {
+		return false;
+	}
+	const float dir[3] = { dx / freeDistance, dy / freeDistance, dz / freeDistance };
+
+	// Ray past the eye, so the pulled-in eye keeps a margin from the wall instead of touching it.
+	const float probeDistance = freeDistance + probePadding;
+	probe[0] = focus[0] + dir[0] * probeDistance;
+	probe[1] = focus[1] + dir[1] * probeDistance;
+	probe[2] = focus[2] + dir[2] * probeDistance;
+	probe[3] = 1.0f;
+
+	// Same collision query the vanilla sweep uses, so every wall that blocks it also pulls the eye in. It clips the
+	// segment at the first polygon and then pushes the end point out of the polygons it overlaps.
+	using CollisionSetLayer_t = char(__fastcall*)(byte8*, int);
+	using CollisionMoveSlide_t = char(__fastcall*)(byte8*, float*, const float*);
+	auto setLayer = reinterpret_cast<CollisionSetLayer_t>(appBaseAddr + COLLISION_SET_LAYER_OFFSET());
+	auto moveSlide = reinterpret_cast<CollisionMoveSlide_t>(appBaseAddr + COLLISION_SLIDE_OFFSET());
+	setLayer(collision, 1);
+	moveSlide(collision, probe, focus);
+	setLayer(collision, 0);
+
+	const float hx = probe[0] - focus[0];
+	const float hy = probe[1] - focus[1];
+	const float hz = probe[2] - focus[2];
+	const float hitDistance = sqrtf(hx * hx + hy * hy + hz * hz);
+	const bool hit = hitDistance < probeDistance - 0.5f;
+	const float wallLimit = hit ? (std::max)(hitDistance - margin, minDistance) : noWall;
+
+	auto& state = WallPullInView();
+	const double now = CrimsonClock::Time();
+	const float dt = state.limitValid ? static_cast<float>((std::clamp)(now - state.lastTime, 0.0, 0.1)) : 0.0f;
+	state.lastTime = now;
+
+	const float focusJump = state.limitValid ? sqrtf(
+		(focus[0] - state.lastFocus[0]) * (focus[0] - state.lastFocus[0]) +
+		(focus[1] - state.lastFocus[1]) * (focus[1] - state.lastFocus[1]) +
+		(focus[2] - state.lastFocus[2]) * (focus[2] - state.lastFocus[2])) : 0.0f;
+	state.lastFocus[0] = focus[0];
+	state.lastFocus[1] = focus[1];
+	state.lastFocus[2] = focus[2];
+
+	// Instant in, eased out after a short hold so the camera does not pump along uneven walls.
+	if (!state.limitValid || focusJump > 300.0f) {
+		state.limitValid = true;
+		state.limit = (std::min)(wallLimit, freeDistance * 2.0f);
+		state.clearTime = 0.0f;
+	}
+	else if (wallLimit < state.limit) {
+		state.limit = wallLimit;
+		state.clearTime = 0.0f;
+	}
+	else {
+		state.clearTime += dt;
+		if (state.clearTime > holdTime) {
+			const float target = (std::min)(wallLimit, freeDistance * 2.0f);
+			const float step = (std::max)((target - state.limit) * (1.0f - expf(-releaseRate * dt)), releaseMinSpeed * dt);
+			state.limit = (std::min)(state.limit + step, target);
+		}
+	}
+
+	const float distance = (std::min)(freeDistance, state.limit);
+	const bool pulledIn = distance < freeDistance - 0.01f;
+
+	auto& readout = CrimsonCameraController::g_wallPullIn;
+	readout.active = pulledIn;
+	readout.wantedDistance = freeDistance;
+	readout.hitDistance = hit ? hitDistance : -1.0f;
+	readout.resolvedDistance = distance;
+
+	state.freeEye[0] = freeEye[0];
+	state.freeEye[1] = freeEye[1];
+	state.freeEye[2] = freeEye[2];
+	state.pulledEye[0] = pulledIn ? focus[0] + dir[0] * distance : freeEye[0];
+	state.pulledEye[1] = pulledIn ? focus[1] + dir[1] * distance : freeEye[1];
+	state.pulledEye[2] = pulledIn ? focus[2] + dir[2] * distance : freeEye[2];
+	state.valid = true;
+	state.touched = true;
+
+	SetPoint(camera.camcoords1b, state.pulledEye);
+	camera.camcoords1b.a = 1.0f;
+
+	// The panoramic camera reads this as "the camera is against a wall" and pulls its own distance in, which would
+	// stack on top of the pull-in here. The slide above leaves the cell count of the long segment in it.
+	*reinterpret_cast<uint8*>(&g_cameraHittingWall) = 1;
+	return true;
+}
+
+// CameraSweepEye_sub_1400567E0
+static void __fastcall sub_1400567E0(int64_t a1) {
+	typedef void(__fastcall* sub_1400567E0)(int64_t);
+	uintptr_t trampoline_raw = cameraSweepEyeHook->GetTrampoline();
+	sub_1400567E0 trampoline = (sub_1400567E0)trampoline_raw;
+
+	auto& camera = *reinterpret_cast<CameraData*>(a1);
+	const bool sharedCamera = g_isMPCamActive && activeConfig.Actor.enable;
+	if (activeCrimsonConfig.Camera.wallPullIn && !sharedCamera && camera.transitionToLockOnCam == 0) {
+		if (PullEyeInFromWall(camera)) {
+			return;
+		}
+	}
+
+	trampoline(a1);
+}
+
+// Gives the orbit the eye it would have without walls, so a wall never changes where the camera is turning to.
+// UpdateCameraOrbit_sub_140057520 is hooked by CrimsonSplitscreen, which calls these around it.
+bool CrimsonCameraController::OrbitBegin(int64_t a1) {
+	auto& camera = *reinterpret_cast<CameraData*>(a1);
+	const bool sharedCamera = g_isMPCamActive && activeConfig.Actor.enable;
+	if (!activeCrimsonConfig.Camera.wallPullIn || sharedCamera) {
+		return false;
+	}
+
+	auto& state = WallPullInView();
+	state.touched = false;
+	const bool restored = state.valid && camera.transitionToLockOnCam == 0 && SamePoint(camera.data[0], state.pulledEye);
+	if (restored) {
+		SetPoint(camera.data[0], state.freeEye);
+	}
+	return restored;
+}
+
+void CrimsonCameraController::OrbitEnd(int64_t a1, bool restored) {
+	if (!restored) {
+		return;
+	}
+
+	// The orbit skipped its update (idle until the target moves), the view has to keep the pulled-in eye.
+	auto& camera = *reinterpret_cast<CameraData*>(a1);
+	auto& state = WallPullInView();
+	if (!state.touched && SamePoint(camera.data[0], state.freeEye)) {
+		SetPoint(camera.data[0], state.pulledEye);
+	}
+}
+
 
 /// <summary>
 /// Creates a hook I hope
@@ -527,6 +732,16 @@ void CameraWallCheckDetour() {
 			(uintptr_t)&sub_1402CD340,
 			NULL, "camera_wall_detour");
 	bool res = cameraWallCheckHook->Toggle();
+	assert(res);
+}
+
+void CameraSweepEyeDetour() {
+	cameraSweepEyeHook =
+		std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + CAM_SWEEP_EYE_OFFSET(),
+			(uintptr_t)&sub_1400567E0,
+			NULL, "camera_sweep_eye_detour");
+	bool res = cameraSweepEyeHook->Toggle();
 	assert(res);
 }
 

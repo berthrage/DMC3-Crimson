@@ -2783,9 +2783,9 @@ struct CameraData {
     _(4);
     float distanceLockOn; // 0xE0
     _(172);
-    vec4 camcoords1; //0x190
-    _(16);
-    vec4 camcoords2; //0x1B0
+    vec4 camcoords1; //0x190 desired lookat
+    vec4 camcoords1b; //0x1A0 desired eye
+    vec4 camcoords2; //0x1B0 previous eye
     _(16);
     float orbitYaw; // 0x1D0
     float orbitSpeed; // 0x1D4 right stick turn speed, set per key press (sensitivity patch)
@@ -2809,6 +2809,7 @@ static_assert(offsetof(CameraData, tilt) == 0xD4);
 static_assert(offsetof(CameraData, distanceCam) == 0xD8);
 static_assert(offsetof(CameraData, distanceLockOn) == 0xE0);
 static_assert(offsetof(CameraData, camcoords1) == 0x190);
+static_assert(offsetof(CameraData, camcoords1b) == 0x1A0);
 static_assert(offsetof(CameraData, camcoords2) == 0x1B0);
 static_assert(offsetof(CameraData, orbitYaw) == 0x1D0);
 static_assert(offsetof(CameraData, orbitSpeed) == 0x1D4);
