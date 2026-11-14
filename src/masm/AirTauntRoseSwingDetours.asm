@@ -60,6 +60,45 @@ OriginalCode:
 
 SwingRoseAirTauntInertiaAndSpawnShlDetour ENDP
 
+.DATA
+EXTERN g_SwingRoseAirTauntYInertia_ReturnAddr:QWORD
+EXTERN g_SwingRoseAirTauntYInertia_CheckCall:QWORD
+newYinertiaMult dd -0.45f ; Cerberus Swing value is -0.35f
+newYinertia dd 0.0f
+useNewYinertia byte 1 
+
+.CODE
+; From ExecuteCerberusSwingMove_sub_140206F70:
+; dmc3.exe+2070DA - F3 0F 10 98 D4 03 00 00 - movss xmm3,[rax+000003D4] { y inertia mult }
+; dmc3.exe+2070E2 - F3 0F 10 90 D0 03 00 00 - movss xmm2,[rax+000003D0] { y inertia }
+SwingRoseAirTauntYInertiaDetour PROC
+; player in rbx & rcx
+
+    PushAllRegs
+    mov r12, rsp
+    and rsp, -16
+    sub rsp, 20h
+    call qword ptr [g_SwingRoseAirTauntYInertia_CheckCall]  ; Ecstasy only, Swing keeps the vanilla mult
+    mov rsp, r12
+    cmp al, 1
+    jne OriginalCode
+    PopAllRegs
+    movss xmm3, dword ptr [newYinertiaMult]
+    movss xmm2, dword ptr [rax + 03D0h]
+    cmp byte ptr [useNewYinertia], 0
+    je @F
+    movss xmm2, dword ptr [newYinertia]
+@@:
+    jmp qword ptr [g_SwingRoseAirTauntYInertia_ReturnAddr]
+
+OriginalCode:
+    PopAllRegs
+    movss xmm3, dword ptr [rax + 03D4h]
+    movss xmm2, dword ptr [rax + 03D0h]
+    jmp qword ptr [g_SwingRoseAirTauntYInertia_ReturnAddr]
+
+SwingRoseAirTauntYInertiaDetour ENDP
+
 ; Called from C++ once the spawn delay elapses. Restores the register state the
 ; spawn call used to see from the detour above (player in rcx, rbx and rdi).
 SpawnNevanShlRose PROC

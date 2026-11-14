@@ -462,6 +462,10 @@ namespace CrimsonDetours {
 		void* g_SwingRoseAirTauntInertiaAndSpawnShlCheckCall;
 		void* g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall;
 		void SpawnNevanShlRose(uintptr_t playerAddr);
+		// SwingRoseAirTauntYInertia
+		std::uint64_t g_SwingRoseAirTauntYInertia_ReturnAddr;
+		void* g_SwingRoseAirTauntYInertia_CheckCall;
+		void SwingRoseAirTauntYInertiaDetour();
 		// NevanShlMarkRoseMode
 		std::uint64_t g_NevanShlMarkRoseMode_ReturnAddr;
 		void* g_NevanShlMarkRoseMode_CheckCall;
@@ -3603,6 +3607,15 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_SwingRoseAirTauntInertiaAndSpawnShl_ShlSpawnCall = (uintptr_t)appBaseAddr + 0x2127F0; // CPlNevanShlSpawnType1_sub_1402127F0
 	g_SwingRoseAirTauntInertiaAndSpawnShl_SpawnDelayStartCall = &StartRoseSpawnDelay;
 	swingRoseAirTauntInertiaAndSpawnShlHook->Toggle(enable);
+
+	// From ExecuteCerberusSwingMove_sub_140206F70:
+	// dmc3.exe+2070DA - F3 0F 10 98 D4 03 00 00 - movss xmm3,[rax+000003D4] { y inertia mult }
+	// dmc3.exe+2070E2 - F3 0F 10 90 D0 03 00 00 - movss xmm2,[rax+000003D0] { y inertia }
+	static std::unique_ptr<Utility::Detour_t> swingRoseAirTauntYInertiaHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2070DA, &SwingRoseAirTauntYInertiaDetour, 16);
+	g_SwingRoseAirTauntYInertia_ReturnAddr = swingRoseAirTauntYInertiaHook->GetReturnAddress();
+	g_SwingRoseAirTauntYInertia_CheckCall = &CheckIfInAirTauntRose;
+	swingRoseAirTauntYInertiaHook->Toggle(enable);
 
 	// From CPl000Shl10eNevanShlSetSpawn_sub_1401D6520:
 	// dmc3.exe+1D666C - 88 88 3C 04 00 00 - mov [rax+0000043C],cl
