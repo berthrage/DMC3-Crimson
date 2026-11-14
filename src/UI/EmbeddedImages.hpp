@@ -67,10 +67,10 @@ public:
 	{}
 
 protected:
-	static constexpr uint32_t	m_CompressedWidth{ 1924 };
+	static constexpr uint32_t	m_CompressedWidth{ 1922 };
 	static constexpr uint32_t	m_CompressedHeight{ 510 };
-	static constexpr uint32_t	m_ImageCompressedSize{ 1095949 };
-	static			 uint32_t	m_ImageCompressedData[1095952 / 4];
+	static constexpr uint32_t	m_ImageCompressedSize{ 1027140 };
+	static			 uint32_t	m_ImageCompressedData[1027140 / 4];
 };
 
 extern CrimsonMainLogo g_Image_CrimsonMainLogo;
