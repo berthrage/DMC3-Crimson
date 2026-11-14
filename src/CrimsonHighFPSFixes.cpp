@@ -1,6 +1,6 @@
 #include "../ThirdParty/glm/glm.hpp"
 #include <algorithm>
-#include "Core/Core.hpp"
+#include <cmath>
 #include <stdio.h>
 #include "Utility/Detour.hpp"
 #include <intrin.h>
@@ -175,6 +175,40 @@ extern "C" {
 	// FixWpNunchakuCerberusCollisions
 	std::uint64_t g_FixWpNunchakuCerberusCollisions_ReturnAddr;
 	void FixWpNunchakuCerberusCollisionsDetour();
+
+	// FixCStageSetHang2Physics -- Chained metal balls: per tick damping, resting pull, gravity and hit impulse.
+	std::uint64_t g_FixCStageSetHang2_Damping_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang2_Settle_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang2_Gravity_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang2_Lerp_ReturnAddr1;
+	std::uint64_t g_FixCStageSetHang2_Lerp_ReturnAddr2;
+	std::uint64_t g_FixCStageSetHang2_Hit_ReturnAddr1;
+	std::uint64_t g_FixCStageSetHang2_Hit_ReturnAddr2;
+	void* g_FixCStageSetHang2_FactorCall;
+	void FixCStageSetHang2DampingDetour();
+	void FixCStageSetHang2SettleDetour();
+	void FixCStageSetHang2GravityDetour();
+	void FixCStageSetHang2LerpDetour1();
+	void FixCStageSetHang2LerpDetour2();
+	void FixCStageSetHang2HitDetour1();
+	void FixCStageSetHang2HitDetour2();
+
+	// FixCStageSetHang1Physics -- Breakable chained balls, same per tick constants as CStageSetHang2.
+	std::uint64_t g_FixCStageSetHang1_Damping_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang1_Settle_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang1_Gravity_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang1_Lerp_ReturnAddr1;
+	std::uint64_t g_FixCStageSetHang1_Lerp_ReturnAddr2;
+	std::uint64_t g_FixCStageSetHang1_Hit_ReturnAddr;
+	std::uint64_t g_FixCStageSetHang1_Rise_ReturnAddr;
+	void* g_FixCStageSetHang1_FactorCall;
+	void FixCStageSetHang1DampingDetour();
+	void FixCStageSetHang1SettleDetour();
+	void FixCStageSetHang1GravityDetour();
+	void FixCStageSetHang1LerpDetour1();
+	void FixCStageSetHang1LerpDetour2();
+	void FixCStageSetHang1HitDetour();
+	void FixCStageSetHang1RiseDetour();
 
 	// FixEffectsFPS -- Keeps the Moves VFX (PlayVFX / PlayVFX2 effects) from fading out at higher fps.
 	std::uint64_t g_FixEffectUVScroll_ReturnAddr;
@@ -823,6 +857,131 @@ void FixWpNunchakuCerberusCollisions(bool enable) {
 	run = enable;
 }
 
+// The chained balls apply their damping, resting pull, gravity and hit impulse once per tick without
+// the ball speed, so at higher fps they swing stiffer and hits land weaker. Decay factors become
+// base^speed and the per tick steps are scaled by speed, which leaves 60fps untouched.
+static float CStageSetHang2TimeScaledFactor(float base, float speed) {
+	return std::pow(base, speed);
+}
+
+void FixCStageSetHang2Physics(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	g_FixCStageSetHang2_FactorCall = &CStageSetHang2TimeScaledFactor;
+
+	// From CStageSetHang2_StepPhysics_sub_14025B2E0:
+	// dmc3.exe+25B5D9 - F3 0F 10 15 1B AB 28 00 - movss xmm2,[dmc3.exe+4E60FC] { (0.998) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2DampingHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25B5D9, &FixCStageSetHang2DampingDetour, 8);
+	g_FixCStageSetHang2_Damping_ReturnAddr = fixCStageSetHang2DampingHook->GetReturnAddress();
+	fixCStageSetHang2DampingHook->Toggle(enable);
+
+	// From CStageSetHang2_StateSwing_sub_14025D600:
+	// dmc3.exe+25D619 - F3 0F 10 25 17 F0 26 00 - movss xmm4,[dmc3.exe+4CC638] { (0.95) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2SettleHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25D619, &FixCStageSetHang2SettleDetour, 8);
+	g_FixCStageSetHang2_Settle_ReturnAddr = fixCStageSetHang2SettleHook->GetReturnAddress();
+	fixCStageSetHang2SettleHook->Toggle(enable);
+
+	// dmc3.exe+25D639 - F3 0F 5C 05 2B FF 0F 00 - subss xmm0,[dmc3.exe+35D56C] { (1.00) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2GravityHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25D639, &FixCStageSetHang2GravityDetour, 8);
+	g_FixCStageSetHang2_Gravity_ReturnAddr = fixCStageSetHang2GravityHook->GetReturnAddress();
+	fixCStageSetHang2GravityHook->Toggle(enable);
+
+	// dmc3.exe+25D661 - F3 0F 59 15 17 DC 26 00 - mulss xmm2,[dmc3.exe+4CB280] { (0.05) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2LerpHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25D661, &FixCStageSetHang2LerpDetour1, 8);
+	g_FixCStageSetHang2_Lerp_ReturnAddr1 = fixCStageSetHang2LerpHook1->GetReturnAddress();
+	fixCStageSetHang2LerpHook1->Toggle(enable);
+
+	// dmc3.exe+25D68D - F3 0F 59 0D EB DB 26 00 - mulss xmm1,[dmc3.exe+4CB280] { (0.05) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2LerpHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25D68D, &FixCStageSetHang2LerpDetour2, 8);
+	g_FixCStageSetHang2_Lerp_ReturnAddr2 = fixCStageSetHang2LerpHook2->GetReturnAddress();
+	fixCStageSetHang2LerpHook2->Toggle(enable);
+
+	// From CStageSetHang2_OnHit_sub_14025C1D0:
+	// dmc3.exe+25C2DD - F3 0F 10 5E B4 - movss xmm3,[rsi-4C] { ball speed }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2HitHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C2DD, &FixCStageSetHang2HitDetour1, 5);
+	g_FixCStageSetHang2_Hit_ReturnAddr1 = fixCStageSetHang2HitHook1->GetReturnAddress();
+	fixCStageSetHang2HitHook1->Toggle(enable);
+
+	// dmc3.exe+25C34B - F3 0F 10 56 B4 - movss xmm2,[rsi-4C] { ball speed }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang2HitHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C34B, &FixCStageSetHang2HitDetour2, 5);
+	g_FixCStageSetHang2_Hit_ReturnAddr2 = fixCStageSetHang2HitHook2->GetReturnAddress();
+	fixCStageSetHang2HitHook2->Toggle(enable);
+
+	run = enable;
+}
+
+// Same tick constants as CStageSetHang2, plus the anchor rise of the broken state (+10.0 per tick).
+void FixCStageSetHang1Physics(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	g_FixCStageSetHang1_FactorCall = &CStageSetHang2TimeScaledFactor;
+
+	// From CStageSetHang1_StepPhysics_sub_140258AE0:
+	// dmc3.exe+258D28 - F3 0F 10 15 CC D3 28 00 - movss xmm2,[dmc3.exe+4E60FC] { (0.998) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1DampingHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x258D28, &FixCStageSetHang1DampingDetour, 8);
+	g_FixCStageSetHang1_Damping_ReturnAddr = fixCStageSetHang1DampingHook->GetReturnAddress();
+	fixCStageSetHang1DampingHook->Toggle(enable);
+
+	// From CStageSetHang1_StateSwing_sub_14025ADB0:
+	// dmc3.exe+25ADC3 - F3 0F 10 25 6D 18 27 00 - movss xmm4,[dmc3.exe+4CC638] { (0.95) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1SettleHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25ADC3, &FixCStageSetHang1SettleDetour, 8);
+	g_FixCStageSetHang1_Settle_ReturnAddr = fixCStageSetHang1SettleHook->GetReturnAddress();
+	fixCStageSetHang1SettleHook->Toggle(enable);
+
+	// dmc3.exe+25ADE3 - F3 0F 5C 05 81 27 10 00 - subss xmm0,[dmc3.exe+35D56C] { (1.00) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1GravityHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25ADE3, &FixCStageSetHang1GravityDetour, 8);
+	g_FixCStageSetHang1_Gravity_ReturnAddr = fixCStageSetHang1GravityHook->GetReturnAddress();
+	fixCStageSetHang1GravityHook->Toggle(enable);
+
+	// dmc3.exe+25AE0B - F3 0F 59 15 6D 04 27 00 - mulss xmm2,[dmc3.exe+4CB280] { (0.05) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1LerpHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25AE0B, &FixCStageSetHang1LerpDetour1, 8);
+	g_FixCStageSetHang1_Lerp_ReturnAddr1 = fixCStageSetHang1LerpHook1->GetReturnAddress();
+	fixCStageSetHang1LerpHook1->Toggle(enable);
+
+	// dmc3.exe+25AE37 - F3 0F 59 0D 41 04 27 00 - mulss xmm1,[dmc3.exe+4CB280] { (0.05) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1LerpHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25AE37, &FixCStageSetHang1LerpDetour2, 8);
+	g_FixCStageSetHang1_Lerp_ReturnAddr2 = fixCStageSetHang1LerpHook2->GetReturnAddress();
+	fixCStageSetHang1LerpHook2->Toggle(enable);
+
+	// From CStageSetHang1_OnHit_sub_140259930:
+	// dmc3.exe+25999F - F3 0F 10 77 B4 - movss xmm6,[rdi-4C] { ball speed }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1HitHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25999F, &FixCStageSetHang1HitDetour, 5);
+	g_FixCStageSetHang1_Hit_ReturnAddr = fixCStageSetHang1HitHook->GetReturnAddress();
+	fixCStageSetHang1HitHook->Toggle(enable);
+
+	// From CStageSetHang1_StateBroken_sub_140259BF0:
+	// dmc3.exe+259C16 - F3 0F 58 0D 22 C3 26 00 - addss xmm1,[dmc3.exe+4C5F40] { (10.0) }
+	static std::unique_ptr<Utility::Detour_t> fixCStageSetHang1RiseHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x259C16, &FixCStageSetHang1RiseDetour, 8);
+	g_FixCStageSetHang1_Rise_ReturnAddr = fixCStageSetHang1RiseHook->GetReturnAddress();
+	fixCStageSetHang1RiseHook->Toggle(enable);
+
+	run = enable;
+}
+
 // Vanilla Doppelganger input history (CPlInputHistory, PlayerActorData+0x6410) is a ring indexed in
 // ticks: {1, 30, 60} entries back. Ticks run once per rendered frame, so at higher frame rates the
 // delay got shorter. The history is mirrored here with timestamps and read back by time instead.
@@ -1148,6 +1307,8 @@ void ToggleAllFixes(bool enable) {
 	FixCPl021Shl01SummonedSwordsInitialTravel(enable);
 	FixSecretMissionTimerFPS(enable);
 	FixWpNunchakuCerberusCollisions(enable);
+	FixCStageSetHang1Physics(enable);
+	FixCStageSetHang2Physics(enable);
 	FixDoppelgangerInputDelay(enable);
 	FixTeleportTransitionSpeed(enable);
 	MenuAnimationFixes(enable);

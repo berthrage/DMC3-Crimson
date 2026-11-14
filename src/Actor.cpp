@@ -9421,15 +9421,6 @@ void UpdateActorSpeed(byte8* baseAddr) {
 		frameResponsiveMultiplier = g_FrameRateTimeMultiplier;
 	}
     
-    // Chained Balls Speed - Making it consistent across framerates (unnecessary because it already is, but reference is nice)
-    // The OnHit Speed fix is present at CrimsonDetours::ToggleFixBallsHangHitSpeed
-	if (*reinterpret_cast<uintptr_t*>(baseAddr) == (uintptr_t)appBaseAddr + 0x4E61B0) {
-		auto& actorData = *reinterpret_cast<ActorDataBase*>(baseAddr);
-        auto value = (IsTurbo()) ? 1.2f : 1.0f;
-        actorData.speed = value * frameResponsiveMultiplier;
-        return;
-	}
-
 	CrimsonPatches::InertiaFixes();
     CrimsonDetours::ToggleGuardGravityAlteration(activeCrimsonGameplay.Gameplay.General.inertia);
    

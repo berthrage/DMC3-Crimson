@@ -15,7 +15,8 @@ set(MASM_SRC
     masm/JudgementCutDetours.asm
     masm/TurnRateFix.asm
     masm/GuardBreakToNormalBlock.asm
-    masm/FixBallsHangHitSpeed.asm
+    masm/FixCStageSetHang1.asm
+    masm/FixCStageSetHang2.asm
     masm/FixBlendingEffects.asm
     masm/FixEffectsFPS.asm
     masm/FixBossCam.asm

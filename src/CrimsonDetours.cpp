@@ -273,10 +273,6 @@ namespace CrimsonDetours {
 		void FixFPSSpeedIssuesDetour();
 		void* g_FixFPSSpeedIssuesCall;
 
-		// FixBallsHangHitSpeed
-		std::uint64_t g_FixBallsHangHitSpeed_ReturnAddr;
-		void FixBallsHangHitSpeedDetour();
-
 		// StyleRankHUDNoFadeout
 		std::uint64_t g_StyleRankHudNoFadeout_ReturnAddr;
 		void StyleRankHudNoFadeoutDetour();
@@ -2943,22 +2939,6 @@ void ToggleFPSSpeedIssues(bool enable) {
 // 	g_FixFPSSpeedIssues_ReturnAddr = FixFPSSpeedIssuesHook->GetReturnAddress();
 // 	FixFPSSpeedIssuesHook->Toggle(enable);
 // 	run = enable;
-}
-
-void ToggleFixBallsHangHitSpeed(bool enable) {
-	using namespace Utility;
-	static bool run = false;
-	if (run == enable) {
-		return;
-	}
-	// FixBallsHangHitSpeed
-	// dmc3.exe + 25C2DD - F3 0F 10 5E B4 - movss xmm3, [rsi - 4C]
-
-	static std::unique_ptr<Utility::Detour_t> FixBallsHangHitSpeedHook =
-		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x25C2DD, &FixBallsHangHitSpeedDetour, 5);
-	g_FixBallsHangHitSpeed_ReturnAddr = FixBallsHangHitSpeedHook->GetReturnAddress();
-	FixBallsHangHitSpeedHook->Toggle(enable);
-	run = enable;
 }
 
 void ToggleDanteTrickAlterations(bool enable) {
