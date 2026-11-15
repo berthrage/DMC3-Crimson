@@ -16,7 +16,6 @@
 #include <wrl/client.h>
 
 #include "CrimsonDetours.hpp"
-#include "CrimsonSplitscreen.hpp"
 #include "Config.hpp"
 #include "Speed.hpp"
 
@@ -45,7 +44,6 @@ static int g_rt_index;
 // Frame timing for consistent playback speed
 static auto g_lastFrameTime = std::chrono::high_resolution_clock::now();
 static float g_deltaTime = 0.0f;
-static auto g_nextFakeParticlePulse = std::chrono::steady_clock::time_point{};
 
 // like 4th set of vector math types in the project yay
 static ::Effekseer::ManagerRef g_efkManager = nullptr;
@@ -543,58 +541,12 @@ public:
     // EFFECT PLAYBACK
     // ============================================================================
 
-    // Invisible game particle that makes the game issue the particle draw call Effekseer renders from.
-    // In splitscreen each frame is built for one player's camera and the particle only exists in the frame
-    // if it is inside that camera's frustum, so every player gets one. Otherwise effects far from player 1 are never drawn.
-    static void SpawnFakeParticle(void* player, float time) {
-        static constexpr int fakeParticleBank = 3;
-        static constexpr int fakeParticleId = 4;
-
-        CrimsonDetours::CreateEffectDetour(player, fakeParticleBank, fakeParticleId, 1, 1, 0, time);
-
-        if (!CrimsonSplitscreen::Enabled()) {
-            return;
-        }
-        const int playerCount = (std::min)(static_cast<int>(activeConfig.Actor.playerCount), static_cast<int>(PLAYER_COUNT));
-        for (int playerIndex = 0; playerIndex < playerCount; playerIndex++) {
-            auto& playerData = GetPlayerData(static_cast<uint8>(playerIndex));
-            auto& newActorData = GetNewActorData(static_cast<uint8>(playerIndex), playerData.activeCharacterIndex, ENTITY::MAIN);
-            if (!newActorData.baseAddr || newActorData.baseAddr == player) {
-                continue;
-            }
-            CrimsonDetours::CreateEffectDetour(newActorData.baseAddr, fakeParticleBank, fakeParticleId, 1, 1, 0, time);
-        }
-    }
     EffekseerHandle PlayEffect(EffekseerRefHandle hEffect, float x, float y, float z, void* player) {
+        (void)player;
 
         if (g_efkManager == nullptr || !IsValidEffectHandle(hEffect)) {
             return -1;
         }
-
-        // NOTE(): hack to force the game to issue some particle rendering drawcalls,
-        // plays an invisible particle effect - otherwise particles wont show up unless
-        // there's something in the camera frustrum already - i tried to disable particle
-        // culling, but then drawcalls dont get sorted and effekseer renders behind players.
-        // cant stand starring at their rendering spaghetti anymore so this will have to do
-        if (!player) {
-            // TODO(): idk what's the best way to get main player
-            auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-            if (!pool_10222 || !pool_10222[3]) {
-                return -1;
-            }
-            if (pool_10222) {
-                auto& mainActorData = *reinterpret_cast<PlayerActorData*>(pool_10222[3]);
-                player = mainActorData;
-            }
-        }
-
-        static constexpr float fakeParticleTime = 0.2f;
-
-        assert(player);
-
-        auto gameSpeed = Speed::GetEffectiveGlobalSpeed();
-
-        SpawnFakeParticle(player, fakeParticleTime * gameSpeed);
 
         const auto handle = g_efkManager->Play(g_effects[hEffect], x, y, z);
         if (handle >= 0) {
@@ -874,18 +826,6 @@ public:
             }
         }
 
-        // Fake Particle will keep spawning every 500 ms or so, but only when active Handles exist. Needs testing on slower machines.
-        const auto now = std::chrono::steady_clock::now();
-       if (activeConfig.Actor.enable && (g_nextFakeParticlePulse.time_since_epoch().count() == 0 || now >= g_nextFakeParticlePulse)) {
-            auto pool_10222 = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-            if (pool_10222 && pool_10222[3]) {
-                static constexpr float fakeParticleTime = 0.12f;
-                SpawnFakeParticle(pool_10222[3], fakeParticleTime);
-            }
-
-            g_nextFakeParticlePulse = now + std::chrono::milliseconds(500);
-        }
-
 		static float g_time = 0.0f;
 		g_time += deltaTime * (adjustedSpeed);
 		g_efkRenderer->SetTime(g_time);
@@ -996,7 +936,6 @@ public:
                     position.x = mainActorData.position.x;
                     position.y = mainActorData.position.y;
                     position.z = mainActorData.position.z;
-                    CrimsonDetours::CreateEffectDetour(mainActorData, 3, 4, 1, 1, 0, 0.00001f);
                 }
             }
 
@@ -1063,23 +1002,28 @@ public:
 
 
 
-    __int64 __fastcall D3D11_Draw_sub_140043F90(Devil3::sRender* render, unsigned int a2, unsigned int a3, unsigned __int64 a4, __int64 a5) {
-        typedef __int64(__fastcall* D3D11DrawSub140043F90)(Devil3::sRender*, unsigned int, unsigned int, unsigned __int64, __int64);
-        static D3D11DrawSub140043F90 original = (D3D11DrawSub140043F90)(appBaseAddr + 0x43F90); // dmc3.exe+43F90
-        auto result = original(render, a2, a3, a4, a5);
+    // Wraps the REF-tag call in ExecuteDisplayList_sub_140029880. PtclLinkLayerEndPacket_sub_140312CF0 links a
+    // ZBUF reset packet into the last particle depth bucket every frame, so its data block marks the end of the
+    // particle layer even when the game draws no particles.
+    static void __fastcall RenderPassDriverHook(unsigned int qwc, byte8* data) {
+        typedef void(__fastcall* RenderPassDriver_t)(unsigned int, byte8*);
+        static auto original = (RenderPassDriver_t)(appBaseAddr + 0x32CD0); // RenderPassDriver_sub_140032CD0
+        original(qwc, data);
 
-        if (g_frame_counter_current != g_frame_counter_last) {
-            ApplyTrackedMatricesAtPresent();
-
-            auto currentTime = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<float> elapsed = currentTime - g_lastFrameTime;
-            g_deltaTime = elapsed.count();
-            g_lastFrameTime = currentTime;
-            CrimsonEfk::EffekRender(render->deviceContext, g_deltaTime);
-            g_frame_counter_last = g_frame_counter_current;
+        auto particleLayerEndPacket = *reinterpret_cast<byte8**>(appBaseAddr + 0x5D9EA0); // pPtclLayerEndPacket_1405D9EA0
+        if (data != particleLayerEndPacket || g_frame_counter_current == g_frame_counter_last) {
+            return;
         }
 
-        return result;
+        ApplyTrackedMatricesAtPresent();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<float> elapsed = currentTime - g_lastFrameTime;
+        g_deltaTime = elapsed.count();
+        g_lastFrameTime = currentTime;
+        auto render = reinterpret_cast<Devil3::sRender*>(appBaseAddr + 0xC0B410);
+        CrimsonEfk::EffekRender(render->deviceContext, g_deltaTime);
+        g_frame_counter_last = g_frame_counter_current;
     }
 
 #if 0
@@ -1128,10 +1072,9 @@ public:
 #endif
 
     void EffekInitRenderHook() {
-        auto hookAddr = (appBaseAddr + 0x2B555); // dmc3.exe+2B555
-        auto jumpAddr = (appBaseAddr + 0x2B55A); // dmc3.exe+2B55A
-        //byte8* hookAddr = (byte8*)0x1400444F7;
-        //byte8* jumpAddr = (byte8*)hookAddr+5;
+        // dmc3.exe+29976 - E8 55930000 - call RenderPassDriver_sub_140032CD0 (ExecuteDisplayList REF tag)
+        auto hookAddr = (appBaseAddr + 0x29976);
+        auto jumpAddr = (appBaseAddr + 0x2997B);
 
         constexpr new_size_t size = 5;
 #if 0
@@ -1144,7 +1087,7 @@ public:
         assert(res);
 #endif
 #if 1
-        static Function func = CreateFunction(D3D11_Draw_sub_140043F90, jumpAddr, 0, 0);
+        static Function func = CreateFunction(RenderPassDriverHook, jumpAddr, 0, 0);
         WriteJump(hookAddr, func.addr, size - 5);
 #endif
 #if 0
