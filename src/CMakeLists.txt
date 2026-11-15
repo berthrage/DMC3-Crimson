@@ -75,6 +75,10 @@ set(MASM_SRC
     masm/FixMPXinputVibration.asm
     masm/AdjustAirWhirlwindLaunchHeight.asm
     masm/FixWpNunchakuCerberusCollisions.asm
+    masm/FixGunShotCollisionTicks.asm
+    masm/FixHomingProjectiles.asm
+    masm/FixSpiralRicochetRetrigger.asm
+    masm/FixBlisteringSwordsSpread.asm
     masm/KillWeaponMotionState.asm
     masm/AirTauntRoseSwingDetours.asm
     masm/FixNevanShlPlayerSpawn.asm

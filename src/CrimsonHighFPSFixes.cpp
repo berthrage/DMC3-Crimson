@@ -176,6 +176,32 @@ extern "C" {
 	std::uint64_t g_FixWpNunchakuCerberusCollisions_ReturnAddr;
 	void FixWpNunchakuCerberusCollisionsDetour();
 
+	// FixGunShotCollisionTicks
+	std::uint64_t g_FixShotgunShlCollision_ReturnAddr1;
+	std::uint64_t g_FixShotgunShlCollision_ReturnAddr2;
+	std::uint64_t g_FixGunShlCollision_ReturnAddr1;
+	std::uint64_t g_FixGunShlCollision_ReturnAddr2;
+	void FixShotgunShlCollisionDetour1();
+	void FixShotgunShlCollisionDetour2();
+	void FixGunShlCollisionDetour1();
+	void FixGunShlCollisionDetour2();
+
+	// FixHomingProjectiles
+	std::uint64_t g_FixKalinaHystericAccel_ReturnAddr;
+	std::uint64_t g_FixSteerTurnScale_ReturnAddr;
+	void FixKalinaHystericAccelDetour();
+	void FixSteerTurnScaleDetour();
+
+	// FixSpiralRicochetRetrigger
+	std::uint64_t g_FixSpiralRicochetRetrigger_ReturnAddr;
+	void FixSpiralRicochetRetriggerDetour();
+
+	// FixBlisteringSwordsSpread
+	std::uint64_t g_FixBlisteringSwordsSpread_ReturnAddr1;
+	std::uint64_t g_FixBlisteringSwordsSpread_ReturnAddr2;
+	void FixBlisteringSwordsSpreadDetour1();
+	void FixBlisteringSwordsSpreadDetour2();
+
 	// FixCStageSetHang2Physics -- Chained metal balls: per tick damping, resting pull, gravity and hit impulse.
 	std::uint64_t g_FixCStageSetHang2_Damping_ReturnAddr;
 	std::uint64_t g_FixCStageSetHang2_Settle_ReturnAddr;
@@ -857,6 +883,121 @@ void FixWpNunchakuCerberusCollisions(bool enable) {
 	run = enable;
 }
 
+// Gun shots keep re-spawning their hitbox while a 1.0 timer drains by speed, so at higher fps
+// they get extra collision passes and land inconsistent hits/knockback. Drain one pass per tick.
+void FixGunShotCollisionTicks(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl000Shl01ShotgunUpdate_sub_1401CA7D0:
+	// dmc3.exe+1CA80D - F3 0F 10 53 14 - movss xmm2,[rbx+14]
+	static std::unique_ptr<Utility::Detour_t> shotgunHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1CA80D, &FixShotgunShlCollisionDetour1, 5);
+	g_FixShotgunShlCollision_ReturnAddr1 = shotgunHook1->GetReturnAddress();
+	shotgunHook1->Toggle(enable);
+
+	// dmc3.exe+1CAD23 - F3 0F 5C 43 14 - subss xmm0,[rbx+14]
+	static std::unique_ptr<Utility::Detour_t> shotgunHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1CAD23, &FixShotgunShlCollisionDetour2, 5);
+	g_FixShotgunShlCollision_ReturnAddr2 = shotgunHook2->GetReturnAddress();
+	shotgunHook2->Toggle(enable);
+
+	// From CPl000Shl00GunShotUpdate_sub_1401C9D00:
+	// dmc3.exe+1C9D48 - F3 0F 10 57 14 - movss xmm2,[rdi+14]
+	static std::unique_ptr<Utility::Detour_t> gunShotHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1C9D48, &FixGunShlCollisionDetour1, 5);
+	g_FixGunShlCollision_ReturnAddr1 = gunShotHook1->GetReturnAddress();
+	gunShotHook1->Toggle(enable);
+
+	// dmc3.exe+1CA04A - F3 0F 5C 47 14 - subss xmm0,[rdi+14]
+	static std::unique_ptr<Utility::Detour_t> gunShotHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1CA04A, &FixGunShlCollisionDetour2, 5);
+	g_FixGunShlCollision_ReturnAddr2 = gunShotHook2->GetReturnAddress();
+	gunShotHook2->Toggle(enable);
+
+	run = enable;
+}
+
+// Kalina Ann Hysteric rockets: the acceleration is added per tick, and SteerMove scales each
+// timer-gated turn by speed again, which halves homing at 120fps. Affects all homing projectiles.
+void FixHomingProjectiles(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From KalinaHystericRocketFlight_sub_140172EC0:
+	// dmc3.exe+172F9D - F3 0F 10 0D 17 85 40 00 - movss xmm1,[dmc3.exe+57B4BC] { (1,00) }
+	static std::unique_ptr<Utility::Detour_t> kalinaAccelHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x172F9D, &FixKalinaHystericAccelDetour, 8);
+	g_FixKalinaHystericAccel_ReturnAddr = kalinaAccelHook->GetReturnAddress();
+	kalinaAccelHook->Toggle(enable);
+
+	// From SteerMove_sub_140244870:
+	// dmc3.exe+2448C2 - 8B 81 80 01 00 00 - mov eax,[rcx+00000180]
+	// dmc3.exe+2448C8 - 0F 28 D3          - movaps xmm2,xmm3
+	// dmc3.exe+2448CB - 89 81 84 01 00 00 - mov [rcx+00000184],eax
+	static std::unique_ptr<Utility::Detour_t> steerTurnHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2448C2, &FixSteerTurnScaleDetour, 15);
+	g_FixSteerTurnScale_ReturnAddr = steerTurnHook->GetReturnAddress();
+	steerTurnHook->Toggle(enable);
+
+	run = enable;
+}
+
+// Spiral Trick Shot bounces don't move the shot on the bounce tick, so at higher fps it can still
+// overlap the wall next tick and bounce again (another x1.1 speed). Guard for one 60fps tick.
+void FixSpiralRicochetRetrigger(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl000Shl04SpiralRicochet_sub_1401CE7E0:
+	// dmc3.exe+1CE8F1 - F3 0F 5C 46 14          - subss xmm0,[rsi+14]
+	// dmc3.exe+1CE8F6 - F3 0F 11 86 AC 01 00 00 - movss [rsi+000001AC],xmm0
+	static std::unique_ptr<Utility::Detour_t> spiralHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1CE8F1, &FixSpiralRicochetRetriggerDetour, 13);
+	g_FixSpiralRicochetRetrigger_ReturnAddr = spiralHook->GetReturnAddress();
+	spiralHook->Toggle(enable);
+
+	run = enable;
+}
+
+// Blistering Swords spread out with a per tick velocity/decel that ignores speed, so the
+// formation opens too fast at higher fps.
+void FixBlisteringSwordsSpread(bool enable) {
+	using namespace Utility;
+
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// From CPl021Shl01SummonedSword_BlisteringSwords_sub_1401DB1E0:
+	// dmc3.exe+1DB421 - F3 0F 5C 86 60 01 00 00 - subss xmm0,[rsi+00000160]
+	static std::unique_ptr<Utility::Detour_t> spreadHook1 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DB421, &FixBlisteringSwordsSpreadDetour1, 8);
+	g_FixBlisteringSwordsSpread_ReturnAddr1 = spreadHook1->GetReturnAddress();
+	spreadHook1->Toggle(enable);
+
+	// dmc3.exe+1DB440 - F3 0F 10 96 D4 0D 00 00 - movss xmm2,[rsi+00000DD4]
+	static std::unique_ptr<Utility::Detour_t> spreadHook2 =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1DB440, &FixBlisteringSwordsSpreadDetour2, 8);
+	g_FixBlisteringSwordsSpread_ReturnAddr2 = spreadHook2->GetReturnAddress();
+	spreadHook2->Toggle(enable);
+
+	run = enable;
+}
+
 // The chained balls apply their damping, resting pull, gravity and hit impulse once per tick without
 // the ball speed, so at higher fps they swing stiffer and hits land weaker. Decay factors become
 // base^speed and the per tick steps are scaled by speed, which leaves 60fps untouched.
@@ -1307,6 +1448,10 @@ void ToggleAllFixes(bool enable) {
 	FixCPl021Shl01SummonedSwordsInitialTravel(enable);
 	FixSecretMissionTimerFPS(enable);
 	FixWpNunchakuCerberusCollisions(enable);
+	FixGunShotCollisionTicks(enable);
+	FixHomingProjectiles(enable);
+	FixSpiralRicochetRetrigger(enable);
+	FixBlisteringSwordsSpread(enable);
 	FixCStageSetHang1Physics(enable);
 	FixCStageSetHang2Physics(enable);
 	FixDoppelgangerInputDelay(enable);

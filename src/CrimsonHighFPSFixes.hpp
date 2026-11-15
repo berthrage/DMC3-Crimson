@@ -12,6 +12,10 @@ namespace CrimsonHighFPSFixes {
 	void FixBloodgoyleStormFormTime(bool enable);
 	void FixCPl021Shl01SummonedSwordsInitialTravel(bool enable);
 	void FixWpNunchakuCerberusCollisions(bool enable);
+	void FixGunShotCollisionTicks(bool enable);
+	void FixHomingProjectiles(bool enable);
+	void FixSpiralRicochetRetrigger(bool enable);
+	void FixBlisteringSwordsSpread(bool enable);
 	void FixDoppelgangerInputDelay(bool enable);
 	void FixCStageSetHang1Physics(bool enable);
 	void FixCStageSetHang2Physics(bool enable);
