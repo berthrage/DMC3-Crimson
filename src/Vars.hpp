@@ -5425,8 +5425,8 @@ struct ColorPresets {
 			uint8 ultimate[4] = { 128, 0, 16, 200 };
 		} Royalguard;
 		struct {
-			uint8 clone[4] = { 16, 16, 16, 48 };
-			uint8 vergilClone[4] = { 15, 75, 123, 48 };
+			uint8 clone[4] = { 92, 11, 11, 48 };
+			uint8 vergilClone[4] = { 11, 56, 92, 48 };
 		} Doppelganger;
 		struct {
 			uint8 dante[5][4] = {
@@ -6002,11 +6002,10 @@ struct VergilDoppelganger {
     float totalDrainDuration = 12.0f;
     bool drainStart = false;
     uint8 activationDirection = 0xFF; // 0xFF = none, else 0 right/haste, 1 up/medium, 2 left/max
-    // Up is shared with the double-tap character switch: the summon is instant and undone by a second tap.
-    bool upSummonUndoable = false;
-    float upSummonMiragePoints = 0;
+    // Up is shared with the double-tap character switch: an Up summon waits out the window first.
+    bool upSummonPending = false;
     std::chrono::steady_clock::time_point upSummonTime = {};
-    std::chrono::steady_clock::time_point ignoreUpUntil = {};
+    uint32 handledUpTap = 0;
 };
 
 namespace JDC_STATE {

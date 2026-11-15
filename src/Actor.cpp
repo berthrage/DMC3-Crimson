@@ -3166,8 +3166,8 @@ static bool IsDoppelgangerOverlayClone(PlayerActorData& actorData) {
 }
 
 static uint32 GetDoppelgangerOverlayColor(uint8 character) {
-    return (character == CHARACTER::VERGIL) ? *reinterpret_cast<uint32*>(activeConfig.Color.Doppelganger.vergilClone)
-                                            : *reinterpret_cast<uint32*>(activeConfig.Color.Doppelganger.clone);
+    return (character == CHARACTER::VERGIL) ? *reinterpret_cast<uint32*>(activeCrimsonConfig.Color.Doppelganger.vergilClone)
+                                            : *reinterpret_cast<uint32*>(activeCrimsonConfig.Color.Doppelganger.clone);
 }
 
 // Replaces the constant mode 6 stores at dmc3.exe+1FCD73 (actor+0x3A28, the overlay colour), so each
@@ -3856,23 +3856,80 @@ void DoppelgangerInputDelayController(PlayerActorData& actorData) {
     }
 }
 
-static bool IsVergilUpSummonUndoable(const VergilDoppelganger& vergilDopp, int windowMs, std::chrono::steady_clock::time_point now) {
-    return vergilDopp.upSummonUndoable &&
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - vergilDopp.upSummonTime).count() <= windowMs;
-}
+// D-pad Up is shared by Vergil's Mirage Trigger and the character-switch double-tap, so both read
+// taps from here. Each press is counted once (edge on held|pressed) and tagged as first or second tap.
+struct UpTapState {
+    bool wasDown = false;
+    bool lastWasDouble = false;
+    uint32 serial = 0;
+    std::chrono::steady_clock::time_point lastTapTime = {};
+    std::chrono::steady_clock::time_point ignoreUntil = {};
+};
+static UpTapState g_upTap[PLAYER_COUNT];
 
-// Rolls back an Up Mirage Trigger that turned out to be the first half of a character-switch double-tap.
-static void UndoVergilUpSummon(PlayerActorData& actorData, VergilDoppelganger& vergilDopp) {
-    vergilDopp.upSummonUndoable = false;
-    if (!actorData.doppelganger) {
+static void PollUpTap(uint8 playerIndex) {
+    if (playerIndex >= PLAYER_COUNT) {
         return;
     }
+    auto& playerData = GetPlayerData(playerIndex);
+    auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
+    if (!activeNewActorData.baseAddr) {
+        return;
+    }
+    auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
+    auto& state = g_upTap[playerIndex];
+    auto& tapData = charSwitchDoubleTap[playerIndex];
+    auto now = std::chrono::steady_clock::now();
+
+    const auto upBind = GetBinding(BINDING::ITEM_SCREEN);
+    bool down = ((activeActorData.buttons[0] | activeActorData.buttons[2]) & upBind) != 0;
+    bool tapped = down && !state.wasDown && now >= state.ignoreUntil;
+    state.wasDown = down;
+    if (!tapped) {
+        return;
+    }
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - tapData.lastTapTime).count();
+    bool isDouble = playerData.characterCount > 1 && tapData.trackerRunning && elapsed <= tapData.bufferDuration;
+    if (isDouble) {
+        tapData.trackerRunning = false;
+        tapData.canChange = true;
+        tapData.tapCount = 2;
+    } else {
+        tapData.trackerRunning = true;
+        tapData.canChange = false;
+        tapData.tapCount = 1;
+    }
+    tapData.lastTapTime = now;
+    state.lastTapTime = now;
+    state.lastWasDouble = isDouble;
+    state.serial++;
+}
+
+// Switching away from a character takes their doppelganger with them.
+static void DismissDoppelgangerOnCharacterSwitch(PlayerActorData& actorData) {
+    auto playerIndex = actorData.newPlayerIndex;
+    if (playerIndex >= PLAYER_COUNT) {
+        return;
+    }
+    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
+    vergilDopp.upSummonPending = false;
+
+    if (!actorData.doppelganger && actorData.cloneStatus != CLONE_STATUS::ACTIVE) {
+        return;
+    }
+    // ACTIVE first so DeactivateDoppelganger doesn't keep a split-synced Dante clone out.
+    actorData.cloneStatus = CLONE_STATUS::ACTIVE;
     DeactivateDoppelganger(actorData);
     actorData.doppelganger = false;
-    vergilDopp.drainStart = false;
-    vergilDopp.miragePoints = vergilDopp.upSummonMiragePoints;
-    vergilDopp.cooldownTime = 0;
-    vergilDopp.activationDirection = 0xFF;
+    actorData.cloneStatus = CLONE_STATUS::IDLE;
+    if (actorData.cloneActorBaseAddr) {
+        reinterpret_cast<PlayerActorData*>(actorData.cloneActorBaseAddr)->doppelganger = false;
+    }
+    if (actorData.character == CHARACTER::VERGIL) {
+        vergilDopp.drainStart = false;
+        vergilDopp.activationDirection = 0xFF;
+    }
 }
 
 void StyleSwitchController(byte8* actorBaseAddr) {
@@ -4067,41 +4124,75 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 		auto now = std::chrono::steady_clock::now();
 		const int doubleTapWindow = charSwitchDoubleTap[playerIndex].bufferDuration;
 
-		// Up also double-taps into a character switch (see CharacterSwitchController): the summon is
-		// instant and gets undone if the second tap lands inside the window.
+		// A first Up tap that would summon waits out the double-tap window, so a second tap (character
+		// switch, see CharacterSwitchController) never flashes the doppelganger in and out.
 		const bool isActive = playerData.activeCharacterIndex == actorData.newCharacterIndex;
-		bool upTapped = (actorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN)) &&
-			isActive && now >= vergilDopp.ignoreUpUntil;
-		bool leftTapped = (actorData.buttons[2] & GetBinding(BINDING::FILE_SCREEN)) != 0;
-		bool rightTapped = (actorData.buttons[2] & GetBinding(BINDING::MAP_SCREEN)) != 0;
-
-		if (vergilDopp.upSummonUndoable) {
-			if (!isActive || !actorData.doppelganger || !IsVergilUpSummonUndoable(vergilDopp, doubleTapWindow, now)) {
-				vergilDopp.upSummonUndoable = false;
-			} else if (upTapped) {
-				upTapped = false; // second tap, the character switch takes it from here
+		// The clone runs this too and shares the main's indices, so only the main tracks taps.
+		const bool isMain = actorData.newEntityIndex == ENTITY::MAIN && !actorData.newIsClone;
+		bool upTapped = false;
+		if (isActive && isMain) {
+			PollUpTap(playerIndex);
+			auto& upTap = g_upTap[playerIndex];
+			if (vergilDopp.handledUpTap != upTap.serial) {
+				vergilDopp.handledUpTap = upTap.serial;
+				auto age = std::chrono::duration_cast<std::chrono::milliseconds>(now - upTap.lastTapTime).count();
+				upTapped = !upTap.lastWasDouble && age <= doubleTapWindow;
+				if (upTap.lastWasDouble) {
+					vergilDopp.upSummonPending = false;
+				}
 			}
+		} else if (!isActive && isMain) {
+			vergilDopp.handledUpTap = g_upTap[playerIndex].serial;
+			vergilDopp.upSummonPending = false;
+		}
+
+		// Left/Right count once per press, even if the pressed flag stays up for several ticks.
+		static bool s_vergilLeftDown[PLAYER_COUNT][CHARACTER_COUNT] = {};
+		static bool s_vergilRightDown[PLAYER_COUNT][CHARACTER_COUNT] = {};
+		bool leftTapped = false;
+		bool rightTapped = false;
+		if (isMain && actorData.newCharacterIndex < CHARACTER_COUNT) {
+			const auto held = actorData.buttons[0] | actorData.buttons[2];
+			bool leftDown = (held & GetBinding(BINDING::FILE_SCREEN)) != 0;
+			bool rightDown = (held & GetBinding(BINDING::MAP_SCREEN)) != 0;
+			auto& leftWas = s_vergilLeftDown[playerIndex][actorData.newCharacterIndex];
+			auto& rightWas = s_vergilRightDown[playerIndex][actorData.newCharacterIndex];
+			leftTapped = leftDown && !leftWas;
+			rightTapped = rightDown && !rightWas;
+			leftWas = leftDown;
+			rightWas = rightDown;
 		}
 
 		// Mirage Trigger: Left/Up/Right summon the doppelganger with max, medium
 		// or no input delay. A different direction while active changes the delay,
-		// the same direction dismisses it.
+		// the same direction dismisses it. Only summoning waits on the cooldown.
 		uint8 mirageDirection = 0xFF;
+		bool firePendingUp = false;
 		if (leftTapped) {
 			mirageDirection = 2;
 		} else if (upTapped) {
 			mirageDirection = 1;
 		} else if (rightTapped) {
 			mirageDirection = 0;
+		} else if (isActive && isMain && vergilDopp.upSummonPending &&
+			std::chrono::duration_cast<std::chrono::milliseconds>(now - vergilDopp.upSummonTime).count() > doubleTapWindow) {
+			mirageDirection = 1;
+			firePendingUp = true;
+		}
+		if (mirageDirection != 0xFF && isMain) {
+			vergilDopp.upSummonPending = false;
 		}
 
 		if (activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger && mirageDirection != 0xFF &&
             //disable for bob fight
             !(IsArkham2Actor(actorData) && !arkhamFightData.dantePartner) &&
-			actorData.style != 5 && !actorData.newIsClone && vergilDopp.cooldownTime <= 0) {
+			actorData.style != 5 && !actorData.newIsClone) {
 
-			if (!actorData.doppelganger && vergilDopp.miragePoints > 0) {
-				const float miragePointsBeforeSummon = vergilDopp.miragePoints;
+			if (!actorData.doppelganger && vergilDopp.miragePoints > 0 && vergilDopp.cooldownTime <= 0 &&
+				mirageDirection == 1 && !firePendingUp && playerData.characterCount > 1) {
+				vergilDopp.upSummonPending = true;
+				vergilDopp.upSummonTime = now;
+			} else if (!actorData.doppelganger && vergilDopp.miragePoints > 0 && vergilDopp.cooldownTime <= 0) {
 				vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
 				vergilDopp.activationDirection = mirageDirection;
 				ActivateDoppelganger(actorData);
@@ -4119,19 +4210,13 @@ void StyleSwitchController(byte8* actorBaseAddr) {
 				}
 
 				actorData.doppelganger = true;
-
-				if (mirageDirection == 1 && playerData.characterCount > 1) {
-					vergilDopp.upSummonUndoable = true;
-					vergilDopp.upSummonTime = now;
-					vergilDopp.upSummonMiragePoints = miragePointsBeforeSummon;
-				}
 			} else if (actorData.doppelganger) {
-				vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
 				// Make Top Left HUD Visible briefly after MirageTrigger
 				hudData.topLeftAlpha = 127.0f;
 				hudData.topLeftAlphaTimer = 80.0f * (1.0f / g_FrameRateTimeMultiplier);
 
 				if (vergilDopp.activationDirection == mirageDirection) {
+					vergilDopp.cooldownTime = vergilDopp.cooldownDuration;
 					DeactivateDoppelganger(actorData);
 					actorData.doppelganger = false;
 					vergilDopp.drainStart = false;
@@ -5211,25 +5296,6 @@ void CharacterSwitchController() {
             }
         }
 
-        // ── Doppelganger active: only block new switch initiation, let hide timer finish ──
-        auto IsDoppelgangerActive = [&]() -> bool {
-            auto& playerData = GetPlayerData(playerIndex);
-            auto& activeNewActorData = GetNewActorData(playerIndex, playerData.activeCharacterIndex, ENTITY::MAIN);
-            if (activeNewActorData.baseAddr) {
-                auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
-                return activeActorData.doppelganger;
-            }
-            return false;
-        };
-
-        // An Up Mirage Trigger still inside the double-tap window must not block the second tap.
-        const bool upSummonInWindow = IsVergilUpSummonUndoable(
-            crimsonPlayer[playerIndex].vergilDoppelganger, charSwitchDoubleTap[playerIndex].bufferDuration,
-            std::chrono::steady_clock::now());
-        if (IsDoppelgangerActive() && !upSummonInWindow) {
-            continue;
-        }
-
         // INPUT DETECTION — two ways to request a character switch
         // ── Method A: Double-tap D-pad Up (ITEM_SCREEN binding) ──
         {
@@ -5239,63 +5305,24 @@ void CharacterSwitchController() {
             if (!activeNewActorData.baseAddr) {
                 continue;
             }
-            auto& activeActorData = *reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr);
 
-            bool buttonPressed = (activeActorData.buttons[2] & GetBinding(BINDING::ITEM_SCREEN));
+            PollUpTap(playerIndex);
 
-            // Double-tap state machine: detect two taps within bufferDuration
-            {
-                using namespace std::chrono;
-                auto now = steady_clock::now();
+            // Double-tap confirmed: advance to next character. An outgoing doppelganger is dismissed in Update.
+            auto& tapData = charSwitchDoubleTap[playerIndex];
+            if (tapData.canChange) {
+                tapData.trackerRunning = false;
+                tapData.canChange = false;
+                tapData.tapCount = 0;
 
-                auto& tapData = charSwitchDoubleTap[playerIndex];
-                if (buttonPressed) {
-                    if (!tapData.trackerRunning) {
-                        tapData.trackerRunning = true;
-                        tapData.canChange = false;
-                        tapData.lastTapTime = now;
-                        tapData.tapCount = 1;
-                    } else {
-                        auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
-                        if (elapsed <= tapData.bufferDuration) {
-                            tapData.tapCount++;
-                            tapData.lastTapTime = now;
-                            if (tapData.tapCount == 2) {
-                                tapData.canChange = true;   // Double-tap confirmed!
-                            }
-                        } else {
-                            // Too slow — restart as new first tap
-                            tapData.tapCount = 1;
-                            tapData.lastTapTime = now;
-                            tapData.canChange = false;
-                        }
-                    }
-                } else if (tapData.trackerRunning) {
-                    // Button released — expire the buffer after timeout
-                    auto elapsed = duration_cast<milliseconds>(now - tapData.lastTapTime).count();
-                    if (elapsed > tapData.bufferDuration) {
-                        tapData.trackerRunning = false;
-                        tapData.canChange = false;
-                        tapData.tapCount = 0;
-                    }
+                auto tapAge = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - tapData.lastTapTime).count();
+                if (tapAge > tapData.bufferDuration) {
+                    continue; // stale, e.g. the second tap landed during a stagger
                 }
-            }
 
-            // Double-tap confirmed: advance to next character
-            if (charSwitchDoubleTap[playerIndex].canChange) {
-                charSwitchDoubleTap[playerIndex].trackerRunning = false;
-                charSwitchDoubleTap[playerIndex].canChange = false;
-                charSwitchDoubleTap[playerIndex].tapCount = 0;
-
-                // The pressed flag can carry over to the character switched into (Vergil's Mirage Trigger is also on Up).
-                {
-                    auto& vergilDopp = crimsonPlayer[playerIndex].vergilDoppelganger;
-                    if (activeActorData.character == CHARACTER::VERGIL &&
-                        IsVergilUpSummonUndoable(vergilDopp, charSwitchDoubleTap[playerIndex].bufferDuration, std::chrono::steady_clock::now())) {
-                        UndoVergilUpSummon(activeActorData, vergilDopp);
-                    }
-                    vergilDopp.ignoreUpUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
-                }
+                // The incoming character may read Up as still freshly pressed for a moment.
+                g_upTap[playerIndex].ignoreUntil = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
 
                 // If departing character briefly used Trickster/Darkslayer (<500ms),
                 // mark for style reversion so they return to their original style
@@ -5483,6 +5510,10 @@ void CharacterSwitchController() {
             uint8 outgoingCharacterIndex = playerData.activeCharacterIndex; // save before we change it
             playerData.activeCharacterIndex = playerData.characterIndex;
             s_charSwitchCooldown[playerIndex] = 0.5f;
+
+            if (activeNewActorData.baseAddr && activeCharacterData.character < CHARACTER::MAX) {
+                DismissDoppelgangerOnCharacterSwitch(*reinterpret_cast<PlayerActorData*>(activeNewActorData.baseAddr));
+            }
 
             if (g_charSwitchDelayedHide) {
                 // Start delayed hide for outgoing character (keep visible, freeze inputs, hide after 2s)
@@ -8987,7 +9018,7 @@ void SetAirHikeColor(PlayerActorDataDante& actorData, byte8* dest) {
         meleeWeaponIndex = 0;
     }
 
-    CopyMemory(dest, activeConfig.Color.airHike[meleeWeaponIndex], 4);
+    CopyMemory(dest, activeCrimsonConfig.Color.airHike[meleeWeaponIndex], 4);
 }
 
 void SetDevilAuraColor(PlayerActorData& actorData, uint8* dest) {
@@ -9011,14 +9042,14 @@ void SetDevilAuraColor(PlayerActorData& actorData, uint8* dest) {
             CopyMemory(dest, activeCrimsonConfig.StyleSwitchFX.Flux.fluxColor[5], 4);
         } else {
             if (actorData2.sparda) {
-                CopyMemory(dest, activeConfig.Color.Aura.sparda, 4);
+                CopyMemory(dest, activeCrimsonConfig.Color.Aura.sparda, 4);
             } else {
                 uint8 meleeWeaponIndex = static_cast<uint8>(actorData2.meleeWeaponIndex);
                 if (meleeWeaponIndex >= MELEE_WEAPON_COUNT_DANTE) {
                     meleeWeaponIndex = 0;
                 }
 
-                CopyMemory(dest, activeConfig.Color.Aura.dante[meleeWeaponIndex], 4);
+                CopyMemory(dest, activeCrimsonConfig.Color.Aura.dante[meleeWeaponIndex], 4);
             }
         }
 
@@ -9028,14 +9059,14 @@ void SetDevilAuraColor(PlayerActorData& actorData, uint8* dest) {
         auto& actorData2 = *reinterpret_cast<PlayerActorDataVergil*>(&actorData);
 
         if (actorData2.neroAngelo) {
-            CopyMemory(dest, activeConfig.Color.Aura.neroAngelo, 4);
+            CopyMemory(dest, activeCrimsonConfig.Color.Aura.neroAngelo, 4);
         } else {
             uint8 activeMeleeWeaponIndex = static_cast<uint8>(actorData2.activeMeleeWeaponIndex);
             if (activeMeleeWeaponIndex >= MELEE_WEAPON_COUNT_VERGIL) {
                 activeMeleeWeaponIndex = 0;
             }
 
-            CopyMemory(dest, activeConfig.Color.Aura.vergil[activeMeleeWeaponIndex], 4);
+            CopyMemory(dest, activeCrimsonConfig.Color.Aura.vergil[activeMeleeWeaponIndex], 4);
         }
         break;
     }
@@ -9114,7 +9145,7 @@ void ToggleColor(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeConfig.Color.Trickster.skyStar;
+            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeCrimsonConfig.Color.Trickster.skyStar;
         }
 
         if (enable) {
@@ -9163,7 +9194,7 @@ void ToggleColor(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeConfig.Color.Royalguard.ultimate;
+            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeCrimsonConfig.Color.Royalguard.ultimate;
         }
 
         if (enable) {
@@ -9212,7 +9243,7 @@ void ToggleColor(bool enable) {
             backupHelper.Save(addr, size);
             func = old_CreateFunction(0, jumpAddr, false, true, sizeof(sect0));
             CopyMemory(func.sect0, sect0, sizeof(sect0));
-            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeConfig.Color.Royalguard.ultimate;
+            *reinterpret_cast<uint8**>(func.sect0 + 3) = activeCrimsonConfig.Color.Royalguard.ultimate;
         }
 
         if (enable) {
