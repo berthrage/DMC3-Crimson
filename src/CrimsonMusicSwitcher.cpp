@@ -30,6 +30,9 @@
 
 namespace fs = std::filesystem;
 
+using MusicSwitcherPath::FromUtf8;
+using MusicSwitcherPath::ToUtf8;
+
 namespace {
 
 constexpr const char* kAudioExtensions[] = {".mp3", ".ogg", ".wav", ".flac"};
@@ -71,7 +74,7 @@ std::string ToLower(std::string value) {
 }
 
 bool HasAudioExtension(const fs::path& path) {
-    const std::string extension = ToLower(path.extension().string());
+    const std::string extension = ToLower(ToUtf8(path.extension()));
 
     for (const char* allowed : kAudioExtensions) {
         if (extension == allowed) {
@@ -97,14 +100,14 @@ bool IsVanillaKey(const std::string& fileName) {
 // Turns a playlist key back into a file path.
 std::string SongPath(const std::string& fileName) {
     if (IsVanillaKey(fileName)) {
-        return (fs::path(kGameSoundFolder) / fileName.substr(strlen(kVanillaPrefix))).string();
+        return ToUtf8(fs::path(kGameSoundFolder) / FromUtf8(fileName.substr(strlen(kVanillaPrefix))));
     }
 
-    return (fs::path(Paths::musicSwitcher) / fileName).string();
+    return ToUtf8(fs::path(Paths::musicSwitcher) / FromUtf8(fileName));
 }
 
 fs::path PlaylistPath(const std::string& fileName) {
-    return fs::path(Paths::musicSwitcher) / fileName;
+    return fs::path(Paths::musicSwitcher) / FromUtf8(fileName);
 }
 
 const MusicSwitcherPlaylist* FindPlaylist(const std::string& name) {
@@ -222,21 +225,21 @@ void ScanVanillaSongs() {
                 continue;
             }
 
-            if (IsCutsceneCueName(entry.path().stem().string())) {
+            if (IsCutsceneCueName(ToUtf8(entry.path().stem()))) {
                 continue;
             }
 
             MusicSwitcherSong song;
-            song.fileName = std::string(kVanillaPrefix) + entry.path().filename().string();
-            song.path     = entry.path().string();
-            song.title    = entry.path().stem().string();
+            song.fileName = std::string(kVanillaPrefix) + ToUtf8(entry.path().filename());
+            song.path     = ToUtf8(entry.path());
+            song.title    = ToUtf8(entry.path().stem());
             song.vanilla  = true;
 
             MusicSwitcherTags::ReadSongTags(song, song.path);
 
             g_songs.push_back(song);
         }
-    } catch (const fs::filesystem_error& e) {
+    } catch (const std::exception& e) {
         Log("CrimsonMusicSwitcher: %s", e.what());
     }
 }
@@ -295,14 +298,14 @@ std::string LoudnessCachePath() {
 
 uint64 FileSize(const std::string& path) {
     std::error_code error;
-    const uintmax_t size = fs::file_size(path, error);
+    const uintmax_t size = fs::file_size(FromUtf8(path), error);
 
     return error ? 0 : static_cast<uint64>(size);
 }
 
 int64 ModifiedTime(const std::string& path) {
     std::error_code error;
-    const fs::file_time_type stamp = fs::last_write_time(path, error);
+    const fs::file_time_type stamp = fs::last_write_time(FromUtf8(path), error);
 
     return error ? 0 : static_cast<int64>(stamp.time_since_epoch().count());
 }
@@ -1327,13 +1330,13 @@ void Rescan() {
                     continue;
                 }
 
-                const std::string name = entry.path().filename().string();
+                const std::string name = ToUtf8(entry.path().filename());
 
                 if (HasAudioExtension(entry.path())) {
                     MusicSwitcherSong song;
                     song.fileName = name;
-                    song.path     = entry.path().string();
-                    song.title    = entry.path().stem().string();
+                    song.path     = ToUtf8(entry.path());
+                    song.title    = ToUtf8(entry.path().stem());
 
                     MusicSwitcherTags::ReadSongTags(song, song.path);
 
@@ -1342,7 +1345,7 @@ void Rescan() {
                     playlistPaths.push_back(entry.path());
                 }
             }
-        } catch (const fs::filesystem_error& e) {
+        } catch (const std::exception& e) {
             Log("CrimsonMusicSwitcher: %s", e.what());
         }
     }
@@ -1360,11 +1363,11 @@ void Rescan() {
 
     for (const auto& path : playlistPaths) {
         MusicSwitcherPlaylist playlist;
-        playlist.fileName = path.filename().string();
+        playlist.fileName = ToUtf8(path.filename());
         playlist.name     = playlist.fileName.substr(0, playlist.fileName.size() - strlen(kPlaylistSuffix));
 
         // A malformed playlist still shows up, empty, so it can be fixed in the UI.
-        MusicSwitcherPlaylistFile::Load(path.string(), playlist);
+        MusicSwitcherPlaylistFile::Load(ToUtf8(path), playlist);
 
         g_playlists.push_back(playlist);
     }
@@ -1443,7 +1446,7 @@ bool CreatePlaylist(const std::string& name) {
     playlist.name     = name;
     playlist.fileName = name + kPlaylistSuffix;
 
-    if (!MusicSwitcherPlaylistFile::Save(PlaylistPath(playlist.fileName).string(), playlist)) {
+    if (!MusicSwitcherPlaylistFile::Save(ToUtf8(PlaylistPath(playlist.fileName)), playlist)) {
         return false;
     }
 
@@ -1469,7 +1472,7 @@ bool SavePlaylist(MusicSwitcherPlaylist& playlist) {
 
     playlist.fileName = fileName;
 
-    return MusicSwitcherPlaylistFile::Save(PlaylistPath(fileName).string(), playlist);
+    return MusicSwitcherPlaylistFile::Save(ToUtf8(PlaylistPath(fileName)), playlist);
 }
 
 void AddSongToPlaylist(MusicSwitcherPlaylist& playlist, const std::string& fileName) {

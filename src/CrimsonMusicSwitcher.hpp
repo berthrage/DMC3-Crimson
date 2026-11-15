@@ -1,9 +1,24 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
 #include "Core/DataTypes.hpp"
+
+// Song names and paths are kept as UTF-8. path::string() converts to the ANSI
+// code page and throws on names it can't represent (e.g. Japanese titles).
+namespace MusicSwitcherPath {
+inline std::string ToUtf8(const std::filesystem::path& path) {
+    const std::u8string text = path.u8string();
+
+    return std::string(text.begin(), text.end());
+}
+
+inline std::filesystem::path FromUtf8(const std::string& text) {
+    return std::filesystem::path(std::u8string(text.begin(), text.end()));
+}
+} // namespace MusicSwitcherPath
 
 // Where the cover art lives inside the song file. Bytes are only read when
 // something asks for them, so a large folder costs no memory.

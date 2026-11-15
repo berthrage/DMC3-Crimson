@@ -6,6 +6,8 @@
 #include <cstring>
 #include <fstream>
 
+#include "CrimsonMusicSwitcher.hpp"
+
 namespace MusicSwitcherLoudness {
 
 namespace {
@@ -358,7 +360,7 @@ bool MeasureWavFile(const char* path, Result& out) {
         return false;
     }
 
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(MusicSwitcherPath::FromUtf8(path), std::ios::binary);
     if (!file) {
         return false;
     }

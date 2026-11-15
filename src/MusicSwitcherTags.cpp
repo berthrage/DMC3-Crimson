@@ -26,7 +26,7 @@ bool ReadHead(const std::string& path, Bytes& out, uint64& outFileSize) {
     out.clear();
     outFileSize = 0;
 
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(MusicSwitcherPath::FromUtf8(path), std::ios::binary);
     if (!file) {
         return false;
     }
@@ -60,7 +60,7 @@ bool ReadRange(const std::string& path, uint64 offset, uint32 size, Bytes& out) 
         return false;
     }
 
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(MusicSwitcherPath::FromUtf8(path), std::ios::binary);
     if (!file) {
         return false;
     }

@@ -660,13 +660,7 @@ bool File_Init() {
         Log("File load: %s — %s", newTauntVergilAnims2Filename,    file19 ? "OK" : "FAILED");
 		Log("File load: %s — %s", newAirTauntRoseFilename,         file20 ? "OK" : "FAILED");
 
-        if (!file) {
-            return;
-        }
-        if (!file2) {
-            return;
-        }
-
+        // Missing files stay null; the rest still need relocating.
         AdjustPointers(file);
         AdjustPointers(file2);
         AdjustPointers(file3);

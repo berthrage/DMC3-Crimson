@@ -69,7 +69,7 @@ uint8 ModeFromName(const char* name) {
 } // namespace
 
 bool Load(const std::string& path, MusicSwitcherPlaylist& playlist) {
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(MusicSwitcherPath::FromUtf8(path), std::ios::binary);
     if (!file) {
         return false;
     }
@@ -164,7 +164,7 @@ bool Save(const std::string& path, const MusicSwitcherPlaylist& playlist) {
     PrettyWriter<StringBuffer> writer(buffer);
     document.Accept(writer);
 
-    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    std::ofstream file(MusicSwitcherPath::FromUtf8(path), std::ios::binary | std::ios::trunc);
     if (!file) {
         Log("CrimsonMusicSwitcher: cannot write %s.", path.c_str());
 
