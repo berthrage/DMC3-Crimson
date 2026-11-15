@@ -27,6 +27,12 @@ void StyleEXPDisplayWindow();
 void StyleLvlDispWindow();
 void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
+void DanteHUD2Render();
+void DanteHUD2TuningWindow(bool* open);
+// Crimson HUD 2.0 placement in multiplayer, one per layout (splitscreen halves / quadrants, shared camera).
+void DanteHUD2SplitTuningWindow(bool* open);
+// Player name tag placement when that player's HUD is Crimson HUD 2.0.
+bool DanteHUD2PlayerTagPlacement(int player, float& x, float& y, float& scale);
 // World-space bar and out-of-view icon of a player; one copy per splitscreen view when split.
 void WorldSpacePlayerIcons(const PlayerActorData& actorData, const char* name, const char* label);
 Texture2DD3D11 *getCrimsonGradient();

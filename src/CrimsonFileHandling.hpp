@@ -18,6 +18,9 @@ namespace Paths {
 }
 
 namespace CrimsonFiles {
+	// Crimson HUD 2.0 has no pac folder: it is drawn through ImGui and keeps Crimson HUD 1.0's pacs for everything else.
+	constexpr const char* CRIMSON_HUD2_NAME = "Crimson HUD 2.0";
+
 	extern std::vector<std::string> HUDdirectories;
 	extern std::vector<std::string> StyleRanksdirectories;
 	extern std::vector<std::string> StyleRanksAccoladesdirectories;
@@ -31,6 +34,8 @@ namespace CrimsonFiles {
 	void FreeDynamicHUD();
 	bool ApplySelectedHUD(const std::string& hudName);
 	bool LoadSinglePAC(const std::string& filePath, byte8*& outPtr);
+	bool IsCrimsonHUD2(const std::string& hudName);
+	std::string PacHUDName(const std::string& hudName);
 }
 
 #endif

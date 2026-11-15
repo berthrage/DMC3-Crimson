@@ -62,7 +62,7 @@ void InitIcons(const std::string& selectedHUD) {
 	byte8* id100Arch  = nullptr;
 	byte8* id100VArch = nullptr;
 
-	if (selectedHUD == "Crimson HUD") {
+	if (selectedHUD == "Crimson HUD" || CrimsonFiles::IsCrimsonHUD2(selectedHUD)) {
 		// Load dynamically if not already loaded; moved out of File_Init static loading
 		if (!newCrimsonHUD1_0_id_100) {
 			std::string hudPath = std::string(Paths::gameMods) + "\\newCrimsonHUD1_0_id_100.pac";
@@ -1946,6 +1946,25 @@ void RestoreRedOrbModels(uint8_t* cockpit, const uint8 (&saved)[3]) {
 	}
 }
 
+// Crimson HUD 2.0 replaces the top-left group: those models are skipped, the red orb counter models and anything
+// drawn outside the models (secret mission timer) are kept.
+void HideTopLeftModels(uint8_t* cockpit, uint8 (&saved)[COCKPIT_TOP_MATRIX_COUNT]) {
+	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
+		if (!IsRightHudElement(i)) {
+			saved[i] = cockpit[hudTopOffs[i] + DRAW_LOADED_FLAG];
+			cockpit[hudTopOffs[i] + DRAW_LOADED_FLAG] = 0;
+		}
+	}
+}
+
+void RestoreTopLeftModels(uint8_t* cockpit, const uint8 (&saved)[COCKPIT_TOP_MATRIX_COUNT]) {
+	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
+		if (!IsRightHudElement(i)) {
+			cockpit[hudTopOffs[i] + DRAW_LOADED_FLAG] = saved[i];
+		}
+	}
+}
+
 // Draws the cockpit once with the seat's transform. Player 1's seat also draws the red orb counter (with its own
 // placement); the other seats leave it out, a second draw of the shared models would overwrite the first.
 void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
@@ -1969,7 +1988,15 @@ void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
 	if (seat > 0) {
 		HideRedOrbModels(cockpit, loaded);
 	}
+	const bool hud2 = HUD_DanteHUD2ActiveFor(seat);
+	uint8 topLeftLoaded[COCKPIT_TOP_MATRIX_COUNT] = {};
+	if (hud2) {
+		HideTopLeftModels(cockpit, topLeftLoaded);
+	}
 	GuardedDraw(original, cockpit, "cockpit top");
+	if (hud2) {
+		RestoreTopLeftModels(cockpit, topLeftLoaded);
+	}
 	if (seat > 0) {
 		RestoreRedOrbModels(cockpit, loaded);
 	}
@@ -1992,9 +2019,7 @@ void DrawCockpitSeats(CockpitFn original, uint8_t* cockpit, int seats) {
 }
 
 // The draw copies the matrix, so it can be restored right after.
-// CUIDCockpit00 draw (vtable +0x20)
-void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
-	const auto original = s_cockpitTopDrawHook->GetTrampoline<CockpitFn>();
+void DrawCockpitTop(CockpitFn original, uint8_t* cockpit) {
 	HudSplitLayout layout;
 	const bool split = CrimsonSplitscreen::HudLayoutInUse(layout);
 	const int seats = split ? 0 : HUD_SeatCount();
@@ -2039,6 +2064,22 @@ void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	for (size_t i = 0; i < COCKPIT_TOP_MATRIX_COUNT; ++i) {
 		std::memcpy(matrix(i), backup[i], sizeof(backup[i]));
 	}
+}
+
+// CUIDCockpit00 draw (vtable +0x20)
+void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
+	const auto original = s_cockpitTopDrawHook->GetTrampoline<CockpitFn>();
+	// Splitscreen draws one frame per player, this one is the camera player's.
+	const int view = (CrimsonSplitscreen::ViewCount() >= 2) ? CrimsonSplitscreen::CameraPlayer() : -1;
+	if (!cockpit || !HUD_DanteHUD2ActiveFor(view)) {
+		DrawCockpitTop(original, cockpit);
+		return;
+	}
+
+	uint8 loaded[COCKPIT_TOP_MATRIX_COUNT] = {};
+	HideTopLeftModels(cockpit, loaded);
+	DrawCockpitTop(original, cockpit);
+	RestoreTopLeftModels(cockpit, loaded);
 }
 
 // CUIDCockpit02 draw (vtable +0x20)
@@ -2253,6 +2294,40 @@ int HUD_SeatCount() {
 		return 0;
 	}
 	return (activeConfig.Actor.playerCount > PLAYER_COUNT) ? PLAYER_COUNT : activeConfig.Actor.playerCount;
+}
+
+static bool DanteHUD2Selected() {
+	// Not InGame(): the cockpit keeps drawing (and fading) through teleport / death / item events, not only EVENT::MAIN.
+	return CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD) && !activeCrimsonConfig.HudOptions.hideMainHUD
+		&& g_scene == SCENE::GAME;
+}
+
+bool HUD_DanteHUD2Active() {
+	if (!DanteHUD2Selected() || CrimsonSplitscreen::ViewCount() >= 2 || HUD_SeatCount() >= 2) {
+		return false;
+	}
+	// The actor can be gone for a few frames while a room loads, keep the last known character meanwhile.
+	static uint8 s_lastCharacter = CHARACTER::MAX;
+	auto pool = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+	if (pool && pool[3]) {
+		s_lastCharacter = reinterpret_cast<PlayerActorData*>(pool[3])->character;
+	}
+	return s_lastCharacter == CHARACTER::DANTE;
+}
+
+bool HUD_DanteHUD2ActiveFor(int view) {
+	if (view < 0) {
+		return HUD_DanteHUD2Active();
+	}
+	const int views = (CrimsonSplitscreen::ViewCount() >= 2) ? CrimsonSplitscreen::ViewCount() : HUD_SeatCount();
+	if (view >= PLAYER_COUNT || view >= views || !DanteHUD2Selected()) {
+		return false;
+	}
+	static uint8 s_lastCharacter[PLAYER_COUNT] = { CHARACTER::MAX, CHARACTER::MAX, CHARACTER::MAX, CHARACTER::MAX };
+	if (auto* actor = PlayerMainActorForHud(view)) {
+		s_lastCharacter[view] = reinterpret_cast<PlayerActorData*>(actor)->character;
+	}
+	return s_lastCharacter[view] == CHARACTER::DANTE;
 }
 
 // ProjectToFixed_sub_140031130: (out int4, matrix, vec4, skipDepthWrite) row vector * matrix, perspective divide, 12.4 fixed point
@@ -2754,32 +2829,61 @@ bool HUD_AddonTransform(int view, float screenWidth, float screenHeight, float& 
 	return true;
 }
 
+// Player tag placement for the cockpits that aren't Crimson HUD 2.0, indexed by HUD_STYLE_*: scale and x / y in HUD
+// units (y downward) from the tag's original spot, before the addon transform so the tag keeps following its cockpit.
+constexpr HudGeneral HUD_PLAYER_TAGS[4] = {
+	{ 1.000f, 0.0f, 0.0f },
+	{ 1.000f, 0.0f, 0.0f },
+	{ 1.000f, 0.0f, 0.0f },
+	{ 1.000f, 0.0f, 0.0f },
+};
+constexpr HudPreset HUD_PRESETS_PLAYER_TAG[] = {
+	{ "Default", { 1.000f, 0.0f, 0.0f } },
+};
+HudGeneral s_playerTags[4] = { HUD_PLAYER_TAGS[0], HUD_PLAYER_TAGS[1], HUD_PLAYER_TAGS[2], HUD_PLAYER_TAGS[3] };
+
+void HUD_PlayerTagControls(int kind) {
+	if (kind < 0 || kind >= static_cast<int>(std::size(s_playerTags)) || !ImGui::CollapsingHeader("Player names")) {
+		return;
+	}
+	ImGui::TextWrapped("Moves and scales the player name tags beside the cockpits (x / y in HUD units, y downward); they keep "
+		"following their cockpit. Crimson HUD 2.0 places its own in the Crimson HUD 2.0 windows.");
+	ImGui::PushID(3000 + kind);
+	HUD_GeneralControls(s_playerTags[kind], HUD_PLAYER_TAGS[kind], HUD_PRESETS_PLAYER_TAG, std::size(HUD_PRESETS_PLAYER_TAG));
+	ImGui::PopID();
+}
+
 bool HUD_PlayerTagAnchor(int player, float screenWidth, float screenHeight, float& x, float& y, float& scale, bool& alignRight) {
 	alignRight = false;
 	int view = -1;
+	int kind = HUD_STYLE_SINGLE;
 	if (SplitscreenActive()) {
 		if (player >= CrimsonSplitscreen::ViewCount()) {
 			return false;
 		}
 		view = player;
+		kind = (CrimsonSplitscreen::ViewCount() > 2) ? HUD_STYLE_QUADS : HUD_STYLE_HALVES;
 	} else if (HUD_SeatCount() >= 2) {
 		if (player >= HUD_SeatCount()) {
 			return false;
 		}
 		view = player;
+		kind = HUD_STYLE_SEATS;
 	} else if (player != 0) {
 		return false;
 	}
 
 	// Right of the cockpit group at its original top-left place, for every seat; the addon transform then moves it together
 	// with the group (it scales about the same corner as the group, so the tag keeps its place relative to the cockpit).
-	const float baseX = screenWidth * 0.3272f;
-	const float baseY = screenHeight * 0.015f;
+	const HudGeneral& tag = s_playerTags[kind];
+	const float unit = screenHeight / HUD_HEIGHT;
+	const float baseX = screenWidth * 0.3272f + tag.offsetX * unit;
+	const float baseY = screenHeight * 0.015f + tag.offsetY * unit;
 	float posScale = 1.0f, sizeScale = 1.0f, offsetX = 0.0f, offsetY = 0.0f;
 	HUD_AddonTransform(view, screenWidth, screenHeight, posScale, sizeScale, offsetX, offsetY);
 	x = baseX * posScale + offsetX;
 	y = baseY * posScale + offsetY;
-	scale = sizeScale;
+	scale = sizeScale * tag.scale;
 	return true;
 }
 
@@ -2893,6 +2997,7 @@ void HUD_SinglePlayerWindow(bool* open) {
 	HUD_GeneralControls(s_singleHudGeneral, HUD_GENERAL_SINGLE, HUD_PRESETS_SINGLE, std::size(HUD_PRESETS_SINGLE));
 	HUD_RedOrbControls();
 	HUD_StyleMeterControls(HUD_STYLE_SINGLE);
+	HUD_PlayerTagControls(HUD_STYLE_SINGLE);
 	HUD_CalibrationControls();
 	HUD_DrawPivotMarker();
 
@@ -2952,6 +3057,7 @@ void HUD_MultiplayerWindow(bool* open) {
 	HUD_RedOrbControls();
 	HUD_StyleMeterControls(HUD_STYLE_SEATS);
 	HUD_VanillaStyleMeterControls(HUD_STYLE_SEATS);
+	HUD_PlayerTagControls(HUD_STYLE_SEATS);
 
 	ImGui::Separator();
 	ImGui::TextWrapped("Weapon wheels: one size for every player and a top-left position per wheel (fraction of the screen). "

@@ -350,6 +350,9 @@ set(UTILITY_SRC
 set(UI_SRC 
     UI/BatchedSprites.cpp
     UI/BatchedSprites.hpp
+    UI/DanteHUD2.cpp
+    UI/DanteHUD2.hpp
+    UI/DanteHUD2HardcodedData.hpp
     UI/EmbeddedImages.cpp
     UI/EmbeddedImages.hpp
     UI/GenericAnimation.cpp

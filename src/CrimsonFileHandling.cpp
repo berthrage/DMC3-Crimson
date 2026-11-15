@@ -58,8 +58,21 @@ std::vector<std::string> GetFiles(const std::string& path) {
 	return files;
 }
 
+bool IsCrimsonHUD2(const std::string& hudName) {
+	return hudName == CRIMSON_HUD2_NAME;
+}
+
+std::string PacHUDName(const std::string& hudName) {
+	return IsCrimsonHUD2(hudName) ? std::string("Crimson HUD") : hudName;
+}
+
 void GetHUDsDirectories() {
 	HUDdirectories = GetDirectories(Paths::huds);
+
+	if (std::find(HUDdirectories.begin(), HUDdirectories.end(), CRIMSON_HUD2_NAME) == HUDdirectories.end()) {
+		auto crimsonHUD = std::find(HUDdirectories.begin(), HUDdirectories.end(), "Crimson HUD");
+		HUDdirectories.insert(crimsonHUD == HUDdirectories.end() ? HUDdirectories.end() : crimsonHUD + 1, CRIMSON_HUD2_NAME);
+	}
 }
 
 void GetStyleRanksDirectories() {
@@ -119,9 +132,11 @@ void FreeDynamicHUD() {
 	}
 }
 
-bool ApplySelectedHUD(const std::string& hudName) {
+bool ApplySelectedHUD(const std::string& selectedHUD) {
 	// Free any previously loaded dynamic HUD
 	FreeDynamicHUD();
+
+	const std::string hudName = PacHUDName(selectedHUD);
 
 	// Crimson HUD and Classic HUD don't use dynamic loading
 	if (hudName == "Crimson HUD" || hudName == "Classic HUD") {
@@ -142,7 +157,7 @@ bool ApplySelectedHUD(const std::string& hudName) {
 }
 
 void CopyHUDFilePactoGameFolder() {
-	std::string hudName = activeCrimsonConfig.HudOptions.selectedHUD;
+	std::string hudName = PacHUDName(activeCrimsonConfig.HudOptions.selectedHUD);
 
 	struct CopyTask {
 		std::string srcDir;

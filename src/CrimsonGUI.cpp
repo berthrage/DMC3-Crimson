@@ -4511,7 +4511,8 @@ void RenderPlayerTag(int playerIndex, PlayerActorData& actorData) {
 	float tagY = 0.0f;
 	float tagScale = 1.0f;
 	bool alignRight = false;
-	if (!HUD_PlayerTagAnchor(playerIndex, g_uiSize.x, g_uiSize.y, tagX, tagY, tagScale, alignRight)) {
+	const bool hud2Tag = CrimsonHUD::DanteHUD2PlayerTagPlacement(playerIndex, tagX, tagY, tagScale);
+	if (!hud2Tag && !HUD_PlayerTagAnchor(playerIndex, g_uiSize.x, g_uiSize.y, tagX, tagY, tagScale, alignRight)) {
 		return;
 	}
 
@@ -6655,6 +6656,8 @@ void CloseShop() {
 
 bool showExpWindow = false;
 bool showSplitscreenHudWindow = false;
+bool showDanteHUD2Window = false;
+bool showDanteHUD2SplitWindow = false;
 bool showSinglePlayerHudWindow = false;
 bool showMultiplayerHudWindow = false;
 bool showLockOnHudWindow = false;
@@ -7860,10 +7863,22 @@ void DebugSection() {
 		if (GUI_Button("Lock-On HUD")) {
 			showLockOnHudWindow = true;
 		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Crimson HUD 2.0")) {
+			showDanteHUD2Window = true;
+		}
+		ImGui::SameLine();
+
+		if (GUI_Button("Crimson HUD 2.0 Multiplayer")) {
+			showDanteHUD2SplitWindow = true;
+		}
 		ImGui::Text("");
 
 		if (GUI_Button("Close All")) {
 			showSplitscreenHudWindow = false;
+			showDanteHUD2Window = false;
+			showDanteHUD2SplitWindow = false;
 			showSinglePlayerHudWindow = false;
 			showMultiplayerHudWindow = false;
 			showLockOnHudWindow = false;
@@ -17671,6 +17686,12 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	if (showSplitscreenHudWindow) {
 		CrimsonSplitscreen::HudTuningWindow(&showSplitscreenHudWindow);
 	}
+	if (showDanteHUD2Window) {
+		CrimsonHUD::DanteHUD2TuningWindow(&showDanteHUD2Window);
+	}
+	if (showDanteHUD2SplitWindow) {
+		CrimsonHUD::DanteHUD2SplitTuningWindow(&showDanteHUD2SplitWindow);
+	}
 	if (showSinglePlayerHudWindow) {
 		HUD_SinglePlayerWindow(&showSinglePlayerHudWindow);
 	}
@@ -17729,6 +17750,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 	CrimsonHUD::StyleEXPDisplayWindow();
 	CrimsonHUD::RoyalGaugeDispWindow();
 	CrimsonHUD::MirageGaugeMainPlayer();
+	CrimsonHUD::DanteHUD2Render();
 
 	UI::g_UIContext.SelectedGameMode = (UI::UIContext::GameModes)activeCrimsonGameplay.GameMode.preset;
 	RenderMissionResultGameModeStats();

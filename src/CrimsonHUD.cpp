@@ -43,7 +43,9 @@
 #include "CrimsonMusicSwitcher.hpp"
 #include "CrimsonStyleMeterAnim.hpp"
 #include "CrimsonUtil.hpp"
+#include "CrimsonClock.hpp"
 #include "UI\EmbeddedImages.hpp"
+#include "UI\DanteHUD2.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonHUD.hpp"
@@ -464,6 +466,29 @@ void InitStyleNameTextures(ID3D11Device* pd3dDevice) {
 	assert(swordmasterTextBlur);
 	assert(tricksterText);
 	assert(tricksterTextBlur);
+}
+
+// Crimson HUD 2.0's Crimson theme, [STYLE][text, blur]. Loaded on first use; a missing file falls back to the selected set.
+static std::unique_ptr<Texture2DD3D11> s_StyleNamesHUD2Crimson[STYLE::MAX][2];
+static bool s_StyleNamesHUD2CrimsonLoaded = false;
+
+static ID3D11ShaderResourceView* StyleNameHUD2CrimsonTexture(int style, bool blur) {
+	if (style < 0 || style >= STYLE::MAX || !g_hudDevice) {
+		return nullptr;
+	}
+	if (!s_StyleNamesHUD2CrimsonLoaded) {
+		s_StyleNamesHUD2CrimsonLoaded = true;
+		static constexpr const char* names[STYLE::MAX] = {
+			"swordmaster", "gunslinger", "trickster", "royalguard", "quicksilver", "doppelganger",
+		};
+		const std::string path = (std::string)Paths::assets + "\\crimsonhud\\stylenames_hud2_crimson\\";
+		for (int i = 0; i < STYLE::MAX; i++) {
+			s_StyleNamesHUD2Crimson[i][0] = std::make_unique<Texture2DD3D11>((path + names[i] + ".png").c_str(), g_hudDevice);
+			s_StyleNamesHUD2Crimson[i][1] = std::make_unique<Texture2DD3D11>((path + names[i] + "-blur.png").c_str(), g_hudDevice);
+		}
+	}
+	const auto& texture = s_StyleNamesHUD2Crimson[style][blur ? 1 : 0];
+	return texture && texture->IsValid() ? texture->GetTexture() : nullptr;
 }
 
 void InitMirageGaugeTextures(ID3D11Device* pd3dDevice) {
@@ -1651,20 +1676,30 @@ void DrawRotatedImagePie(ImTextureID tex_id, ImVec2 pos, ImVec2 size, float angl
 // byte +0x5D is set; UpdateCWorkEntities_sub_1403265A0 clears it every frame and CUIDCockpit00_Tick_sub_14027DEA0 marks it
 // again (MarkUIObjectVisible_sub_140326C80), except while the HUD is hidden (pause, events: PlayerActorPool+0x12).
 // DrawCUIDCockpit00_sub_14027F1F0 then leaves the counter out during the credits (PlayerActorPool+0x11).
-static bool VanillaRedOrbCounterDrawn() {
+static const byte8* VanillaCockpitMarkedVisible() {
 	constexpr size_t UI_OBJECT_VISIBLE = 0x5D;
-	constexpr size_t COCKPIT_ACTOR     = 0x6880; // set for a cockpit bound to a specific actor
-	constexpr size_t POOL_CREDITS      = 0x11;
 	constexpr size_t POOL_COCKPIT00    = 0x1B070 - 0x180; // CSceneGameMain+0x1B070, the pool sits at +0x180
 
 	auto pool = *reinterpret_cast<const byte8* const*>(appBaseAddr + 0xC90E28);
 	if (g_scene != SCENE::GAME || !pool) {
-		return false;
+		return nullptr;
 	}
 	auto cockpit = *reinterpret_cast<const byte8* const*>(pool + POOL_COCKPIT00);
 	if (!cockpit || cockpit[UI_OBJECT_VISIBLE] != 1) {
+		return nullptr;
+	}
+	return cockpit;
+}
+
+static bool VanillaRedOrbCounterDrawn() {
+	constexpr size_t COCKPIT_ACTOR     = 0x6880; // set for a cockpit bound to a specific actor
+	constexpr size_t POOL_CREDITS      = 0x11;
+
+	auto cockpit = VanillaCockpitMarkedVisible();
+	if (!cockpit) {
 		return false;
 	}
+	auto pool = *reinterpret_cast<const byte8* const*>(appBaseAddr + 0xC90E28);
 	if (*reinterpret_cast<const uintptr_t*>(cockpit + COCKPIT_ACTOR) == 0 && pool[POOL_CREDITS]) {
 		return false;
 	}
@@ -1844,6 +1879,16 @@ void CheatsHUDIndicatorWindow() {
 		return;
 	}
 
+	// Shown and faded with the red orb counter; the vanilla counter keeps its own alpha when the Crimson one is off.
+	if (!VanillaRedOrbCounterDrawn()) {
+		return;
+	}
+	const bool crimsonCounter = activeCrimsonConfig.CrimsonHudAddons.redOrbCounter || CrimsonSplitscreen::ViewCount() >= 2;
+	const float counterAlpha = (crimsonCounter ? crimsonHud.redOrbAlpha : hudData.orbsCountAlpha) / 127.0f;
+	if (counterAlpha <= 0.0f) {
+		return;
+	}
+
 	// The labels belong to the Crimson red orb counter: same scale (about the top-right corner) and offset from the debug
 	// windows (HUD.cpp), so they move and scale with it as one thing.
 	float placementScale = 1.0f, placementX = 0.0f, placementY = 0.0f;
@@ -1868,9 +1913,7 @@ void CheatsHUDIndicatorWindow() {
 		float fontSize = 18.0f;
 
 		ImGui::Begin(label, nullptr, windowFlags);
-		// Set the color with alpha for the Red Orb texture
-		float alpha = crimsonHud.redOrbAlpha / 127.0f;
-		ImColor colorWithAlpha(1.0f, 1.0f, 1.0f, alpha);
+		const float alpha = (std::min)(counterAlpha, 1.0f);
 		ImGui::SetWindowFontScale(scaleFactorY);
 		ImGui::PushFont(UI::g_ImGuiFont_Benguiat[fontSize]);
 
@@ -3566,25 +3609,37 @@ static void StyleDisplayWindowView(int view) {
 }
 
 void StyleDisplayWindow() {
-	ForEachHudView(StyleDisplayWindowView);
+	// Crimson HUD 2.0 draws its own top-left group.
+	ForEachHudView([](int view) {
+		if (!HUD_DanteHUD2ActiveFor(view)) {
+			StyleDisplayWindowView(view);
+		}
+	});
 }
 
-static void StyleTextDisplayWindowView(int view) {
-	auto* mainActorPtr = HudViewActor(view);
-	if (!mainActorPtr) {
-		return;
-	}
-	auto& mainActorData = *mainActorPtr;
-	if (!(InGame() && !g_inGameCutscene)) {
-		return;
-	}
-	if (activeCrimsonConfig.HudOptions.hideMainHUD || g_inCredits) {
-		return;
-	}
-	auto& character = mainActorData.character;
+static bool DanteHUD2StyleNamePlacement(int view, ImVec2& pos, float& scale, float& alpha, bool& crimsonTheme, int& style);
 
-	if (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames) return;
-	if (character != CHARACTER::DANTE) return;
+static void StyleTextDisplayWindowView(int view) {
+	const bool hud2Active = HUD_DanteHUD2ActiveFor(view);
+	auto* mainActorPtr = HudViewActor(view);
+	if (!hud2Active && !mainActorPtr) {
+		return;
+	}
+	if (hud2Active) {
+		if (g_inGameCutscene || g_inCredits) {
+			return;
+		}
+	} else {
+		if (!mainActorPtr || !(InGame() && !g_inGameCutscene)) {
+			return;
+		}
+		if (activeCrimsonConfig.HudOptions.hideMainHUD || g_inCredits) {
+			return;
+		}
+	}
+	int currentStyle = mainActorPtr ? mainActorPtr->style : -1;
+	int currentCharacter = hud2Active ? CHARACTER::DANTE : mainActorPtr->character;
+	if (!hud2Active && (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames || currentCharacter != CHARACTER::DANTE)) return;
 
 	float styleTextTextureSizeX = (1100.0f * 0.5f) * scaleFactorY;
 	float styleTextTextureSizeY = (200.00f * 0.5f) * scaleFactorY;
@@ -3608,12 +3663,26 @@ static void StyleTextDisplayWindowView(int view) {
 
 	const TopLeftHudSync hudSync = GetTopLeftHudSync(view);
 	const ImVec2 styleTextBasePos = activeCrimsonConfig.CrimsonHudAddons.positionings ? styleTextWindowPos : styleTextHybridWindowPos;
-	styleTextTextureSizeX *= hudSync.scale;
-	styleTextTextureSizeY *= hudSync.scale;
-	styleTextWindowSize = ImVec2(styleTextWindowSize.x * hudSync.scale, styleTextWindowSize.y * hudSync.scale);
+	float sizeScale = hudSync.scale;
+	ImVec2 styleTextPos = hudSync.Pos(styleTextBasePos);
+	float alpha = HudViewTopLeftAlpha(view);
+	bool hud2CrimsonTheme = false;
+	if (hud2Active) {
+		ImVec2 texturePos;
+		if (!DanteHUD2StyleNamePlacement(view, texturePos, sizeScale, alpha, hud2CrimsonTheme, currentStyle)) {
+			return;
+		}
+		// Placement is the texture's top-left, the window pads 25px above it.
+		styleTextPos = ImVec2(texturePos.x, texturePos.y - 25.0f * scaleFactorY * sizeScale);
+	} else if (currentStyle < 0) {
+		return;
+	}
+	styleTextTextureSizeX *= sizeScale;
+	styleTextTextureSizeY *= sizeScale;
+	styleTextWindowSize = ImVec2(styleTextWindowSize.x * sizeScale, styleTextWindowSize.y * sizeScale);
 
 	ImGui::SetNextWindowSize(styleTextWindowSize);
-	ImGui::SetNextWindowPos(hudSync.Pos(styleTextBasePos));
+	ImGui::SetNextWindowPos(styleTextPos);
 
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoBackground |
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -3643,9 +3712,6 @@ static void StyleTextDisplayWindowView(int view) {
 	const float slideDuration = 0.2f;
 	bool& sliding = state.sliding;
 
-	int currentStyle = mainActorData.style;
-	int currentCharacter = mainActorData.character;
-
 	// Detect style or character change
 	if (currentStyle != prevStyle || currentCharacter != prevCharacter) {
 		blurStartTime = ImGui::GetTime();
@@ -3668,8 +3734,8 @@ static void StyleTextDisplayWindowView(int view) {
 
 		auto usedActiveTextTexture = tricksterText->GetTexture();
 		auto usedActiveTextBlurTexture = tricksterTextBlur->GetTexture();
-		if (character == CHARACTER::DANTE) {
-			switch (mainActorData.style) {
+		if (currentCharacter == CHARACTER::DANTE) {
+			switch (currentStyle) {
 			case (STYLE::TRICKSTER):
 				usedActiveTextTexture = tricksterText->GetTexture();
 				usedActiveTextBlurTexture = tricksterTextBlur->GetTexture();
@@ -3700,8 +3766,14 @@ static void StyleTextDisplayWindowView(int view) {
 				break;
 			}
 		}
-
-		float alpha = HudViewTopLeftAlpha(view);
+		if (hud2CrimsonTheme) {
+			if (auto texture = StyleNameHUD2CrimsonTexture(currentStyle, false)) {
+				usedActiveTextTexture = texture;
+			}
+			if (auto texture = StyleNameHUD2CrimsonTexture(currentStyle, true)) {
+				usedActiveTextBlurTexture = texture;
+			}
+		}
 
 		// Blur logic: show blur for blurDuration after style change
 		bool blurActive = false;
@@ -3734,7 +3806,7 @@ static void StyleTextDisplayWindowView(int view) {
 					// Ease out back (bouncy) curve
 					const float s = 1.70158f * 1.2f; // slightly more bounce
 					float ease = 1.0f + s * powf(norm - 1.0f, 3) + s * (norm - 1.0f) * powf(norm - 1.0f, 2);
-					offsetX = ImLerp(-100.0f * scaleFactorY * hudSync.scale, 0.0f, ease);
+					offsetX = ImLerp(-100.0f * scaleFactorY * sizeScale, 0.0f, ease);
 				} else {
 					sliding = false;
 					offsetX = 0.0f;
@@ -3902,7 +3974,11 @@ static void StyleEXPDisplayWindowView(int view) {
 }
 
 void StyleEXPDisplayWindow() {
-	ForEachHudView(StyleEXPDisplayWindowView);
+	ForEachHudView([](int view) {
+		if (!HUD_DanteHUD2ActiveFor(view)) {
+			StyleEXPDisplayWindowView(view);
+		}
+	});
 }
 
 static void StyleLvlDispWindowView(int view) {
@@ -4043,7 +4119,11 @@ static void StyleLvlDispWindowView(int view) {
 }
 
 void StyleLvlDispWindow() {
-	ForEachHudView(StyleLvlDispWindowView);
+	ForEachHudView([](int view) {
+		if (!HUD_DanteHUD2ActiveFor(view)) {
+			StyleLvlDispWindowView(view);
+		}
+	});
 }
 
 static void RoyalGaugeDispWindowView(int view) {
@@ -4178,7 +4258,11 @@ static void RoyalGaugeDispWindowView(int view) {
 }
 
 void RoyalGaugeDispWindow() {
-	ForEachHudView(RoyalGaugeDispWindowView);
+	ForEachHudView([](int view) {
+		if (!HUD_DanteHUD2ActiveFor(view)) {
+			RoyalGaugeDispWindowView(view);
+		}
+	});
 }
 
 static void MirageGaugeMainPlayerView(int view) {
@@ -4750,5 +4834,631 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 	InitMirageGaugeTextures(pd3dDevice);
 	InitGradientTextures(pd3dDevice);
 }
+
+#pragma region Crimson HUD 2.0
+
+// One HUD per player (player 1's is also the single view's), each with the values it last applied.
+struct DanteHUD2Instance {
+	std::unique_ptr<HUD::Dante::DanteHUD2> hud;
+	int lastAppliedStyle = -1;
+	uint32 lastStyleLevel = UINT32_MAX;
+	float lastStyleExpFill = -1.0f;
+	size_t lastHPLevel = 0;
+	size_t lastDTLevel = SIZE_MAX;
+	size_t lastRoyalguardLevel = 0;
+	float lastRoyalguardFill = -1.0f;
+	float lastDTFill = -1.0f;
+	float lastVitalityFill = -1.0f;
+	float lastDamageFill = -1.0f;
+	float damageSnapTimer = 0.0f;
+	// Room transitions re-create the player actor and HP settles to the carried-over value afterwards, which isn't damage.
+	byte8* lastActorAddr = nullptr;
+	float actorRestoreGraceTimer = 0.0f;
+};
+static DanteHUD2Instance s_DanteHUD2[PLAYER_COUNT];
+
+static DanteHUD2Instance& DanteHUD2InstanceFor(int view) {
+	return s_DanteHUD2[view < 0 ? 0 : view];
+}
+
+// Per-group scale around the group's anchor sprite, then an offset in sprite space.
+struct DanteHUD2Group {
+	float scale;
+	float offsetX;
+	float offsetY;
+};
+static constexpr const char* DANTE_HUD2_GROUP_NAMES[(size_t)HUD::Dante::Group_t::SIZE] = {
+	"HP bars", "DT bars", "EXP bar + Style name", "Style compass + Royal Gauge",
+};
+
+// Crimson HUD 1.0's style name and the player name, drawn as part of the HUD: top-left offset from the HUD's x / y and
+// size, both multiplied by the HUD scale.
+struct DanteHUD2Addon {
+	float x;
+	float y;
+	float scale;
+};
+
+// Screen placement of the HUD texture: x / y in pixels and scale at 1080p, both follow the screen height.
+struct DanteHUD2Layout {
+	float x;
+	float y;
+	float scale;
+	// Render target size multiplier, grows around the center without changing the sprites' on-screen size.
+	float bounds;
+	// Indexed by HUD::Dante::Group_t.
+	DanteHUD2Group groups[(size_t)HUD::Dante::Group_t::SIZE];
+	DanteHUD2Addon styleName;
+	DanteHUD2Addon playerName;
+};
+// One per Interface option "HUD Scale".
+constexpr DanteHUD2Layout DANTE_HUD2_LAYOUT = { 42.5f, 12.0f, 1.045f, 3.000f,
+	{ { 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.020f, -0.0370f, 0.0000f } },
+	{ 81.8681f, -18.1319f, 0.8571f }, { 560.0000f, 19.0000f, 0.9570f } };
+constexpr DanteHUD2Layout DANTE_HUD2_LAYOUT_SMALLER = { 42.5f, 12.0f, 0.910f, 3.000f,
+	{ { 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.020f, -0.0370f, 0.0000f } },
+	{ 81.8681f, -18.1319f, 0.8571f }, { 560.0000f, 19.0000f, 0.9570f } };
+static DanteHUD2Layout s_DanteHUD2LayoutDefault = DANTE_HUD2_LAYOUT;
+static DanteHUD2Layout s_DanteHUD2LayoutSmaller = DANTE_HUD2_LAYOUT_SMALLER;
+
+// Multiplayer, one per layout. Splitscreen: x / y from the top-left corner of each player's view. Shared camera: x / y
+// from the screen corner of the player's seat, the corner its cockpit moves to.
+enum DanteHUD2SplitLayout { DANTE_HUD2_SPLIT_HALVES, DANTE_HUD2_SPLIT_QUADS, DANTE_HUD2_SPLIT_SHARED, DANTE_HUD2_SPLIT_COUNT };
+constexpr DanteHUD2Layout DANTE_HUD2_LAYOUT_HALVES = { 30.0f, 10.0f, 0.750f, 3.000f,
+	{ { 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.020f, -0.0370f, 0.0000f } },
+	{ 81.8681f, -18.1319f, 0.8571f }, { 560.0000f, 20.5000f, 0.9570f } };
+constexpr DanteHUD2Layout DANTE_HUD2_LAYOUT_QUADS = { 20.0f, 6.0f, 0.500f, 3.000f,
+	{ { 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.020f, -0.0370f, 0.0000f } },
+	{ 81.8681f, -18.1319f, 0.8571f }, { 560.0000f, 19.0000f, 1.0420f } };
+constexpr DanteHUD2Layout DANTE_HUD2_LAYOUT_SHARED = { 267.5f, 35.0f, 0.650f, 3.000f,
+	{ { 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.020f, -0.0370f, 0.0000f } },
+	{ 81.8681f, -18.1319f, 0.8571f }, { 560.0000f, 20.0000f, 0.9570f } };
+static constexpr const DanteHUD2Layout* DANTE_HUD2_SPLIT_DEFAULTS[DANTE_HUD2_SPLIT_COUNT] = {
+	&DANTE_HUD2_LAYOUT_HALVES, &DANTE_HUD2_LAYOUT_QUADS, &DANTE_HUD2_LAYOUT_SHARED,
+};
+static constexpr const char* DANTE_HUD2_SPLIT_CODE_NAMES[DANTE_HUD2_SPLIT_COUNT] = {
+	"DANTE_HUD2_LAYOUT_HALVES", "DANTE_HUD2_LAYOUT_QUADS", "DANTE_HUD2_LAYOUT_SHARED",
+};
+static DanteHUD2Layout s_DanteHUD2SplitLayouts[DANTE_HUD2_SPLIT_COUNT] = {
+	DANTE_HUD2_LAYOUT_HALVES, DANTE_HUD2_LAYOUT_QUADS, DANTE_HUD2_LAYOUT_SHARED,
+};
+
+// Render target size, keeps the 1500x430 ratio the sprite layout relies on.
+static constexpr float kDanteHUD2Width = 1500.0f / 2.0f;
+static constexpr float kDanteHUD2Height = 430.0f / 2.0f;
+
+static bool DanteHUD2Smaller() {
+	return activeCrimsonConfig.HudOptions.hudScale == HUDSCALE::SMALLER;
+}
+
+static DanteHUD2Layout& DanteHUD2ActiveLayout() {
+	return DanteHUD2Smaller() ? s_DanteHUD2LayoutSmaller : s_DanteHUD2LayoutDefault;
+}
+
+static int DanteHUD2SplitLayoutInUse() {
+	const int views = CrimsonSplitscreen::ViewCount();
+	if (views < 2) {
+		return DANTE_HUD2_SPLIT_SHARED;
+	}
+	return (views > 2) ? DANTE_HUD2_SPLIT_QUADS : DANTE_HUD2_SPLIT_HALVES;
+}
+
+static DanteHUD2Layout& DanteHUD2LayoutFor(int view) {
+	return (view < 0) ? DanteHUD2ActiveLayout() : s_DanteHUD2SplitLayouts[DanteHUD2SplitLayoutInUse()];
+}
+
+// Where a view's HUD is placed and clipped: that player's splitscreen view, or the whole screen.
+static void DanteHUD2ViewArea(int view, ImVec2& min, ImVec2& max) {
+	const ImVec2 display = ImGui::GetIO().DisplaySize;
+	min = ImVec2(0.0f, 0.0f);
+	max = display;
+	if (view >= 0) {
+		CrimsonSplitscreen::ViewRect(view, display.x, display.y, min.x, min.y, max.x, max.y);
+	}
+}
+
+// Top-left of the HUD's unscaled-bounds box on screen. Shared camera seats go to their cockpit's corner
+// (SeatPlacement: odd seats right, seats 2-3 bottom), x / y then measure from that corner.
+static ImVec2 DanteHUD2Origin(int view, const DanteHUD2Layout& layout) {
+	ImVec2 areaMin, areaMax;
+	DanteHUD2ViewArea(view, areaMin, areaMax);
+	const float screenScale = ImGui::GetIO().DisplaySize.y / 1080.0f;
+	ImVec2 origin(areaMin.x + layout.x * screenScale, areaMin.y + layout.y * screenScale);
+	if (view >= 0 && CrimsonSplitscreen::ViewCount() < 2) {
+		if (view & 1) {
+			origin.x = areaMax.x - (layout.x + kDanteHUD2Width * layout.scale) * screenScale;
+		}
+		if (view & 2) {
+			origin.y = areaMax.y - (layout.y + kDanteHUD2Height * layout.scale) * screenScale;
+		}
+	}
+	return origin;
+}
+
+static bool s_DanteHUD2FreezeValues = false;
+static bool s_DanteHUD2ForceVisible = false;
+static bool s_DanteHUD2ShowBounds = false;
+
+static constexpr float kDamageBarDelay = 1.5f;
+static constexpr float kActorRestoreGraceDuration = 0.5f;
+
+static HUD::Dante::Style_t MapGameStyleToHUD(int style) {
+	switch (style) {
+	case STYLE::SWORDMASTER:  return HUD::Dante::Style_t::Swordmaster;
+	case STYLE::GUNSLINGER:   return HUD::Dante::Style_t::Gunslinger;
+	case STYLE::TRICKSTER:    return HUD::Dante::Style_t::Trickster;
+	case STYLE::ROYALGUARD:   return HUD::Dante::Style_t::Royalguard;
+	case STYLE::QUICKSILVER:  return HUD::Dante::Style_t::Quicksilver;
+	case STYLE::DOPPELGANGER: return HUD::Dante::Style_t::Doppleganger;
+	default:                  return HUD::Dante::Style_t::Trickster;
+	}
+}
+
+// 1000 max HP per level, up to 20000 (level 20).
+static size_t MapMaxHPToHPLevel(float maxHitPoints) {
+	const float level = (std::max)(0.0f, maxHitPoints / 1000.0f + 0.5f);
+	return (std::max)((size_t)1, (std::min)((size_t)20, (size_t)level));
+}
+
+// 3000 max DT is level 1, +1000 per level up to 10000 (level 8). Level 0 removes the DT bar (not unlocked yet).
+static size_t MapMaxMagicToDTLevel(float maxMagicPoints) {
+	if (maxMagicPoints < 3000.0f) {
+		return 0;
+	}
+	const float level = (std::max)(0.0f, (maxMagicPoints - 3000.0f) / 1000.0f + 0.5f);
+	return (std::max)((size_t)1, (std::min)((size_t)8, (size_t)level + (size_t)1));
+}
+
+static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAddr);
+
+static void DanteHUD2RenderView(int view) {
+	DanteHUD2Instance& instance = DanteHUD2InstanceFor(view);
+	auto* actor = reinterpret_cast<byte8*>(HudViewActor(view));
+	if (!actor && !instance.hud) {
+		return;
+	}
+
+	if (!instance.hud) {
+		instance.hud = std::make_unique<HUD::Dante::DanteHUD2>(D3D11::device, D3D11::deviceContext,
+			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+		instance.hud->SetHUDTheme(HUD::Dante::Theme_t::Colored);
+		// Crimson HUD 1.0's style name is drawn in its place (StyleTextDisplayWindow).
+		instance.hud->SetStyleNameVisible(false);
+		// Darkslayer isn't in Crimson yet.
+		instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Darkslayer, false);
+		instance.hud->SetActiveStyleLevel(3);
+		instance.hud->SetRGGaugeLevel(3);
+		instance.hud->SetActiveStyleExpFillAmount(1.0f);
+	}
+	HUD::Dante::DanteHUD2& hud = *instance.hud;
+
+	// No actor while a room loads: keep showing the last state.
+	if (actor && !s_DanteHUD2FreezeValues) {
+		DanteHUD2UpdateFromActor(instance, actor);
+	}
+	hud.OnUpdate((double)CrimsonClock::DeltaTime());
+
+	// Fades with the cockpit's top-left group, the part of CUIDCockpit00 this stands in for.
+	const float alpha = s_DanteHUD2ForceVisible ? 1.0f : HudViewTopLeftAlpha(view);
+	if (alpha <= 0.0f) {
+		return;
+	}
+	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
+	hud.SetBoundsScale(layout.bounds);
+	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+		const DanteHUD2Group& group = layout.groups[g];
+		hud.SetGroupTransform((HUD::Dante::Group_t)g, group.scale, { group.offsetX, group.offsetY });
+	}
+	hud.OnDraw();
+
+	ImVec2 areaMin, areaMax;
+	DanteHUD2ViewArea(view, areaMin, areaMax);
+	const float screenScale = ImGui::GetIO().DisplaySize.y / 1080.0f;
+	const float sizeScale = layout.scale * screenScale;
+	const float boundsScale = hud.GetBoundsScale();
+	const ImVec2 baseSize((float)hud.GetWidth() * sizeScale, (float)hud.GetHeight() * sizeScale);
+	// The origin stays the top-left of the unscaled bounds, bigger bounds grow out from its center.
+	const ImVec2 origin = DanteHUD2Origin(view, layout);
+	const ImVec2 pos(origin.x - baseSize.x * (boundsScale - 1.0f) * 0.5f, origin.y - baseSize.y * (boundsScale - 1.0f) * 0.5f);
+	const ImVec2 end(pos.x + baseSize.x * boundsScale, pos.y + baseSize.y * boundsScale);
+	auto* drawList = ImGui::GetBackgroundDrawList();
+	drawList->PushClipRect(areaMin, areaMax, true);
+	drawList->AddImage((ImTextureID)hud.GetSRV(), pos, end, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+		IM_COL32(255, 255, 255, (int)(alpha * 255.0f)));
+	drawList->PopClipRect();
+	if (s_DanteHUD2ShowBounds) {
+		ImGui::GetForegroundDrawList()->AddRect(pos, end, IM_COL32(255, 0, 255, 200));
+	}
+}
+
+void DanteHUD2Render() {
+	if (g_inGameCutscene || g_inCredits || (!VanillaCockpitMarkedVisible() && !s_DanteHUD2ForceVisible)) {
+		return;
+	}
+	int views = CrimsonSplitscreen::ViewCount();
+	if (views < 2) {
+		views = HUD_SeatCount();
+	}
+	if (views < 2) {
+		if (HUD_DanteHUD2Active()) {
+			DanteHUD2RenderView(-1);
+		}
+		return;
+	}
+	for (int view = 0; view < views; ++view) {
+		if (HUD_DanteHUD2ActiveFor(view)) {
+			DanteHUD2RenderView(view);
+		}
+	}
+}
+
+// Top-left and size scale of an addon placed relative to the HUD.
+static ImVec2 DanteHUD2AddonPos(int view, const DanteHUD2Layout& layout, const DanteHUD2Addon& addon, float& scale) {
+	const float screenScale = ImGui::GetIO().DisplaySize.y / 1080.0f;
+	const ImVec2 origin = DanteHUD2Origin(view, layout);
+	scale = addon.scale * layout.scale;
+	return ImVec2(origin.x + addon.x * layout.scale * screenScale, origin.y + addon.y * layout.scale * screenScale);
+}
+
+static bool DanteHUD2StyleNamePlacement(int view, ImVec2& pos, float& scale, float& alpha, bool& crimsonTheme, int& style) {
+	if (g_inGameCutscene || g_inCredits || !HUD_DanteHUD2ActiveFor(view)
+		|| (!VanillaCockpitMarkedVisible() && !s_DanteHUD2ForceVisible)) {
+		return false;
+	}
+	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
+	pos = DanteHUD2AddonPos(view, layout, layout.styleName, scale);
+	if (s_DanteHUD2ForceVisible) {
+		alpha = 1.0f;
+	} else {
+		alpha = HudViewTopLeftAlpha(view);
+	}
+	if (alpha <= 0.0f) {
+		return false;
+	}
+	const DanteHUD2Instance& instance = DanteHUD2InstanceFor(view);
+	if (style < 0) {
+		style = instance.lastAppliedStyle;
+	}
+	if (style < 0) {
+		return false;
+	}
+	crimsonTheme = instance.hud && instance.hud->GetHUDTheme() == HUD::Dante::Theme_t::Crimson;
+	return true;
+}
+
+bool DanteHUD2PlayerTagPlacement(int player, float& x, float& y, float& scale) {
+	int view = player;
+	if (CrimsonSplitscreen::ViewCount() < 2 && HUD_SeatCount() < 2) {
+		if (player != 0) {
+			return false;
+		}
+		view = -1;
+	}
+	if (!HUD_DanteHUD2ActiveFor(view)) {
+		return false;
+	}
+	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
+	const ImVec2 pos = DanteHUD2AddonPos(view, layout, layout.playerName, scale);
+	x = pos.x;
+	y = pos.y;
+	return true;
+}
+
+static void DanteHUD2PlacementControls(DanteHUD2Layout& layout) {
+	ImGui::DragFloat("x", &layout.x, 0.5f, -1920.0f, 1920.0f, "%.1f");
+	ImGui::DragFloat("y", &layout.y, 0.5f, -1080.0f, 1080.0f, "%.1f");
+	ImGui::DragFloat("scale", &layout.scale, 0.005f, 0.1f, 5.0f, "%.3f");
+	ImGui::DragFloat("bounds scale", &layout.bounds, 0.005f, 0.5f, 3.0f, "%.3f");
+	ImGui::SameLine();
+	ImGui::TextDisabled("(?)");
+	if (ImGui::IsItemHovered()) {
+		ImGui::SetTooltip("Grows the HUD texture around its center so scaled or moved groups aren't clipped.\n"
+			"The HUD itself keeps its size and position.");
+	}
+	ImGui::Checkbox("Force visible (ignore the cockpit fade)", &s_DanteHUD2ForceVisible);
+	ImGui::Checkbox("Show bounds", &s_DanteHUD2ShowBounds);
+}
+
+static void DanteHUD2GroupControls(DanteHUD2Layout& layout, const DanteHUD2Layout& defaults) {
+	ImGui::Text("Group scale");
+	ImGui::TextWrapped("Each group scales around its anchor (compass frame, EXP frame, first DT orb, HP bar start), "
+		"then moves by the offset. Offsets use the same units as the sprite positions.");
+	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+		DanteHUD2Group& group = layout.groups[g];
+		ImGui::PushID((int)g);
+		ImGui::Text("%s", DANTE_HUD2_GROUP_NAMES[g]);
+		ImGui::DragFloat("scale", &group.scale, 0.005f, 0.1f, 3.0f, "%.3f");
+		ImGui::DragFloat2("offset", &group.offsetX, 0.001f, -2.0f, 2.0f, "%.4f");
+		ImGui::SameLine();
+		if (ImGui::Button("Reset")) {
+			group = defaults.groups[g];
+		}
+		ImGui::PopID();
+	}
+	ImGui::Separator();
+
+	ImGui::Text("Style name");
+	ImGui::TextWrapped("x / y is the name's top-left offset from the HUD's x / y. Offset and scale are multiplied by the HUD "
+		"scale. Crimson theme names load from crimsonhud\\stylenames_hud2_crimson, missing files use the selected Style Names Set.");
+	ImGui::PushID("styleName");
+	ImGui::DragFloat("x", &layout.styleName.x, 0.5f, -1920.0f, 1920.0f, "%.4f");
+	ImGui::DragFloat("y", &layout.styleName.y, 0.5f, -1080.0f, 1080.0f, "%.4f");
+	ImGui::DragFloat("scale", &layout.styleName.scale, 0.005f, 0.1f, 5.0f, "%.4f");
+	if (ImGui::Button("Reset")) {
+		layout.styleName = defaults.styleName;
+	}
+	ImGui::PopID();
+	ImGui::Separator();
+
+	ImGui::Text("Player name");
+	ImGui::TextWrapped("Same rules as the style name. Shown per the \"Show Player Tags\" option.");
+	ImGui::PushID("playerName");
+	ImGui::DragFloat("x", &layout.playerName.x, 0.5f, -1920.0f, 1920.0f, "%.4f");
+	ImGui::DragFloat("y", &layout.playerName.y, 0.5f, -1080.0f, 1080.0f, "%.4f");
+	ImGui::DragFloat("scale", &layout.playerName.scale, 0.005f, 0.1f, 5.0f, "%.4f");
+	if (ImGui::Button("Reset")) {
+		layout.playerName = defaults.playerName;
+	}
+	ImGui::PopID();
+}
+
+static std::string DanteHUD2LayoutCode(const char* name, const DanteHUD2Layout& layout) {
+	char text[256];
+	snprintf(text, sizeof(text), "constexpr DanteHUD2Layout %s = { %.1ff, %.1ff, %.3ff, %.3ff,\n\t{ ",
+		name, layout.x, layout.y, layout.scale, layout.bounds);
+	std::string code = text;
+	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+		const DanteHUD2Group& group = layout.groups[g];
+		snprintf(text, sizeof(text), "{ %.3ff, %.4ff, %.4ff }%s", group.scale, group.offsetX, group.offsetY,
+			g + 1 < (size_t)HUD::Dante::Group_t::SIZE ? ", " : " },\n\t");
+		code += text;
+	}
+	snprintf(text, sizeof(text), "{ %.4ff, %.4ff, %.4ff }, { %.4ff, %.4ff, %.4ff } };\n", layout.styleName.x,
+		layout.styleName.y, layout.styleName.scale, layout.playerName.x, layout.playerName.y, layout.playerName.scale);
+	code += text;
+	return code;
+}
+
+void DanteHUD2TuningWindow(bool* open) {
+	ImGui::SetNextWindowSize(ImVec2(520, 0), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Crimson HUD 2.0", open)) {
+		ImGui::End();
+		return;
+	}
+
+	if (!HUD_DanteHUD2Active()) {
+		ImGui::TextWrapped("Crimson HUD 2.0 is not active (select it in Interface > Select HUD and play as Dante in single player). "
+			"Values still apply once it is. Multiplayer has its own window.");
+	}
+
+	const bool smaller = DanteHUD2Smaller();
+	DanteHUD2Layout& layout = DanteHUD2ActiveLayout();
+	const DanteHUD2Layout& defaults = smaller ? DANTE_HUD2_LAYOUT_SMALLER : DANTE_HUD2_LAYOUT;
+	ImGui::Text("Screen placement (HUD Scale: %s)", smaller ? "Smaller" : "Default");
+	ImGui::TextWrapped("x / y in pixels and scale at 1080p, both follow the screen height. Edits the layout of the current "
+		"Interface > HUD Scale.");
+	DanteHUD2PlacementControls(layout);
+	ImGui::Checkbox("Freeze game values (the sprite controls below drive the HUD)", &s_DanteHUD2FreezeValues);
+
+	ImGui::Separator();
+	DanteHUD2GroupControls(layout, defaults);
+	ImGui::Separator();
+
+	if (ImGui::Button("Reset placement")) {
+		layout = defaults;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy as code")) {
+		std::string code = DanteHUD2LayoutCode(smaller ? "DANTE_HUD2_LAYOUT_SMALLER" : "DANTE_HUD2_LAYOUT", layout);
+		code += "// Groups: ";
+		for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+			code += DANTE_HUD2_GROUP_NAMES[g];
+			code += g + 1 < (size_t)HUD::Dante::Group_t::SIZE ? ", " : "\n";
+		}
+		if (s_DanteHUD2[0].hud) {
+			code += s_DanteHUD2[0].hud->DumpSpriteLayout();
+		}
+		ImGui::SetClipboardText(code.c_str());
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Sprites")) {
+		if (s_DanteHUD2[0].hud) {
+			ImGui::TextWrapped("Sprite edits are reset when the style, theme or levels change. They edit player 1's HUD.");
+			s_DanteHUD2[0].hud->DrawDebugControls();
+		} else {
+			ImGui::TextWrapped("The HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::End();
+}
+
+void DanteHUD2SplitTuningWindow(bool* open) {
+	ImGui::SetNextWindowSize(ImVec2(520, 0), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin("Crimson HUD 2.0 Multiplayer", open)) {
+		ImGui::End();
+		return;
+	}
+
+	static int s_editLayout = DANTE_HUD2_SPLIT_HALVES;
+	static int s_lastActiveLayout = -1;
+	static bool s_showViewGuides = false;
+	int viewCount = CrimsonSplitscreen::ViewCount();
+	if (viewCount < 2) {
+		viewCount = HUD_SeatCount();
+	}
+	if (viewCount >= 2) {
+		const int activeLayout = DanteHUD2SplitLayoutInUse();
+		if (activeLayout != s_lastActiveLayout) {
+			s_editLayout = activeLayout;
+			s_lastActiveLayout = activeLayout;
+		}
+		bool anyView = false;
+		for (int view = 0; view < viewCount; ++view) {
+			anyView = anyView || HUD_DanteHUD2ActiveFor(view);
+		}
+		if (!anyView) {
+			ImGui::TextWrapped("Crimson HUD 2.0 is not active for any player (select it in Interface > Select HUD, it shows "
+				"for players playing as Dante).");
+		}
+	} else {
+		ImGui::TextWrapped("Not in a multiplayer session (or in a cutscene). Values still apply once it is on.");
+	}
+
+	ImGui::RadioButton("Halves (2 players)", &s_editLayout, DANTE_HUD2_SPLIT_HALVES);
+	ImGui::SameLine();
+	ImGui::RadioButton("Quadrants (3-4 players)", &s_editLayout, DANTE_HUD2_SPLIT_QUADS);
+	ImGui::SameLine();
+	ImGui::RadioButton("Shared camera", &s_editLayout, DANTE_HUD2_SPLIT_SHARED);
+	DanteHUD2Layout& layout = s_DanteHUD2SplitLayouts[s_editLayout];
+	const DanteHUD2Layout& defaults = *DANTE_HUD2_SPLIT_DEFAULTS[s_editLayout];
+	const bool quads = (s_editLayout != DANTE_HUD2_SPLIT_HALVES);
+
+	ImGui::Separator();
+	if (s_editLayout == DANTE_HUD2_SPLIT_SHARED) {
+		ImGui::Text("Seat placement");
+		ImGui::TextWrapped("Every player's HUD goes to their cockpit's screen corner (player 1 top-left, 2 top-right, 3 "
+			"bottom-left, 4 bottom-right). x / y is the distance from that corner, in pixels at 1080p; scale at 1080p. "
+			"Both follow the screen height. Applies to both Interface > HUD Scale options.");
+	} else {
+		ImGui::Text("View placement");
+		ImGui::TextWrapped("x / y from the top-left corner of every player's view, in pixels at 1080p; scale at 1080p. Both "
+			"follow the screen height. The HUD is clipped to its view. Applies to both Interface > HUD Scale options.");
+	}
+	DanteHUD2PlacementControls(layout);
+	ImGui::Checkbox("Show view guides", &s_showViewGuides);
+
+	ImGui::Separator();
+	DanteHUD2GroupControls(layout, defaults);
+	ImGui::Separator();
+
+	if (ImGui::Button("Reset placement")) {
+		layout = defaults;
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Copy as code")) {
+		ImGui::SetClipboardText(DanteHUD2LayoutCode(DANTE_HUD2_SPLIT_CODE_NAMES[s_editLayout], layout).c_str());
+	}
+
+	if (s_showViewGuides) {
+		auto* draw = ImGui::GetForegroundDrawList();
+		const ImVec2 size = ImGui::GetIO().DisplaySize;
+		const ImU32 colour = IM_COL32(255, 0, 255, 200);
+		const int cells = quads ? PLAYER_COUNT : 2;
+		for (int i = 0; i < cells; ++i) {
+			const float x0 = static_cast<float>(i & 1) * size.x * 0.5f;
+			const float y0 = quads ? static_cast<float>(i >> 1) * size.y * 0.5f : 0.0f;
+			const float w = size.x * 0.5f;
+			const float h = quads ? size.y * 0.5f : size.y;
+			draw->AddRect(ImVec2(x0 + 1, y0 + 1), ImVec2(x0 + w - 1, y0 + h - 1), colour);
+		}
+	}
+
+	ImGui::End();
+}
+
+static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAddr) {
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+
+	if (mainActorData.style != instance.lastAppliedStyle) {
+		instance.lastAppliedStyle = mainActorData.style;
+		instance.hud->SetActiveStyle(MapGameStyleToHUD(mainActorData.style));
+	}
+
+	auto& sessionData = *reinterpret_cast<SessionData*>(appBaseAddr + 0xC8F250);
+	instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Quicksilver,
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::QUICKSILVER]);
+	instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Doppleganger,
+		sessionData.weaponAndStyleUnlocks[WEAPONANDSTYLEUNLOCKS::DOPPELGANGER]);
+
+	// Quicksilver and Doppelganger have no style exp: full bar, no level number.
+	const bool hasStyleExp = mainActorData.style != STYLE::QUICKSILVER && mainActorData.style != STYLE::DOPPELGANGER;
+	instance.hud->SetStyleLevelVisible(hasStyleExp);
+
+	const size_t displayedStyleLevel = (std::min)(static_cast<size_t>(mainActorData.styleLevel) + 1, static_cast<size_t>(3));
+	if (mainActorData.styleLevel != instance.lastStyleLevel) {
+		instance.lastStyleLevel = mainActorData.styleLevel;
+		instance.hud->SetActiveStyleLevel(displayedStyleLevel);
+	}
+	const float styleExpMax = mainActorData.styleLevel == 0 ? 30000.0f : 99999.0f;
+	const float styleExpFill = (!hasStyleExp || mainActorData.styleLevel >= 2)
+		? 1.0f
+		: (std::max)(0.0f, mainActorData.styleExpPoints) / styleExpMax;
+	if (styleExpFill != instance.lastStyleExpFill) {
+		instance.lastStyleExpFill = styleExpFill;
+		instance.hud->SetActiveStyleExpFillAmount(styleExpFill);
+	}
+
+	const size_t hpLevel = MapMaxHPToHPLevel(mainActorData.maxHitPoints);
+	if (hpLevel != instance.lastHPLevel) {
+		instance.lastHPLevel = hpLevel;
+		instance.hud->SetHPLevel(hpLevel);
+	}
+
+	const size_t dtLevel = MapMaxMagicToDTLevel(mainActorData.maxMagicPoints);
+	if (dtLevel != instance.lastDTLevel) {
+		instance.lastDTLevel = dtLevel;
+		instance.hud->SetDTLevel(dtLevel);
+	}
+
+	// Royalguard gauge holds 3000 release damage per Royalguard level.
+	const size_t royalguardLevel = (std::min)(static_cast<size_t>(heldStyleExpDataDante.missionStyleLevels[STYLE::ROYALGUARD]) + 1, static_cast<size_t>(3));
+	if (royalguardLevel != instance.lastRoyalguardLevel) {
+		instance.lastRoyalguardLevel = royalguardLevel;
+		instance.hud->SetRGGaugeLevel(royalguardLevel);
+	}
+
+	const float royalguardFraction = (std::min)(mainActorData.royalguardReleaseDamage / (3000.0f * royalguardLevel), 1.0f);
+	if (royalguardFraction != instance.lastRoyalguardFill) {
+		instance.lastRoyalguardFill = royalguardFraction;
+		instance.hud->SetRGGuageAmount(royalguardFraction);
+	}
+
+	const float dtFraction = mainActorData.maxMagicPoints > 0.0f ? mainActorData.magicPoints / mainActorData.maxMagicPoints : 0.0f;
+	if (dtFraction != instance.lastDTFill) {
+		instance.lastDTFill = dtFraction;
+		instance.hud->SetDTFill(dtFraction);
+	}
+
+	// The red damage bar trails vitality and snaps to it kDamageBarDelay after the last hit.
+	const float hpFraction = mainActorData.maxHitPoints > 0.0f ? mainActorData.hitPoints / mainActorData.maxHitPoints : 0.0f;
+	const float deltaTime = CrimsonClock::DeltaTime();
+
+	if (actorAddr != instance.lastActorAddr) {
+		instance.lastActorAddr = actorAddr;
+		instance.damageSnapTimer = 0.0f;
+		instance.actorRestoreGraceTimer = kActorRestoreGraceDuration;
+	}
+	if (instance.actorRestoreGraceTimer > 0.0f) {
+		instance.actorRestoreGraceTimer -= deltaTime;
+	}
+	if (hpFraction < instance.lastVitalityFill && instance.actorRestoreGraceTimer <= 0.0f) {
+		instance.damageSnapTimer = 0.0f;
+	}
+	if (hpFraction != instance.lastVitalityFill) {
+		if (hpFraction > instance.lastVitalityFill) {
+			instance.actorRestoreGraceTimer = kActorRestoreGraceDuration;
+		}
+		if (hpFraction > instance.lastVitalityFill || instance.actorRestoreGraceTimer > 0.0f) {
+			instance.damageSnapTimer = 0.0f;
+			if (hpFraction != instance.lastDamageFill) {
+				instance.lastDamageFill = hpFraction;
+				instance.hud->SetHPDamageAmount(hpFraction);
+			}
+		}
+		instance.lastVitalityFill = hpFraction;
+		instance.hud->SetHPVitalityAmount(hpFraction);
+	}
+	if (instance.lastVitalityFill >= 0.0f) {
+		instance.damageSnapTimer += deltaTime;
+		if (instance.damageSnapTimer >= kDamageBarDelay && hpFraction != instance.lastDamageFill) {
+			instance.lastDamageFill = hpFraction;
+			instance.hud->SetHPDamageAmount(hpFraction);
+		}
+	}
+}
+
+#pragma endregion
 
 }

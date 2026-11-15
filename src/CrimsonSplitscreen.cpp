@@ -1365,6 +1365,7 @@ void HudTuningWindow(bool* open) {
 	HUD_RedOrbControls();
 	HUD_StyleMeterControls(quads ? HUD_STYLE_QUADS : HUD_STYLE_HALVES);
 	HUD_VanillaStyleMeterControls(quads ? HUD_STYLE_QUADS : HUD_STYLE_HALVES);
+	HUD_PlayerTagControls(quads ? HUD_STYLE_QUADS : HUD_STYLE_HALVES);
 
 	ImGui::Separator();
 	ImGui::Text("Layout groups (raw)");
