@@ -63,9 +63,12 @@ SwingRoseAirTauntInertiaAndSpawnShlDetour ENDP
 .DATA
 EXTERN g_SwingRoseAirTauntYInertia_ReturnAddr:QWORD
 EXTERN g_SwingRoseAirTauntYInertia_CheckCall:QWORD
-newYinertiaMult dd -0.45f ; Cerberus Swing value is -0.35f
-newYinertia dd 0.0f
-useNewYinertia byte 1 
+; Ecstasy uses E&I Air Shot's arc (CPlGunShotMove_sub_140204BD0) instead of Swing's (y 1.5, mult -0.35).
+ecstasyFirstYinertia dd 11.0f ; first attack of the air string (E&I +124)
+ecstasyFirstYinertiaMult dd -0.865f ; E&I uses -1.25 (+128)
+ecstasyYinertia dd 7.0f ; (E&I +12C)
+ecstasyYinertiaMult dd -0.865f ; E&I uses -1.2 (+130)
+ecstasyYinertiaPerAttack dd -1.5f ; added per previous air sword attack (E&I +134)
 
 .CODE
 ; From ExecuteCerberusSwingMove_sub_140206F70:
@@ -83,12 +86,25 @@ SwingRoseAirTauntYInertiaDetour PROC
     cmp al, 1
     jne OriginalCode
     PopAllRegs
-    movss xmm3, dword ptr [newYinertiaMult]
-    movss xmm2, dword ptr [rax + 03D0h]
-    cmp byte ptr [useNewYinertia], 0
-    je @F
-    movss xmm2, dword ptr [newYinertia]
-@@:
+    ; rax is free here, the next instruction is the call to ApplyNewYInertiaCPl_sub_1401FD110
+    movzx eax, byte ptr [rbx + 3FACh] ; airSwordAttackCount, already counts this Ecstasy
+    movss xmm2, dword ptr [ecstasyYinertia]
+    movss xmm3, dword ptr [ecstasyYinertiaMult]
+    cmp byte ptr [rbx + 3FAEh], 1 ; sumAttackCount
+    jne ApplyAttackDecay
+    movss xmm2, dword ptr [ecstasyFirstYinertia]
+    cmp eax, 1
+    ja ApplyAttackDecay
+    movss xmm3, dword ptr [ecstasyFirstYinertiaMult]
+
+ApplyAttackDecay:
+    sub eax, 1
+    jle ApplyEcstasyYInertia
+    cvtsi2ss xmm4, eax
+    mulss xmm4, dword ptr [ecstasyYinertiaPerAttack]
+    addss xmm2, xmm4
+
+ApplyEcstasyYInertia:
     jmp qword ptr [g_SwingRoseAirTauntYInertia_ReturnAddr]
 
 OriginalCode:
