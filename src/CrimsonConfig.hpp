@@ -419,6 +419,84 @@ struct CrimsonConfig {
 
 	} StyleSwitchFX;
 
+	struct Color {
+		uint8 airHike[5][4] = {
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+			{128, 0, 16, 200},
+		};
+
+		struct Trickster {
+			uint8 skyStar[4] = { 128, 0, 16, 200 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("skyStar", &Color::Trickster::skyStar)
+				);
+			}
+		} Trickster;
+
+		struct Royalguard {
+			uint8 ultimate[4] = { 128, 0, 16, 200 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("ultimate", &Color::Royalguard::ultimate)
+				);
+			}
+		} Royalguard;
+
+		struct Doppelganger {
+			uint8 clone[4] = { 92, 11, 11, 48 };
+			uint8 vergilClone[4] = { 11, 56, 92, 48 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("clone", &Color::Doppelganger::clone),
+					std::make_pair("vergilClone", &Color::Doppelganger::vergilClone)
+				);
+			}
+		} Doppelganger;
+
+		struct Aura {
+			uint8 dante[5][4] = {
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+				{128, 0, 16, 200},
+			};
+			uint8 sparda[4] = { 128, 0, 0, 200 };
+			uint8 vergil[3][4] = {
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+				{32, 64, 128, 200},
+			};
+			uint8 neroAngelo[4] = { 64, 0, 255, 200 };
+
+			static constexpr auto Metadata() {
+				return std::make_tuple(
+					std::make_pair("dante", &Color::Aura::dante),
+					std::make_pair("sparda", &Color::Aura::sparda),
+					std::make_pair("vergil", &Color::Aura::vergil),
+					std::make_pair("neroAngelo", &Color::Aura::neroAngelo)
+				);
+			}
+		} Aura;
+
+		static constexpr auto Metadata() {
+			return std::make_tuple(
+				std::make_pair("airHike", &Color::airHike),
+				std::make_pair("Trickster", &Color::Trickster),
+				std::make_pair("Royalguard", &Color::Royalguard),
+				std::make_pair("Doppelganger", &Color::Doppelganger),
+				std::make_pair("Aura", &Color::Aura)
+			);
+		}
+	} Color;
+
 	struct VFX {
 		bool delayedComboVFX = true;
 		uint8 delayedComboColor[4] = { 48, 0, 10, 255 };
@@ -855,6 +933,7 @@ struct CrimsonConfig {
 			std::make_pair("VisualStyle", &CrimsonConfig::VisualStyle),
             std::make_pair("Camera", &CrimsonConfig::Camera),
             std::make_pair("StyleSwitchFX", &CrimsonConfig::StyleSwitchFX),
+			std::make_pair("Color", &CrimsonConfig::Color),
 			std::make_pair("VFX", &CrimsonConfig::VFX),
 			std::make_pair("Memlimit", &CrimsonConfig::Memlimit),
             std::make_pair("SFX", &CrimsonConfig::SFX),

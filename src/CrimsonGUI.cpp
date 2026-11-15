@@ -12150,12 +12150,12 @@ void VisualSection(size_t defaultFontSize) {
 		if (dt > 0) {
 			ImGui::SameLine();
 		}
-        GUI_Color2("", activeConfig.Color.Aura.dante[dt], queuedConfig.Color.Aura.dante[dt]);
+        GUI_Color2("", activeCrimsonConfig.Color.Aura.dante[dt], queuedCrimsonConfig.Color.Aura.dante[dt]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesDante[dt]);
 	}
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Aura.sparda, queuedConfig.Color.Aura.sparda);
+	GUI_Color2("", activeCrimsonConfig.Color.Aura.sparda, queuedCrimsonConfig.Color.Aura.sparda);
     ImGui::SameLine();
     ImGui::Text("Sparda");
 
@@ -12163,12 +12163,12 @@ void VisualSection(size_t defaultFontSize) {
 		if (dt > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.Color.Aura.vergil[dt], queuedConfig.Color.Aura.vergil[dt]);
+		GUI_Color2("", activeCrimsonConfig.Color.Aura.vergil[dt], queuedCrimsonConfig.Color.Aura.vergil[dt]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesVergil[dt]);
 	}
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Aura.neroAngelo, queuedConfig.Color.Aura.neroAngelo);
+	GUI_Color2("", activeCrimsonConfig.Color.Aura.neroAngelo, queuedCrimsonConfig.Color.Aura.neroAngelo);
 	ImGui::SameLine();
 	ImGui::Text("Nelo Angelo");
 
@@ -12182,7 +12182,7 @@ void VisualSection(size_t defaultFontSize) {
 		if (airhike > 0) {
 			ImGui::SameLine();
 		}
-		GUI_Color2("", activeConfig.Color.airHike[airhike], queuedConfig.Color.airHike[airhike]);
+		GUI_Color2("", activeCrimsonConfig.Color.airHike[airhike], queuedCrimsonConfig.Color.airHike[airhike]);
 		ImGui::SameLine();
 		ImGui::Text(meleeWeaponNamesDante[airhike]);
 	}
@@ -12193,35 +12193,35 @@ void VisualSection(size_t defaultFontSize) {
 	ImGui::Text("OTHER MOVES");
 	ImGui::PopFont();
 
-	GUI_Color2("", activeConfig.Color.Trickster.skyStar, queuedConfig.Color.Trickster.skyStar);
+	GUI_Color2("", activeCrimsonConfig.Color.Trickster.skyStar, queuedCrimsonConfig.Color.Trickster.skyStar);
 	ImGui::SameLine();
 	ImGui::Text("Sky Star");
 
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Royalguard.ultimate, queuedConfig.Color.Royalguard.ultimate);
+	GUI_Color2("", activeCrimsonConfig.Color.Royalguard.ultimate, queuedCrimsonConfig.Color.Royalguard.ultimate);
 	ImGui::SameLine();
 	ImGui::Text("Royalguard Ultimate");
 
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Doppelganger.clone, queuedConfig.Color.Doppelganger.clone);
+	GUI_Color2("", activeCrimsonConfig.Color.Doppelganger.clone, queuedCrimsonConfig.Color.Doppelganger.clone);
 	ImGui::SameLine();
 	ImGui::Text("Doppelganger");
 
     ImGui::SameLine();
-	GUI_Color2("", activeConfig.Color.Doppelganger.vergilClone, queuedConfig.Color.Doppelganger.vergilClone);
+	GUI_Color2("", activeCrimsonConfig.Color.Doppelganger.vergilClone, queuedCrimsonConfig.Color.Doppelganger.vergilClone);
 	ImGui::SameLine();
 	ImGui::Text("Mirage Trigger Doppelganger");
 
 
 	if (GUI_Button("DMC3 Default")) {
-		CopyMemory(&queuedConfig.Color, &colorPresets.ColorDMC3Default, sizeof(queuedConfig.Color));
-		CopyMemory(&activeConfig.Color, &colorPresets.ColorDMC3Default, sizeof(activeConfig.Color));
+		CopyMemory(&queuedCrimsonConfig.Color, &colorPresets.ColorDMC3Default, sizeof(queuedCrimsonConfig.Color));
+		CopyMemory(&activeCrimsonConfig.Color, &colorPresets.ColorDMC3Default, sizeof(activeCrimsonConfig.Color));
 	}
 
     ImGui::SameLine();
 	if (GUI_Button("Crimson")) {
-		CopyMemory(&queuedConfig.Color, &colorPresets.ColorCrimson, sizeof(queuedConfig.Color));
-		CopyMemory(&activeConfig.Color, &colorPresets.ColorCrimson, sizeof(activeConfig.Color));
+		CopyMemory(&queuedCrimsonConfig.Color, &colorPresets.ColorCrimson, sizeof(queuedCrimsonConfig.Color));
+		CopyMemory(&activeCrimsonConfig.Color, &colorPresets.ColorCrimson, sizeof(activeCrimsonConfig.Color));
 	}
     
 

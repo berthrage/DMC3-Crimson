@@ -27,9 +27,10 @@ char locationConfig[64] = {};
 char locationConfigGameplay[64] = {};
 char locationConfigInput[64] = {};
 
-Config defaultConfig;
-Config queuedConfig;
-Config activeConfig;
+// Kalina Ann hook does mulps on activeConfig.kalinaAnnHookMultiplier, so the base must be 16-aligned.
+alignas(16) Config defaultConfig;
+alignas(16) Config queuedConfig;
+alignas(16) Config activeConfig;
 
 // $GetDataStart
 
@@ -412,48 +413,6 @@ void CreateMembers(Config& config_) {
     }
 
 
-    {
-        auto& member = Create<struct_t>(crimsonConfigRoot, "Color");
-        auto& config = config_.Color;
-
-        CreateArray2<uint8, 5, 4>(member, "airHike", config.airHike);
-
-
-        {
-            auto& member2 = Create<struct_t>(member, "Trickster");
-            auto& config2 = config.Trickster;
-
-            CreateArray<uint8, 4>(member2, "skyStar", config2.skyStar);
-        }
-
-        {
-            auto& member2 = Create<struct_t>(member, "Royalguard");
-            auto& config2 = config.Royalguard;
-
-            CreateArray<uint8, 4>(member2, "ultimate", config2.ultimate);
-        }
-
-        {
-            auto& member2 = Create<struct_t>(member, "Doppelganger");
-            auto& config2 = config.Doppelganger;
-
-            CreateArray<uint8, 4>(member2, "clone", config2.clone);
-            CreateArray<uint8, 4>(member2, "vergilClone", config2.vergilClone);
-        }
-
-
-        {
-            auto& member2 = Create<struct_t>(member, "Aura");
-            auto& config2 = config.Aura;
-
-            CreateArray2<uint8, 5, 4>(member2, "dante", config2.dante);
-            CreateArray<uint8, 4>(member2, "sparda", config2.sparda);
-            CreateArray2<uint8, 3, 4>(member2, "vergil", config2.vergil);
-            CreateArray<uint8, 4>(member2, "neroAngelo", config2.neroAngelo);
-        }
-    }
-
-
     auto& member = crimsonConfigRoot;
     auto& config = config_;
 
@@ -775,46 +734,6 @@ void ToJSON(Config& config_) {
         }
     }
 
-
-    {
-        auto& member = crimsonConfigRoot["Color"];
-        auto& config = config_.Color;
-
-        SetArray2<uint8, 5, 4>(member["airHike"], config.airHike);
-
-        {
-            auto& member2 = member["Trickster"];
-            auto& config2 = config.Trickster;
-
-            SetArray<uint8, 4>(member2["skyStar"], config2.skyStar);
-        }
-
-        {
-            auto& member2 = member["Royalguard"];
-            auto& config2 = config.Royalguard;
-
-            SetArray<uint8, 4>(member2["ultimate"], config2.ultimate);
-        }
-
-        {
-            auto& member2 = member["Doppelganger"];
-            auto& config2 = config.Doppelganger;
-
-            SetArray<uint8, 4>(member2["clone"], config2.clone);
-            SetArray<uint8, 4>(member2["vergilClone"], config2.vergilClone);
-        }
-
-        {
-            auto& member2 = member["Aura"];
-            auto& config2 = config.Aura;
-
-            SetArray2<uint8, 5, 4>(member2["dante"], config2.dante);
-            SetArray<uint8, 4>(member2["sparda"], config2.sparda);
-            SetArray2<uint8, 3, 4>(member2["vergil"], config2.vergil);
-            SetArray<uint8, 4>(member2["neroAngelo"], config2.neroAngelo);
-        }
-    }
-
     auto& member = crimsonConfigRoot;
     auto& config = config_;
 
@@ -1089,47 +1008,6 @@ void ToConfig(Config& config_) {
 
             config2.skipArkhamPart1 = Get<bool>(member2["skipArkhamPart1"]);
             config2.skipArkhamPart2 = Get<bool>(member2["skipArkhamPart2"]);
-        }
-    }
-
-
-    {
-
-        auto& config = config_.Color;
-        auto& member = crimsonConfigRoot["Color"];
-
-        GetArray2<uint8, 5, 4>(config.airHike, member["airHike"]);
-
-        {
-            auto& config2 = config.Trickster;
-            auto& member2 = member["Trickster"];
-
-            GetArray<uint8, 4>(config2.skyStar, member2["skyStar"]);
-        }
-
-        {
-            auto& config2 = config.Royalguard;
-            auto& member2 = member["Royalguard"];
-
-            GetArray<uint8, 4>(config2.ultimate, member2["ultimate"]);
-        }
-
-        {
-            auto& config2 = config.Doppelganger;
-            auto& member2 = member["Doppelganger"];
-
-            GetArray<uint8, 4>(config2.clone, member2["clone"]);
-            GetArray<uint8, 4>(config2.vergilClone, member2["vergilClone"]);
-        }
-
-        {
-            auto& config2 = config.Aura;
-            auto& member2 = member["Aura"];
-
-            GetArray2<uint8, 5, 4>(config2.dante, member2["dante"]);
-            GetArray<uint8, 4>(config2.sparda, member2["sparda"]);
-            GetArray2<uint8, 3, 4>(config2.vergil, member2["vergil"]);
-            GetArray<uint8, 4>(config2.neroAngelo, member2["neroAngelo"]);
         }
     }
 
