@@ -91,6 +91,8 @@ public: // Controls
 
 	// Scales a group around its anchor sprite and then moves it by offset (sprite space), applied on top of the base layout.
 	void SetGroupTransform(Group_t group, float scale, glm::vec2 offset);
+	void SetGroupVisible(Group_t group, bool visible);
+	// The gauge shares the compass group, this hides just the gauge and its frame.
 
 	// Grows the render target around its center while sprites keep their on-screen size, so nothing gets clipped at the edges.
 	void SetBoundsScale(float scale);
@@ -217,6 +219,7 @@ private: // Members
 		glm::vec2 offset{ 0.0f, 0.0f };
 	};
 	std::array<GroupTransform, (size_t)Group_t::SIZE> m_GroupTransforms{};
+	std::array<bool, (size_t)Group_t::SIZE> m_GroupVisible{ true, true, true, true };
 
 	ID3D11Device* m_pD3D11Device;
 	ID3D11DeviceContext* m_pD3D11DeviceContext;

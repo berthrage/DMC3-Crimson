@@ -1691,6 +1691,19 @@ static const byte8* VanillaCockpitMarkedVisible() {
 	return cockpit;
 }
 
+// Hide Main HUD (dmc3.exe+27E59C) jumps over the cockpit's MarkUIObjectVisible_sub_140326C80 call, so check what that
+// call is gated on instead: the HUD not being hidden (PlayerActorPool+0x12).
+static bool CockpitShownForDanteHUD2() {
+	if (VanillaCockpitMarkedVisible()) {
+		return true;
+	}
+	if (!activeCrimsonConfig.HudOptions.hideMainHUD || g_scene != SCENE::GAME) {
+		return false;
+	}
+	auto pool = *reinterpret_cast<const byte8* const*>(appBaseAddr + 0xC90E28);
+	return pool && !pool[0x12];
+}
+
 static bool VanillaRedOrbCounterDrawn() {
 	constexpr size_t COCKPIT_ACTOR     = 0x6880; // set for a cockpit bound to a specific actor
 	constexpr size_t POOL_CREDITS      = 0x11;
@@ -3626,7 +3639,7 @@ static void StyleTextDisplayWindowView(int view) {
 		return;
 	}
 	if (hud2Active) {
-		if (g_inGameCutscene || g_inCredits) {
+		if (g_inGameCutscene || g_inCredits || activeCrimsonConfig.HudOptions.hideMainHUD) {
 			return;
 		}
 	} else {
@@ -3639,7 +3652,7 @@ static void StyleTextDisplayWindowView(int view) {
 	}
 	int currentStyle = mainActorPtr ? mainActorPtr->style : -1;
 	int currentCharacter = hud2Active ? CHARACTER::DANTE : mainActorPtr->character;
-	if (!hud2Active && (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames || currentCharacter != CHARACTER::DANTE)) return;
+	if (!activeCrimsonConfig.CrimsonHudAddons.displayStyleNames || currentCharacter != CHARACTER::DANTE) return;
 
 	float styleTextTextureSizeX = (1100.0f * 0.5f) * scaleFactorY;
 	float styleTextTextureSizeY = (200.00f * 0.5f) * scaleFactorY;
@@ -5047,11 +5060,19 @@ static void DanteHUD2RenderView(int view) {
 	if (alpha <= 0.0f) {
 		return;
 	}
+	// Hide Main HUD keeps only the compass, like Crimson HUD 1.0's Styles Display.
+	const bool hideMain = activeCrimsonConfig.HudOptions.hideMainHUD && !s_DanteHUD2ForceVisible;
+	const bool showCompass = activeCrimsonConfig.CrimsonHudAddons.stylesDisplay != STYLESDISPLAY::OFF || s_DanteHUD2ForceVisible;
+	if (hideMain && !showCompass) {
+		return;
+	}
 	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
 	hud.SetBoundsScale(layout.bounds);
 	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
 		const DanteHUD2Group& group = layout.groups[g];
-		hud.SetGroupTransform((HUD::Dante::Group_t)g, group.scale, { group.offsetX, group.offsetY });
+		const auto groupId = (HUD::Dante::Group_t)g;
+		hud.SetGroupTransform(groupId, group.scale, { group.offsetX, group.offsetY });
+		hud.SetGroupVisible(groupId, groupId == HUD::Dante::Group_t::CompassRoyalguard ? showCompass : !hideMain);
 	}
 	hud.OnDraw();
 
@@ -5076,7 +5097,7 @@ static void DanteHUD2RenderView(int view) {
 }
 
 void DanteHUD2Render() {
-	if (g_inGameCutscene || g_inCredits || (!VanillaCockpitMarkedVisible() && !s_DanteHUD2ForceVisible)) {
+	if (g_inGameCutscene || g_inCredits || (!CockpitShownForDanteHUD2() && !s_DanteHUD2ForceVisible)) {
 		return;
 	}
 	int views = CrimsonSplitscreen::ViewCount();

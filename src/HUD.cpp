@@ -2298,8 +2298,7 @@ int HUD_SeatCount() {
 
 static bool DanteHUD2Selected() {
 	// Not InGame(): the cockpit keeps drawing (and fading) through teleport / death / item events, not only EVENT::MAIN.
-	return CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD) && !activeCrimsonConfig.HudOptions.hideMainHUD
-		&& g_scene == SCENE::GAME;
+	return CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD) && g_scene == SCENE::GAME;
 }
 
 bool HUD_DanteHUD2Active() {

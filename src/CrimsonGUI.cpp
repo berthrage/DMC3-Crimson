@@ -1831,6 +1831,16 @@ constexpr uint8 stylesDisplayStateMap[3] = {
 	STYLESDISPLAY::NO_BROKEN_GLASS,
 };
 
+const char* stylesDisplayHUD2StateNames[] = {
+	"Off",
+	"On",
+};
+
+constexpr uint8 stylesDisplayHUD2StateMap[2] = {
+	STYLESDISPLAY::OFF,
+	STYLESDISPLAY::WITH_BROKEN_GLASS,
+};
+
 const char* styleNamesTextureSetNames[] = {
 	"Crimson",
 	"DMC3 Switch",
@@ -4503,7 +4513,8 @@ void RenderPlayerTag(int playerIndex, PlayerActorData& actorData) {
 
 	const auto state = activeCrimsonConfig.MultiplayerHUD.showPlayerTags;
 	const bool inMultiplayer = showBars || activeConfig.Actor.playerCount > 1;
-	if (state == HUDELEMENTSHOWSTATE::OFF || (state == HUDELEMENTSHOWSTATE::ONLY_IN_MP && !inMultiplayer)) {
+	if (activeCrimsonConfig.HudOptions.hideMainHUD ||
+		state == HUDELEMENTSHOWSTATE::OFF || (state == HUDELEMENTSHOWSTATE::ONLY_IN_MP && !inMultiplayer)) {
 		return;
 	}
 
@@ -10519,7 +10530,7 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
     ImGui::PopStyleColor();
     
 	ImGui::PushFont(UI::g_ImGuiFont_RussoOne[defaultFontSize * 1.1f]);
-	ImGui::Text("CRIMSON HUD 1.0 ADDONS");
+	ImGui::Text("CRIMSON HUD ADDONS");
 	ImGui::PopFont();
 	
 
@@ -10541,17 +10552,29 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			ImGui::TableNextRow(0, rowWidth * 0.5f);
 			ImGui::TableNextColumn();
 
-			if (GUI_Checkbox2("HUD Positionings", activeCrimsonConfig.CrimsonHudAddons.positionings, queuedCrimsonConfig.CrimsonHudAddons.positionings)) {
-				CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
+			if (!CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
+				if (GUI_Checkbox2("HUD Positionings", activeCrimsonConfig.CrimsonHudAddons.positionings, queuedCrimsonConfig.CrimsonHudAddons.positionings)) {
+					CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
+				}
+				ImGui::SameLine();
+				TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
+
+				ImGui::TableNextColumn();
 			}
-			ImGui::SameLine();
-			TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
 
-			ImGui::TableNextColumn();
-
-			UI::ComboMapValue2("Styles Display", stylesDisplayStateNames, stylesDisplayStateMap,
-				activeCrimsonConfig.CrimsonHudAddons.stylesDisplay,
-				queuedCrimsonConfig.CrimsonHudAddons.stylesDisplay);
+			if (CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
+				// HUD 2.0 draws its own compass, the broken glass variants don't apply.
+				uint8 stylesDisplayOnOff = (queuedCrimsonConfig.CrimsonHudAddons.stylesDisplay != STYLESDISPLAY::OFF)
+					? STYLESDISPLAY::WITH_BROKEN_GLASS : STYLESDISPLAY::OFF;
+				if (UI::ComboMapValue("Styles Display", stylesDisplayHUD2StateNames, stylesDisplayHUD2StateMap, stylesDisplayOnOff)) {
+					activeCrimsonConfig.CrimsonHudAddons.stylesDisplay = stylesDisplayOnOff;
+					queuedCrimsonConfig.CrimsonHudAddons.stylesDisplay = stylesDisplayOnOff;
+				}
+			} else {
+				UI::ComboMapValue2("Styles Display", stylesDisplayStateNames, stylesDisplayStateMap,
+					activeCrimsonConfig.CrimsonHudAddons.stylesDisplay,
+					queuedCrimsonConfig.CrimsonHudAddons.stylesDisplay);
+			}
 				
 
 			ImGui::TableNextColumn();
@@ -10574,10 +10597,6 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			GUI_Checkbox2("Red Orb Counter", activeCrimsonConfig.CrimsonHudAddons.redOrbCounter, queuedCrimsonConfig.CrimsonHudAddons.redOrbCounter);
 
 			//GUI_PopDisable((activeCrimsonGameplay.GameMode.preset >= GAMEMODEPRESETS::STYLE_SWITCHER) || (activeConfig.Actor.enable != queuedConfig.Actor.enable));
-
-			ImGui::TableNextColumn();
-
-			GUI_Checkbox2("Royal Gauge", activeCrimsonConfig.CrimsonHudAddons.royalGauge, queuedCrimsonConfig.CrimsonHudAddons.royalGauge);
 
 			ImGui::TableNextColumn();
 

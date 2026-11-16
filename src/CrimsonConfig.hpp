@@ -208,7 +208,6 @@ struct CrimsonConfig {
 		bool displayStyleNames = true;
 		uint8 styleNamesSet = STYLENAMESSET::CRIMSON;
 		bool redOrbCounter = true;
-		bool royalGauge = true;
 		bool styleRanksMeter = true;
 		bool stylishPtsCounter = true;
 		uint8 missionTimerDisplay = MISSIONTIMERDISPLAY::ONLY_IN_BP;
@@ -226,7 +225,6 @@ struct CrimsonConfig {
 				std::make_pair("displayStyleNames", &CrimsonHudAddons::displayStyleNames),
 				std::make_pair("styleNamesSet", &CrimsonHudAddons::styleNamesSet),
                 std::make_pair("redOrbCounter", &CrimsonHudAddons::redOrbCounter),
-                std::make_pair("royalGauge", &CrimsonHudAddons::royalGauge),
                 std::make_pair("styleRanksMeter", &CrimsonHudAddons::styleRanksMeter),
 				std::make_pair("missionTimerDisplay", &CrimsonHudAddons::missionTimerDisplay),
 				std::make_pair("stylishPtsCounter", &CrimsonHudAddons::stylishPtsCounter),

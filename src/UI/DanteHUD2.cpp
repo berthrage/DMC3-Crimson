@@ -297,6 +297,20 @@ bool DanteHUD2::OnDraw()
 
 	ApplyHPShake(saved);
 
+	for (size_t g = 0; g < (size_t)Group_t::SIZE; g++)
+	{
+		size_t begin, end, anchor;
+		if (m_GroupVisible[g] || !GetGroupRange((Group_t)g, begin, end, anchor))
+			continue;
+
+		for (size_t idx = begin; idx < end; idx++)
+		{
+			saved.push_back({ idx, m_pSpriteBatch->GetTranslation(idx), m_pSpriteBatch->GetScale(idx),
+				m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+			m_pSpriteBatch->SetOpacity(idx, 0.0f);
+		}
+	}
+
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext);
 
 	// Reverse order so sprites touched twice end up back at their first saved state.
@@ -393,6 +407,11 @@ void DanteHUD2::SetGroupTransform(Group_t group, float scale, glm::vec2 offset)
 	auto& gt = m_GroupTransforms[(size_t)group];
 	gt.scale = scale;
 	gt.offset = offset;
+}
+
+void DanteHUD2::SetGroupVisible(Group_t group, bool visible)
+{
+	m_GroupVisible[(size_t)group] = visible;
 }
 
 void DanteHUD2::SetBoundsScale(float scale)
