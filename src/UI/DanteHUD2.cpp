@@ -12,6 +12,109 @@ namespace HUD::Dante {
 
 std::shared_ptr<Graphics::Texture2DArrayD3D11> DanteHUD2::s_pAtlasTexture;
 
+namespace {
+
+struct AnimKey { float time; float value; };
+
+// Smoothstep between keys.
+template <size_t N>
+float SampleKeys(const std::array<AnimKey, N>& keys, float t)
+{
+	if (t <= keys.front().time)
+		return keys.front().value;
+
+	for (size_t i = 1; i < N; i++)
+	{
+		if (t < keys[i].time)
+		{
+			const float k = (t - keys[i - 1].time) / (keys[i].time - keys[i - 1].time);
+			return glm::mix(keys[i - 1].value, keys[i].value, k * k * (3.0f - 2.0f * k));
+		}
+	}
+
+	return keys.back().value;
+}
+
+// Style switch timings, in seconds.
+constexpr float kSwitchDuration = 0.25f;
+constexpr float kCenterFlashDuration = 0.25f;
+constexpr float kExitDuration = 0.09f;
+constexpr float kExitFadeDuration = 0.05f;
+constexpr float kExitMaxBrightness = 2.0f;
+
+// Main styles pop along their slot's outward axis, in multiples of kPopAmplitude (sprite space, relative to the RT height).
+constexpr float kPopAmplitude = 0.032f;
+constexpr std::array<AnimKey, 3> kPopKeys{ { { 0.0f, -1.5f }, { 0.045f, 1.0f }, { 0.11f, 0.0f } } };
+
+// Secondary styles fade and grow in place instead.
+constexpr std::array<AnimKey, 2> kSecondaryFadeKeys{ { { 0.0f, 0.0f }, { 0.12f, 1.0f } } };
+constexpr std::array<AnimKey, 3> kSecondaryScaleKeys{ { { 0.0f, 0.9f }, { 0.12f, 1.07f }, { 0.16f, 1.0f } } };
+
+// Initials that change slot.
+constexpr std::array<AnimKey, 2> kSlotFadeKeys{ { { 0.0f, 0.0f }, { 0.12f, 1.0f } } };
+
+// Center piece tint at the start of the flash, in Style_t order.
+const glm::vec3 kCenterFlashTints[(size_t)Style_t::SIZE] = {
+	{ 2.2f,  2.08f, 1.03f }, // Trickster
+	{ 2.2f,  0.85f, 1.0f  }, // Swordmaster
+	{ 1.35f, 2.2f,  1.16f }, // Royalguard
+	{ 1.0f,  1.94f, 2.2f  }, // Gunslinger
+	{ 1.5f,  1.34f, 2.05f }, // Darkslayer
+	{ 2.06f, 1.05f, 2.2f  }, // Quicksilver
+	{ 2.2f,  1.38f, 1.01f }, // Doppleganger
+};
+
+bool IsSecondaryStyle(Style_t style)
+{
+	return style == Style_t::Darkslayer || style == Style_t::Quicksilver || style == Style_t::Doppleganger;
+}
+
+CompassSlot_t GetStyleSlot(Style_t style)
+{
+	switch (style)
+	{
+	case Style_t::Swordmaster:
+	case Style_t::Darkslayer:
+		return CompassSlot_t::Right;
+	case Style_t::Royalguard:
+	case Style_t::Quicksilver:
+		return CompassSlot_t::Bottom;
+	case Style_t::Gunslinger:
+	case Style_t::Doppleganger:
+		return CompassSlot_t::Left;
+	default:
+		return CompassSlot_t::Top;
+	}
+}
+
+// Style whose initials sit in a slot, the active style always takes its side's main slot.
+Style_t GetSlotStyle(CompassSlot_t slot, Style_t activeStyle)
+{
+	switch (slot)
+	{
+	case CompassSlot_t::Right:			 return activeStyle == Style_t::Darkslayer ? Style_t::Darkslayer : Style_t::Swordmaster;
+	case CompassSlot_t::RightSecondary:	 return activeStyle == Style_t::Darkslayer ? Style_t::Swordmaster : Style_t::Darkslayer;
+	case CompassSlot_t::Bottom:			 return activeStyle == Style_t::Quicksilver ? Style_t::Quicksilver : Style_t::Royalguard;
+	case CompassSlot_t::BottomSecondary: return activeStyle == Style_t::Quicksilver ? Style_t::Royalguard : Style_t::Quicksilver;
+	case CompassSlot_t::Left:			 return activeStyle == Style_t::Doppleganger ? Style_t::Doppleganger : Style_t::Gunslinger;
+	case CompassSlot_t::LeftSecondary:	 return activeStyle == Style_t::Doppleganger ? Style_t::Gunslinger : Style_t::Doppleganger;
+	default:							 return Style_t::Trickster;
+	}
+}
+
+glm::vec2 GetSlotOutwardDir(CompassSlot_t slot)
+{
+	switch (slot)
+	{
+	case CompassSlot_t::Right:	return {  1.0f,  0.0f };
+	case CompassSlot_t::Bottom: return {  0.0f, -1.0f };
+	case CompassSlot_t::Left:	return { -1.0f,  0.0f };
+	default:					return {  0.0f,  1.0f };
+	}
+}
+
+}
+
 DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height)
 	: m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height)
 {
@@ -53,14 +156,32 @@ DanteHUD2::~DanteHUD2()
 
 void DanteHUD2::OnUpdate(double ts)
 {
-	
+	const float dt = (float)ts;
+
+	if (m_StyleSwitchActive)
+	{
+		m_StyleSwitchTime += dt;
+		if (m_StyleSwitchTime >= kSwitchDuration)
+			m_StyleSwitchActive = false;
+	}
+
+	if (m_StyleExitPending)
+	{
+		m_StyleExitTime += dt;
+		if (m_StyleExitTime >= kExitDuration)
+		{
+			m_StyleExitPending = false;
+			CommitActiveStyle(m_PendingStyle);
+		}
+	}
 }
 
 bool DanteHUD2::OnDraw()
 {
-	// Group transforms only live for this draw, the HP updates keep re-translating sprites from the base layout.
-	struct SavedTransform { size_t idx; glm::vec3 translation; glm::vec3 scale; };
-	std::vector<SavedTransform> saved;
+	// Animation and group transforms only live for this draw, the HP updates keep re-translating sprites from the base layout.
+	std::vector<SavedSprite> saved;
+
+	ApplyStyleSwitchAnimation(saved);
 
 	for (size_t g = 0; g < (size_t)Group_t::SIZE; g++)
 	{
@@ -77,7 +198,8 @@ bool DanteHUD2::OnDraw()
 		{
 			const glm::vec3 translation = m_pSpriteBatch->GetTranslation(idx);
 			const glm::vec3 scale = m_pSpriteBatch->GetScale(idx);
-			saved.push_back({ idx, translation, scale });
+			saved.push_back({ idx, translation, scale,
+				m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
 
 			m_pSpriteBatch->TranslateTo(idx, {
 				pivot.x + (translation.x - pivot.x) * gt.scale + gt.offset.x,
@@ -89,13 +211,93 @@ bool DanteHUD2::OnDraw()
 
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext);
 
-	for (const auto& s : saved)
+	// Reverse order so sprites touched twice end up back at their first saved state.
+	for (auto it = saved.rbegin(); it != saved.rend(); ++it)
 	{
-		m_pSpriteBatch->TranslateTo(s.idx, s.translation);
-		m_pSpriteBatch->ScaleTo(s.idx, s.scale);
+		m_pSpriteBatch->TranslateTo(it->idx, it->translation);
+		m_pSpriteBatch->ScaleTo(it->idx, it->scale);
+		if (m_pSpriteBatch->GetOpacity(it->idx) != it->opacity)
+			m_pSpriteBatch->SetOpacity(it->idx, it->opacity);
+		if (m_pSpriteBatch->GetBrightness(it->idx) != it->brightness)
+			m_pSpriteBatch->SetBrightness(it->idx, it->brightness);
+		if (m_pSpriteBatch->GetTint(it->idx) != it->tint)
+			m_pSpriteBatch->TintTo(it->idx, it->tint);
 	}
 
 	return result;
+}
+
+void DanteHUD2::ApplyStyleSwitchAnimation(std::vector<SavedSprite>& saved)
+{
+	if (!m_StyleSwitchActive && !m_StyleExitPending)
+		return;
+
+	const auto save = [&](size_t idx) {
+		saved.push_back({ idx, m_pSpriteBatch->GetTranslation(idx), m_pSpriteBatch->GetScale(idx),
+			m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+	};
+
+	const CompassSlot_t activeSlot = GetStyleSlot(m_ActiveStyle);
+
+	if (m_StyleExitPending)
+	{
+		const size_t idx = m_SpriteIndices.GetCompassNameSlotIdx(activeSlot);
+		const float k = glm::clamp(m_StyleExitTime / kExitFadeDuration, 0.0f, 1.0f);
+
+		save(idx);
+		m_pSpriteBatch->SetOpacity(idx, m_pSpriteBatch->GetOpacity(idx) * (1.0f - k));
+		m_pSpriteBatch->SetBrightness(idx, m_pSpriteBatch->GetBrightness(idx) * glm::mix(1.0f, kExitMaxBrightness, k));
+	}
+
+	if (!m_StyleSwitchActive)
+		return;
+
+	const float t = m_StyleSwitchTime;
+
+	if (m_ActiveStyle < Style_t::SIZE)
+	{
+		const size_t idx = m_SpriteIndices.GetCompassCenterPieceIdx();
+		const float k = glm::clamp(t / kCenterFlashDuration, 0.0f, 1.0f);
+		const glm::vec3 tint = glm::mix(kCenterFlashTints[(size_t)m_ActiveStyle], glm::vec3(1.0f), k);
+
+		save(idx);
+		m_pSpriteBatch->TintTo(idx, m_pSpriteBatch->GetTint(idx) * glm::vec4(tint, 1.0f));
+	}
+
+	if (IsSecondaryStyle(m_ActiveStyle))
+	{
+		const size_t idx = m_SpriteIndices.GetCompassNameSlotIdx(activeSlot);
+
+		save(idx);
+		m_pSpriteBatch->SetOpacity(idx, m_pSpriteBatch->GetOpacity(idx) * SampleKeys(kSecondaryFadeKeys, t));
+		m_pSpriteBatch->ScaleTo(idx, m_pSpriteBatch->GetScale(idx) * SampleKeys(kSecondaryScaleKeys, t));
+	}
+	else
+	{
+		// Sprite space is stretched to the RT, keep the pop the same on screen for both axes.
+		const auto& dims = m_pSpriteBatch->GetDims();
+		const float aspectFix = (dims.x > 0) ? (float)dims.y / (float)dims.x : 1.0f;
+		const glm::vec2 dir = GetSlotOutwardDir(activeSlot);
+		const float amount = SampleKeys(kPopKeys, t) * kPopAmplitude;
+		const glm::vec3 offset = { dir.x * amount * aspectFix, dir.y * amount, 0.0f };
+
+		for (const size_t idx : { m_SpriteIndices.GetCompassNameSlotIdx(activeSlot), m_SpriteIndices.GetCompassStyleShatteredBGIdx() })
+		{
+			save(idx);
+			m_pSpriteBatch->TranslateTo(idx, m_pSpriteBatch->GetTranslation(idx) + offset);
+		}
+	}
+
+	const float slotFade = SampleKeys(kSlotFadeKeys, t);
+	for (size_t slot = 0; slot < (size_t)CompassSlot_t::SIZE; slot++)
+	{
+		if (!m_StyleSwitchFadeSlots[slot])
+			continue;
+
+		const size_t idx = m_SpriteIndices.GetCompassNameSlotIdx((CompassSlot_t)slot);
+		save(idx);
+		m_pSpriteBatch->SetOpacity(idx, m_pSpriteBatch->GetOpacity(idx) * slotFade);
+	}
 }
 
 void DanteHUD2::SetGroupTransform(Group_t group, float scale, glm::vec2 offset)
@@ -175,9 +377,50 @@ HRESULT DanteHUD2::GetLastRenderingErrorCode()
 
 void DanteHUD2::SetActiveStyle(Style_t style)
 {
-	m_ActiveStyle = style;
+	if (m_StyleExitPending)
+	{
+		m_PendingStyle = style;
+		if (style == m_ActiveStyle)
+			m_StyleExitPending = false;
+		return;
+	}
 
+	if (!m_StyleApplied || style == m_ActiveStyle)
+	{
+		m_StyleApplied = true;
+		m_ActiveStyle = style;
+		UpdateSprites();
+		return;
+	}
+
+	if (kExitDuration > 0.0f && IsSecondaryStyle(m_ActiveStyle) && GetStyleSlot(style) != GetStyleSlot(m_ActiveStyle))
+	{
+		m_StyleExitPending = true;
+		m_StyleExitTime = 0.0f;
+		m_PendingStyle = style;
+		return;
+	}
+
+	CommitActiveStyle(style);
+}
+
+void DanteHUD2::CommitActiveStyle(Style_t style)
+{
+	const Style_t previousStyle = m_ActiveStyle;
+	const CompassSlot_t activeSlot = GetStyleSlot(style);
+
+	m_ActiveStyle = style;
 	UpdateSprites();
+
+	// Initials that stay in their slot swap instantly, the ones that moved fade in.
+	for (size_t slot = 0; slot < (size_t)CompassSlot_t::SIZE; slot++)
+	{
+		m_StyleSwitchFadeSlots[slot] = (CompassSlot_t)slot != activeSlot
+			&& GetSlotStyle((CompassSlot_t)slot, previousStyle) != GetSlotStyle((CompassSlot_t)slot, style);
+	}
+
+	m_StyleSwitchActive = true;
+	m_StyleSwitchTime = 0.0f;
 }
 
 void DanteHUD2::SetHUDTheme(Theme_t theme)

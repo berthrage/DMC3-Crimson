@@ -65,6 +65,7 @@ public:
 	HRESULT GetLastRenderingErrorCode();
 
 public: // Controls
+	// Plays the compass switch animation, except for the first style applied.
 	void SetActiveStyle(Style_t style);
 	void SetActiveStyleLevel(size_t level);
 	void SetHPLevel(size_t level);
@@ -150,6 +151,17 @@ public: // Types Todo: Private
 	};
 
 private:
+	struct SavedSprite {
+		size_t idx;
+		glm::vec3 translation;
+		glm::vec3 scale;
+		float opacity;
+		float brightness;
+		glm::vec4 tint;
+	};
+
+	void CommitActiveStyle(Style_t style);
+	void ApplyStyleSwitchAnimation(std::vector<SavedSprite>& saved);
 	void SetSpritePositions();
 	void SetSpriteMasks();
 	void UpdateHPBarVitality(float fraction);
@@ -166,6 +178,15 @@ private: // Members
 	float m_BoundsScale{ 1.0f };
 
 	Style_t m_ActiveStyle{ Style_t::Trickster };
+
+	bool m_StyleApplied{ false };
+	bool m_StyleSwitchActive{ false };
+	float m_StyleSwitchTime{ 0.0f };
+	std::array<bool, (size_t)CompassSlot_t::SIZE> m_StyleSwitchFadeSlots{};
+	// Leaving a secondary style for another side fades its initials out before the switch lands.
+	bool m_StyleExitPending{ false };
+	float m_StyleExitTime{ 0.0f };
+	Style_t m_PendingStyle{ Style_t::Trickster };
 
 	size_t	m_HPLevel{ 1 }, m_DTLevel{ 1 }, 
 			m_ActiveStyleLevel{ 1 }, m_RoyalGuardGaugeLevel{ 1 };
