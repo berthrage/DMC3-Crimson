@@ -394,9 +394,9 @@ struct CrimsonConfig {
 
 		struct Overlay {
 			bool enable = true;
-			float intensity = 0.85f;      // peak blend toward the style colour, 0..1
+			float intensity = 0.8f;      // peak blend toward the style colour, 0..1
 			float attackSeconds = 0.06f;
-			float releaseSeconds = 1.04f; // 1.1 s in total
+			float releaseSeconds = 0.4f; // fade out duration in seconds
 
 			static constexpr auto Metadata() {
 				return std::make_tuple(
