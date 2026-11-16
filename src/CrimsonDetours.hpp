@@ -135,7 +135,7 @@ void AdjustAirWhirlwindLaunchHeightDetour();
 void SpawnNevanShlRose(uintptr_t playerAddr);
 }
 
-bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData);
+bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData, uint16 stepBind);
 bool DisableStaggerCheck(PlayerActorData& actorData);
 void InitDetours();
 void ToggleArtemisInstantFullCharge(bool enable);

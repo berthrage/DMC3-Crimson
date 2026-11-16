@@ -523,7 +523,7 @@ namespace CrimsonDetours {
 		void* g_NevanRoseShl_RoseEfkHitFXCall;
 }
 
-bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
+bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData, uint16 stepBind) {
     using namespace ACTION_DANTE;
 
 	uint8 playerIndex = (activeConfig.Actor.enable) ? actorData.newPlayerIndex : 0;
@@ -544,16 +544,25 @@ bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData) {
 	auto motionIndex = actorData.motionData[0].index;
 	auto& stingerInput = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].stingerInput : crimsonPlayer[playerIndex].stingerInputClone;
 	auto& delayedComboFX = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].delayedComboFX : crimsonPlayer[playerIndex].delayedComboFXClone;
+	// Non-melee steps (e.g. Wild Stomp's shoot hold) keep the old Stinger buffer window
+	bool meleeStep = (stepBind & GetBinding(BINDING::MELEE_ATTACK)) != 0;
+	bool stingerNonMeleeBuffer = !meleeStep && std::clamp<float>(actionTimer, 0.22f, 0.3f) == actionTimer && inputException;
 
 
     switch (actorData.action) { // from vars, namespace ACTION_DANTE {
 
     case REBELLION_STINGER_LEVEL_1:
+        if (stingerNonMeleeBuffer) {
+            return true;
+        }
         if (motionIndex == 16 && stingerInput.meleeButtonHold >= 0.1f && !stingerInput.meleeReleasedStinger && inputException) {
             return true;
         }
         break;
     case REBELLION_STINGER_LEVEL_2:
+        if (stingerNonMeleeBuffer) {
+            return true;
+        }
         if (motionIndex == 42 && stingerInput.meleeButtonHold >= 0.17f && !stingerInput.meleeReleasedStinger && inputException) {
             return true;
         }

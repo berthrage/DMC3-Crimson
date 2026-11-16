@@ -11,8 +11,13 @@ HoldToCrazyComboDetour PROC ; player in RDI
 
     push rax
     push rcx
+    push rdx
+    sub rsp, 28h
     mov rcx, rdi
+    movzx edx, ax ; bind of the command step being checked
     call qword ptr [holdToCrazyComboCall]
+    add rsp, 28h
+    pop rdx
     pop rcx
 
     cmp al, 1
