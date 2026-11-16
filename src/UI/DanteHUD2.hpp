@@ -86,6 +86,9 @@ public: // Controls
 	void SetActiveStyleExpFillAmount(float exp); // 0.0f to 1.0f
 	void SetDTFill(float dt); // 0.0f to 1.0f
 
+	// Shakes the HP and DT bars like the vanilla cockpit does on a hit, hpLost in actor HP.
+	void TriggerHPShake(float hpLost);
+
 	// Scales a group around its anchor sprite and then moves it by offset (sprite space), applied on top of the base layout.
 	void SetGroupTransform(Group_t group, float scale, glm::vec2 offset);
 
@@ -162,6 +165,7 @@ private:
 
 	void CommitActiveStyle(Style_t style);
 	void ApplyStyleSwitchAnimation(std::vector<SavedSprite>& saved);
+	void ApplyHPShake(std::vector<SavedSprite>& saved);
 	void SetSpritePositions();
 	void SetSpriteMasks();
 	void UpdateHPBarVitality(float fraction);
@@ -187,6 +191,13 @@ private: // Members
 	bool m_StyleExitPending{ false };
 	float m_StyleExitTime{ 0.0f };
 	Style_t m_PendingStyle{ Style_t::Trickster };
+
+	// Hit shake, timer in 60 Hz frames like the cockpit's.
+	float m_HPShakeFrames{ 0.0f };
+	float m_HPShakeStep{ 0.0f };
+	int m_HPShakeRange{ 0 };
+	float m_HPShakeOffset{ 0.0f };
+	uint32_t m_HPShakeRng{ 0x2545F491u };
 
 	size_t	m_HPLevel{ 1 }, m_DTLevel{ 1 }, 
 			m_ActiveStyleLevel{ 1 }, m_RoyalGuardGaugeLevel{ 1 };

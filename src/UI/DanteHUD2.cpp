@@ -2,6 +2,7 @@
 
 #include <format>
 #include <algorithm>
+#include <cmath>
 
 #include "DanteHUD2HardcodedData.hpp"
 #include "imgui.h"
@@ -52,6 +53,33 @@ constexpr std::array<AnimKey, 3> kSecondaryScaleKeys{ { { 0.0f, 0.9f }, { 0.12f,
 
 // Initials that change slot.
 constexpr std::array<AnimKey, 2> kSlotFadeKeys{ { { 0.0f, 0.0f }, { 0.12f, 1.0f } } };
+
+// Cockpit hit shake tiers from CUIDCockpit00_UpdateHP_sub_14027D3F0: frames and jitter range by HP lost.
+constexpr float kHPShakeBigHit = 1000.0f;
+constexpr float kHPShakeMediumHit = 50.0f;
+constexpr float kHPShakeBigFrames = 15.0f;
+constexpr float kHPShakeFrames = 5.0f;
+constexpr int kHPShakeBigRange = 10;
+constexpr int kHPShakeMediumRange = 5;
+constexpr int kHPShakeSmallRange = 3;
+// One cockpit unit (1/448 of the screen height) in sprite space, for the 215 high RT shown at 1080p.
+constexpr float kHPShakeUnit = 2.0f * 1080.0f / (448.0f * 215.0f);
+
+uint32_t NextShakeRandom(uint32_t& state)
+{
+	state ^= state << 13;
+	state ^= state >> 17;
+	state ^= state << 5;
+	return state;
+}
+
+// Random sign, then rand % range, both rolled like the cockpit does.
+float RollShakeOffset(uint32_t& state, int range)
+{
+	const bool up = NextShakeRandom(state) & 1;
+	const float amount = (float)(NextShakeRandom(state) % (uint32_t)(std::max)(range, 1));
+	return up ? amount : -amount;
+}
 
 // Center piece tint at the start of the flash, in Style_t order.
 const glm::vec3 kCenterFlashTints[(size_t)Style_t::SIZE] = {
@@ -174,6 +202,64 @@ void DanteHUD2::OnUpdate(double ts)
 			CommitActiveStyle(m_PendingStyle);
 		}
 	}
+
+	// The cockpit re-rolls the jitter once per game frame, keep that rate at any fps.
+	if (m_HPShakeOffset != 0.0f || m_HPShakeFrames > 0.0f)
+	{
+		m_HPShakeStep += dt * 60.0f;
+		if (m_HPShakeStep >= 1.0f)
+		{
+			const float steps = std::floor(m_HPShakeStep);
+			m_HPShakeStep -= steps;
+			if (m_HPShakeFrames > 0.0f)
+			{
+				m_HPShakeFrames = (std::max)(0.0f, m_HPShakeFrames - steps);
+				m_HPShakeOffset = RollShakeOffset(m_HPShakeRng, m_HPShakeRange);
+			}
+			else
+			{
+				m_HPShakeOffset = 0.0f;
+			}
+		}
+	}
+}
+
+void DanteHUD2::TriggerHPShake(float hpLost)
+{
+	if (hpLost <= 0.0f)
+		return;
+
+	// A new hit replaces the running shake, even a bigger one.
+	m_HPShakeFrames = (hpLost >= kHPShakeBigHit) ? kHPShakeBigFrames : kHPShakeFrames;
+	m_HPShakeRange = (hpLost >= kHPShakeBigHit) ? kHPShakeBigRange
+		: (hpLost >= kHPShakeMediumHit) ? kHPShakeMediumRange : kHPShakeSmallRange;
+	m_HPShakeStep = 0.0f;
+
+	// The hit frame already counts and rolls.
+	m_HPShakeFrames -= 1.0f;
+	m_HPShakeOffset = RollShakeOffset(m_HPShakeRng, m_HPShakeRange);
+}
+
+void DanteHUD2::ApplyHPShake(std::vector<SavedSprite>& saved)
+{
+	if (m_HPShakeOffset == 0.0f)
+		return;
+
+	const float offsetY = m_HPShakeOffset * kHPShakeUnit;
+	for (const Group_t group : { Group_t::HPBars, Group_t::DTBars })
+	{
+		size_t begin, end, anchor;
+		if (!GetGroupRange(group, begin, end, anchor))
+			continue;
+
+		for (size_t idx = begin; idx < end; idx++)
+		{
+			const glm::vec3 translation = m_pSpriteBatch->GetTranslation(idx);
+			saved.push_back({ idx, translation, m_pSpriteBatch->GetScale(idx),
+				m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+			m_pSpriteBatch->TranslateTo(idx, { translation.x, translation.y + offsetY, translation.z });
+		}
+	}
 }
 
 bool DanteHUD2::OnDraw()
@@ -208,6 +294,8 @@ bool DanteHUD2::OnDraw()
 			m_pSpriteBatch->ScaleTo(idx, scale * gt.scale);
 		}
 	}
+
+	ApplyHPShake(saved);
 
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext);
 

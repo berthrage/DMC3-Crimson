@@ -4849,6 +4849,7 @@ struct DanteHUD2Instance {
 	float lastRoyalguardFill = -1.0f;
 	float lastDTFill = -1.0f;
 	float lastVitalityFill = -1.0f;
+	float lastHitPoints = -1.0f;
 	float lastDamageFill = -1.0f;
 	float damageSnapTimer = 0.0f;
 	// Room transitions re-create the player actor and HP settles to the carried-over value afterwards, which isn't damage.
@@ -4979,7 +4980,10 @@ static bool s_DanteHUD2FreezeValues = false;
 static bool s_DanteHUD2ForceVisible = false;
 static bool s_DanteHUD2ShowBounds = false;
 
-static constexpr float kDamageBarDelay = 1.5f;
+static constexpr float kDamageBarDelay = 0.74f;
+// Red bar drain after the delay: eases toward vitality, never slower than the minimum (fill per second).
+static constexpr float kDamageBarDrainSpeed = 6.0f;
+static constexpr float kDamageBarMinDrain = 0.1f;
 static constexpr float kActorRestoreGraceDuration = 0.5f;
 
 static HUD::Dante::Style_t MapGameStyleToHUD(int style) {
@@ -5421,7 +5425,7 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 		instance.hud->SetDTFill(dtFraction);
 	}
 
-	// The red damage bar trails vitality and snaps to it kDamageBarDelay after the last hit.
+	// The red damage bar trails vitality and drains down to it kDamageBarDelay after the last hit.
 	const float hpFraction = mainActorData.maxHitPoints > 0.0f ? mainActorData.hitPoints / mainActorData.maxHitPoints : 0.0f;
 	const float deltaTime = CrimsonClock::DeltaTime();
 
@@ -5435,7 +5439,11 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 	}
 	if (hpFraction < instance.lastVitalityFill && instance.actorRestoreGraceTimer <= 0.0f) {
 		instance.damageSnapTimer = 0.0f;
+		if (instance.lastHitPoints >= 0.0f) {
+			instance.hud->TriggerHPShake(instance.lastHitPoints - mainActorData.hitPoints);
+		}
 	}
+	instance.lastHitPoints = mainActorData.hitPoints;
 	if (hpFraction != instance.lastVitalityFill) {
 		if (hpFraction > instance.lastVitalityFill) {
 			instance.actorRestoreGraceTimer = kActorRestoreGraceDuration;
@@ -5453,8 +5461,10 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 	if (instance.lastVitalityFill >= 0.0f) {
 		instance.damageSnapTimer += deltaTime;
 		if (instance.damageSnapTimer >= kDamageBarDelay && hpFraction != instance.lastDamageFill) {
-			instance.lastDamageFill = hpFraction;
-			instance.hud->SetHPDamageAmount(hpFraction);
+			const float gap = instance.lastDamageFill - hpFraction;
+			const float drain = (std::max)(gap * (1.0f - std::exp(-kDamageBarDrainSpeed * deltaTime)), kDamageBarMinDrain * deltaTime);
+			instance.lastDamageFill = (gap <= drain) ? hpFraction : instance.lastDamageFill - drain;
+			instance.hud->SetHPDamageAmount(instance.lastDamageFill);
 		}
 	}
 }
