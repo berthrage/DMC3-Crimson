@@ -10560,6 +10560,10 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 				TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
 
 				ImGui::TableNextColumn();
+			} else {
+				GUI_Checkbox2("Straight HP Bars", activeCrimsonConfig.CrimsonHudAddons.straightHPBars, queuedCrimsonConfig.CrimsonHudAddons.straightHPBars);
+
+				ImGui::TableNextColumn();
 			}
 
 			if (CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
@@ -10662,6 +10666,18 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 				"In Multiplayer or with this option disabled, Lock-On color is always based on PLAYER COLOR.");
 
 			GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.lockOn);
+
+			if (CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
+				ImGui::TableNextColumn();
+
+				GUI_PushDisable(!activeCrimsonConfig.CrimsonHudAddons.straightHPBars);
+				GUI_Checkbox2("Offset 2nd HP Bar", activeCrimsonConfig.CrimsonHudAddons.straightHPBarsOffset,
+					queuedCrimsonConfig.CrimsonHudAddons.straightHPBarsOffset);
+				ImGui::SameLine();
+				TooltipHelper("(?)", "Straight HP Bars only: shifts the second HP bar to the right like the slanted bars,\n"
+					"moving the DT bar along with it.");
+				GUI_PopDisable(!activeCrimsonConfig.CrimsonHudAddons.straightHPBars);
+			}
 
 
 			ImGui::EndTable();

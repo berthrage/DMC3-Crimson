@@ -73,8 +73,12 @@ public: // Controls
 	void SetRGGaugeLevel(size_t level);
 	void SetHUDTheme(Theme_t theme);
 	Theme_t GetHUDTheme() const { return m_ThemeID; }
-	// Hides the style name next to the exp bar so the caller can draw its own.
-	void SetStyleNameVisible(bool visible);
+	// Swaps the slanted HP bar frames, fills and glow for straight ones.
+	void SetStraightHPBars(bool straight);
+	bool GetStraightHPBars() const { return m_StraightHPBars; }
+	// Straight only: keeps the second HP bar's x offset and shifts the DT bar along with it.
+	void SetStraightHPBarOffset(bool offset);
+	bool GetStraightHPBarOffset() const { return m_StraightHPBarOffset; }
 	void SetStyleLevelVisible(bool visible);
 	// Hides a style's initials on the compass while it isn't the active style (locked or unavailable styles).
 	void SetStyleInitialsVisible(Style_t style, bool visible);
@@ -85,6 +89,8 @@ public: // Controls
 	void SetRGGuageAmount(float rg); // 0.0f to 1.0f
 	void SetActiveStyleExpFillAmount(float exp); // 0.0f to 1.0f
 	void SetDTFill(float dt); // 0.0f to 1.0f
+	// Full DT orbs pulse their glow while DT can be triggered.
+	void SetDTReady(bool ready);
 
 	// Shakes the HP and DT bars like the vanilla cockpit does on a hit, hpLost in actor HP.
 	void TriggerHPShake(float hpLost);
@@ -92,7 +98,6 @@ public: // Controls
 	// Scales a group around its anchor sprite and then moves it by offset (sprite space), applied on top of the base layout.
 	void SetGroupTransform(Group_t group, float scale, glm::vec2 offset);
 	void SetGroupVisible(Group_t group, bool visible);
-	// The gauge shares the compass group, this hides just the gauge and its frame.
 
 	// Grows the render target around its center while sprites keep their on-screen size, so nothing gets clipped at the edges.
 	void SetBoundsScale(float scale);
@@ -111,7 +116,7 @@ public: // Types Todo: Private
 		~SpriteIndices() = default;
 
 		void UpdateSprites(Theme_t theme, Style_t activeStyle, size_t activeStyleLevel,
-						   size_t hpBarLevel, size_t dtBarLevel, size_t rgGuageLevel);
+						   size_t hpBarLevel, size_t dtBarLevel, size_t rgGuageLevel, bool straightHP);
 
 		inline const auto& GetSpriteIds() const { return m_SpriteIds; }
 
@@ -124,8 +129,9 @@ public: // Types Todo: Private
 		inline const auto& GetStyleExpBarFrameIdx() const { return m_StyleExpBarFrameIdx; }
 		inline const auto& GetStyleExpBarIdx() const { return m_StyleExpBarIdx; }
 		inline const auto& GetStyleExpBarLevelIdx() const { return m_StyleExpBarLevelIdx; }
-		inline const auto& GetStyleExpBarNameIdx() const { return m_StyleExpBarNameIdx; }
+		inline const auto& GetDTBarOrbBGIdxs() const { return m_DTBarOrbBGIdxs; }
 		inline const auto& GetDTBarOrbIdxs() const { return m_DTBarOrbsIdxs; }
+		inline const auto& GetDTBarOrbGlowIdxs() const { return m_DTBarOrbGlowIdxs; }
 		inline const auto& GetDTBarFrameIdxs() const { return m_DTBarFrameIdxs; }
 		inline const auto& GetHPBarBGIdxs() const { return m_HPBarBGIdxs; }
 		inline const auto& GetHPBarDamageIdxs() const { return m_HPBarDamageIdxs; }
@@ -145,8 +151,9 @@ public: // Types Todo: Private
 		size_t m_StyleExpBarFrameIdx{};
 		size_t m_StyleExpBarIdx{};
 		size_t m_StyleExpBarLevelIdx{};
-		size_t m_StyleExpBarNameIdx{};
+		std::vector<size_t> m_DTBarOrbBGIdxs{};
 		std::vector<size_t> m_DTBarOrbsIdxs{};
+		std::vector<size_t> m_DTBarOrbGlowIdxs{};
 		std::vector<size_t> m_DTBarFrameIdxs{};
 		std::vector<size_t> m_HPBarBGIdxs{};
 		std::vector<size_t> m_HPBarDamageIdxs{};
@@ -168,7 +175,10 @@ private:
 	void CommitActiveStyle(Style_t style);
 	void ApplyStyleSwitchAnimation(std::vector<SavedSprite>& saved);
 	void ApplyHPShake(std::vector<SavedSprite>& saved);
+	void ApplyCompassShake(std::vector<SavedSprite>& saved);
+	void ApplyDTOrbPulse(std::vector<SavedSprite>& saved);
 	void SetSpritePositions();
+	float GetStraightBottomOffsetX() const;
 	void SetSpriteMasks();
 	void UpdateHPBarVitality(float fraction);
 	void UpdateHPBarDamage(float fraction);
@@ -201,6 +211,9 @@ private: // Members
 	float m_HPShakeOffset{ 0.0f };
 	uint32_t m_HPShakeRng{ 0x2545F491u };
 
+	bool m_DTReady{ false };
+	float m_DTPulseTime{ 0.0f };
+
 	size_t	m_HPLevel{ 1 }, m_DTLevel{ 1 }, 
 			m_ActiveStyleLevel{ 1 }, m_RoyalGuardGaugeLevel{ 1 };
 
@@ -208,7 +221,8 @@ private: // Members
 			m_ActiveStyleExpFill{ 1.0f }, m_RoyalguardGuageFill{ 1.0f };
 
 	Theme_t m_ThemeID{ Theme_t::Colored };
-	bool m_StyleNameVisible{ true };
+	bool m_StraightHPBars{ false };
+	bool m_StraightHPBarOffset{ false };
 	bool m_StyleLevelVisible{ true };
 	std::array<bool, (size_t)Style_t::SIZE> m_StyleInitialsVisible{ true, true, true, true, true, true, true };
 

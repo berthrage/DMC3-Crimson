@@ -54,6 +54,11 @@ constexpr std::array<AnimKey, 3> kSecondaryScaleKeys{ { { 0.0f, 0.9f }, { 0.12f,
 // Initials that change slot.
 constexpr std::array<AnimKey, 2> kSlotFadeKeys{ { { 0.0f, 0.0f }, { 0.12f, 1.0f } } };
 
+// Whole compass shake on switch: decaying jitter, amplitude in sprite space relative to the RT height.
+constexpr float kCompassShakeDuration = 0.2f;
+constexpr float kCompassShakeAmplitude = 0.01f;
+constexpr float kCompassShakeFrequency = 30.0f;
+
 // Cockpit hit shake tiers from CUIDCockpit00_UpdateHP_sub_14027D3F0: frames and jitter range by HP lost.
 constexpr float kHPShakeBigHit = 1000.0f;
 constexpr float kHPShakeMediumHit = 50.0f;
@@ -64,6 +69,10 @@ constexpr int kHPShakeMediumRange = 5;
 constexpr int kHPShakeSmallRange = 3;
 // One cockpit unit (1/448 of the screen height) in sprite space, for the 215 high RT shown at 1080p.
 constexpr float kHPShakeUnit = 2.0f * 1080.0f / (448.0f * 215.0f);
+
+// Full fade in and out of the ready DT orb glow, in seconds.
+constexpr float kDTPulsePeriod = 0.7f;
+constexpr float kDTPulseMinOpacity = 0.2f;
 
 uint32_t NextShakeRandom(uint32_t& state)
 {
@@ -158,7 +167,7 @@ DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11Devi
 	}
 
 	m_SpriteIndices.UpdateSprites(m_ThemeID, m_ActiveStyle, m_ActiveStyleLevel,
-								  m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel);
+								  m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel, m_StraightHPBars);
 
 	m_pSpriteBatch = std::make_unique<Graphics::BatchedSprites>(
 		m_pD3D11Device,
@@ -222,6 +231,9 @@ void DanteHUD2::OnUpdate(double ts)
 			}
 		}
 	}
+
+	if (m_DTReady)
+		m_DTPulseTime = std::fmod(m_DTPulseTime + dt, kDTPulsePeriod);
 }
 
 void DanteHUD2::TriggerHPShake(float hpLost)
@@ -262,6 +274,56 @@ void DanteHUD2::ApplyHPShake(std::vector<SavedSprite>& saved)
 	}
 }
 
+void DanteHUD2::ApplyCompassShake(std::vector<SavedSprite>& saved)
+{
+	if (!m_StyleSwitchActive || m_StyleSwitchTime >= kCompassShakeDuration)
+		return;
+
+	size_t begin, end, anchor;
+	if (!GetGroupRange(Group_t::CompassRoyalguard, begin, end, anchor))
+		return;
+
+	const auto& dims = m_pSpriteBatch->GetDims();
+	const float aspectFix = (dims.x > 0) ? (float)dims.y / (float)dims.x : 1.0f;
+	const float decay = 1.0f - m_StyleSwitchTime / kCompassShakeDuration;
+	const float phase = 6.28318531f * kCompassShakeFrequency * m_StyleSwitchTime;
+	const float amount = kCompassShakeAmplitude * decay * decay;
+	// Off-ratio frequencies so it rattles instead of tracing a line.
+	const glm::vec3 offset = { std::sin(phase) * amount * aspectFix, std::sin(phase * 1.37f + 1.1f) * amount, 0.0f };
+
+	for (size_t idx = begin; idx < end; idx++)
+	{
+		const glm::vec3 translation = m_pSpriteBatch->GetTranslation(idx);
+		saved.push_back({ idx, translation, m_pSpriteBatch->GetScale(idx),
+			m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+		m_pSpriteBatch->TranslateTo(idx, translation + offset);
+	}
+}
+
+void DanteHUD2::ApplyDTOrbPulse(std::vector<SavedSprite>& saved)
+{
+	if (!m_DTReady || m_DTLevel == 0)
+		return;
+
+	const auto& orbIdxs = m_SpriteIndices.GetDTBarOrbIdxs();
+	const auto& glowIdxs = m_SpriteIndices.GetDTBarOrbGlowIdxs();
+	const float wave = 0.5f - 0.5f * std::cos(6.28318531f * m_DTPulseTime / kDTPulsePeriod);
+	// First fade in starts from zero, then the pulse bottoms out at the min opacity.
+	const float minOpacity = m_DTPulseTime < kDTPulsePeriod * 0.5f ? 0.0f : kDTPulseMinOpacity;
+	const float pulse = minOpacity + (1.0f - minOpacity) * wave;
+
+	for (size_t i = 0; i < orbIdxs.size() && i < glowIdxs.size(); i++)
+	{
+		if (m_pSpriteBatch->GetOpacity(orbIdxs[i]) < 1.0f)
+			continue;
+
+		const size_t idx = glowIdxs[i];
+		saved.push_back({ idx, m_pSpriteBatch->GetTranslation(idx), m_pSpriteBatch->GetScale(idx),
+			m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+		m_pSpriteBatch->SetOpacity(idx, pulse);
+	}
+}
+
 bool DanteHUD2::OnDraw()
 {
 	// Animation and group transforms only live for this draw, the HP updates keep re-translating sprites from the base layout.
@@ -296,6 +358,8 @@ bool DanteHUD2::OnDraw()
 	}
 
 	ApplyHPShake(saved);
+	ApplyCompassShake(saved);
+	ApplyDTOrbPulse(saved);
 
 	for (size_t g = 0; g < (size_t)Group_t::SIZE; g++)
 	{
@@ -447,11 +511,11 @@ bool DanteHUD2::GetGroupRange(Group_t group, size_t& begin, size_t& end, size_t&
 		break;
 	case Group_t::ExpBarStyleName:
 		begin = m_SpriteIndices.GetStyleExpBarLevelIdx();
-		end = m_SpriteIndices.GetStyleExpBarNameIdx() + 1;
+		end = m_SpriteIndices.GetStyleExpBarIdx() + 1;
 		anchor = m_SpriteIndices.GetStyleExpBarFrameIdx();
 		break;
 	case Group_t::DTBars:
-		begin = m_SpriteIndices.GetStyleExpBarNameIdx() + 1;
+		begin = m_SpriteIndices.GetStyleExpBarIdx() + 1;
 		end = hpBG.front();
 		anchor = begin;
 		break;
@@ -537,13 +601,24 @@ void DanteHUD2::SetHUDTheme(Theme_t theme)
 	UpdateSprites();
 }
 
-void DanteHUD2::SetStyleNameVisible(bool visible)
+void DanteHUD2::SetStraightHPBars(bool straight)
 {
-	if (visible == m_StyleNameVisible)
+	if (straight == m_StraightHPBars)
 		return;
 
-	m_StyleNameVisible = visible;
-	m_pSpriteBatch->SetOpacity(m_SpriteIndices.GetStyleExpBarNameIdx(), visible ? 1.0f : 0.0f);
+	m_StraightHPBars = straight;
+
+	UpdateSprites();
+}
+
+void DanteHUD2::SetStraightHPBarOffset(bool offset)
+{
+	if (offset == m_StraightHPBarOffset)
+		return;
+
+	m_StraightHPBarOffset = offset;
+
+	UpdateSprites();
 }
 
 void DanteHUD2::SetStyleLevelVisible(bool visible)
@@ -620,9 +695,19 @@ void DanteHUD2::SetDTFill(float dt)
 	UpdateDTBarOrbs(m_DTFill);
 }
 
+void DanteHUD2::SetDTReady(bool ready)
+{
+	if (ready == m_DTReady)
+		return;
+
+	// Restart from zero so the glow fades in.
+	m_DTReady = ready;
+	m_DTPulseTime = 0.0f;
+}
+
 void DanteHUD2::SetActiveStyleLevel(size_t level)
 {
-	if (level >= 1 && level <= 3)
+	if (level >= 1 && level <= 4)
 	{
 		m_ActiveStyleLevel = level;
 	}
@@ -677,7 +762,7 @@ void DanteHUD2::SetRGGaugeLevel(size_t level)
 }
 
 void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle, size_t activeStyleLevel,
-	size_t hpBarLevel, size_t dtBarLevel, size_t rgGuageLevel)
+	size_t hpBarLevel, size_t dtBarLevel, size_t rgGuageLevel, bool straightHP)
 {
 	using namespace HC::Sprites;
 
@@ -960,6 +1045,12 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				(size_t)GetStyleExpBarLevelNumberSpriteID(theme, 3)
 			);
 			break;
+
+		case 4:
+			m_SpriteIds.push_back(
+				(size_t)GetStyleExpBarLevelNumberSpriteID(theme, 4)
+			);
+			break;
 		}
 	}
 
@@ -981,19 +1072,22 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 		);
 	}
 
-	// 11th: Style exp bar name
-	{
-		m_StyleExpBarNameIdx = m_SpriteIds.size();
-
-		m_SpriteIds.push_back(
-			(size_t)GetStyleExpBarNameSpriteID(theme, activeStyle, false)
-		);
-	}
-
-	// 12th: DT bar orbs
+	// 11th: DT bar orbs, each over its empty background
 	{
 		if (dtBarLevel > 0)
 		{
+			m_DTBarOrbBGIdxs.clear();
+			m_DTBarOrbBGIdxs.reserve(10);
+
+			for (size_t i = 0; i < dtBarLevel + 2; i++)
+			{
+				m_DTBarOrbBGIdxs.push_back(m_SpriteIds.size());
+
+				m_SpriteIds.push_back(
+					(size_t)GetDTBarOrbBGSpriteID(theme)
+				);
+			}
+
 			m_DTBarOrbsIdxs.clear();
 			m_DTBarOrbsIdxs.reserve(10);
 
@@ -1008,7 +1102,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 		}
 	}
 
-	// 13th: DT bar frames
+	// 12th: DT bar frames
 	{
 		if (dtBarLevel > 0)
 		{
@@ -1023,10 +1117,23 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 					(size_t)GetDTBarFrameSpriteID(theme, i + 1)
 				);
 			}
+
+			// Glows go after the frames so they draw over the metal
+			m_DTBarOrbGlowIdxs.clear();
+			m_DTBarOrbGlowIdxs.reserve(10);
+
+			for (size_t i = 0; i < dtBarLevel + 2; i++)
+			{
+				m_DTBarOrbGlowIdxs.push_back(m_SpriteIds.size());
+
+				m_SpriteIds.push_back(
+					(size_t)GetDTBarOrbGlowSpriteID(theme, i)
+				);
+			}
 		}
 	}
 
-	// 14th: HP bar bg
+	// 13th: HP bar bg
 	{
 		m_HPBarBGIdxs.clear();
 		m_HPBarBGIdxs.reserve(2);
@@ -1048,7 +1155,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 		}
 	}
 
-	// 15th: HP bar damage bar
+	// 14th: HP bar damage bar
 	{
 		m_HPBarDamageIdxs.clear();
 		m_HPBarDamageIdxs.reserve(2);
@@ -1070,7 +1177,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 		}
 	}
 
-	// 16th: HP bar vitality bar
+	// 15th: HP bar vitality bar
 	{
 		m_HPBarVitalityIdxs.clear();
 		m_HPBarVitalityIdxs.reserve(2);
@@ -1092,16 +1199,16 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 		}
 	}
 
-	// 17th: HP bar vitality tail glow
+	// 16th: HP bar vitality tail glow
 	{
 		m_VitalityEndGlowIdx = m_SpriteIds.size();
 
 		m_SpriteIds.push_back(
-			(size_t)GetHPBarVitalityTailGlowSpriteID(theme)
+			(size_t)GetHPBarVitalityTailGlowSpriteID(theme, straightHP)
 		);
 	}
 
-	// 18th: HP bar frames
+	// 17th: HP bar frames
 	{
 		m_HPBarFrameIdxs.clear();
 		m_HPBarFrameIdxs.reserve(20);
@@ -1115,7 +1222,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Single)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Single, straightHP)
 				);
 			}
 			else if (i == 0) // If higher than level 1, the 1st sprite is a head sprite
@@ -1123,7 +1230,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Head)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Head, straightHP)
 				);
 			}
 			else if (i == 10 && hpBarLevel == 11) // If level 11, 11th sprite would be a single frame sprite
@@ -1131,7 +1238,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Single)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Single, straightHP)
 				);
 			}
 			else if (i == hpBarLevel - 1) // Last one would be the tail sprite
@@ -1139,7 +1246,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Tail)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Tail, straightHP)
 				);
 			}
 			else if (i == 9) // If higher than level 10, 10th would be the tail of the top bar
@@ -1147,7 +1254,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Tail)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Tail, straightHP)
 				);
 			}
 			else if (i == 10) // If more than level 11, 11th sprite is the head of the bottom bar
@@ -1155,7 +1262,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Head)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Head, straightHP)
 				);
 			}
 			else // Anything else would be the middle sprite
@@ -1163,7 +1270,7 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 				m_HPBarFrameIdxs.push_back(m_SpriteIds.size());
 
 				m_SpriteIds.push_back(
-					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Mid)
+					(size_t)GetHPBarFrameSpriteID(theme, HPBarFrameVarient_t::Mid, straightHP)
 				);
 			}
 		}
@@ -1569,41 +1676,43 @@ void DanteHUD2::SetSpritePositions()
 		);
 	}
 
-	// 10th: Style exp bar name
-	{
-		const auto idx	     = m_SpriteIndices.GetStyleExpBarNameIdx();
-		const auto transform = GetStyleExpBarName(m_ThemeID, m_ActiveStyle);
+	// DT bar follows the second HP bar when it's offset
+	const float dtOffsetX = m_HPLevel < 11 ? 0.0f : GetStraightBottomOffsetX();
 
-		m_pSpriteBatch->SetTransform(
-			idx, 
-			{ transform.Position.x, transform.Position.y, 0.0f },
-			glm::f32vec3(0.0f),
-			glm::f32vec3(transform.Scale)
-		);
-		m_pSpriteBatch->SetOpacity(idx, m_StyleNameVisible ? 1.0f : 0.0f);
-	}
-
-	// 11th: DT bar orbs
+	// 10th: DT bar orbs
 	{
 		const auto idxs = m_SpriteIndices.GetDTBarOrbIdxs();
+		const auto& bgIdxs = m_SpriteIndices.GetDTBarOrbBGIdxs();
+		const auto& glowIdxs = m_SpriteIndices.GetDTBarOrbGlowIdxs();
 
 		if (m_DTLevel > 0)
 		{
 			for (size_t i = 0; i < m_DTLevel + 2; i++)
 			{
 				const auto transform = GetDTBarOrb(m_ThemeID, m_HPLevel < 11 ? BarPositionID_t::Top : BarPositionID_t::Bottom, i + 1);
+				const glm::f32vec3 position = { transform.Position.x + dtOffsetX, transform.Position.y, 0.0f };
+
+				for (const size_t idx : { bgIdxs[i], idxs[i] })
+				{
+					m_pSpriteBatch->SetTransform(
+						idx,
+						position,
+						glm::f32vec3(0.0f),
+						glm::f32vec3(transform.Scale)
+					);
+				}
 
 				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
+					glowIdxs[i],
+					position,
 					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
+					glm::f32vec3(transform.Scale * HC::Sprites::GetDTBarOrbGlowScale(i))
 				);
 			}
 		}
 	}
 
-	// 12th: DT bar frames
+	// 11th: DT bar frames
 	{
 		const auto idxs = m_SpriteIndices.GetDTBarFrameIdxs();
 
@@ -1613,14 +1722,14 @@ void DanteHUD2::SetSpritePositions()
 
 			m_pSpriteBatch->SetTransform(
 				idxs[i], 
-				{ transform.Position.x, transform.Position.y, 0.0f },
+				{ transform.Position.x + dtOffsetX, transform.Position.y, 0.0f },
 				glm::f32vec3(0.0f),
 				glm::f32vec3(transform.Scale)
 			);
 		}
 	}
 
-	// 13th: HP bar bg
+	// 12th: HP bar bg
 	{
 		const auto& idxs = m_SpriteIndices.GetHPBarBGIdxs();
 
@@ -1631,17 +1740,18 @@ void DanteHUD2::SetSpritePositions()
 		if (idxs.size() == 2)
 		{
 			const auto bottomTransform = GetHPBar(m_ThemeID, BarPositionID_t::Bottom, HPBarVarient_t::Background);
+			const auto bottomX		   = m_StraightHPBars ? topTransform.Position.x + GetStraightBottomOffsetX() : bottomTransform.Position.x;
 
 			m_pSpriteBatch->SetTransform(
 				idxs[1],
-				{ bottomTransform.Position.x, bottomTransform.Position.y, 0.0f },
+				{ bottomX, bottomTransform.Position.y, 0.0f },
 				glm::f32vec3(0.0f),
 				glm::f32vec3(bottomTransform.Scale)
 			);
 		}
 	}
 
-	// 14th: HP bar damage bar
+	// 13th: HP bar damage bar
 	{
 		const auto& idxs = m_SpriteIndices.GetHPBarDamageIdxs();
 
@@ -1652,17 +1762,18 @@ void DanteHUD2::SetSpritePositions()
 		if (idxs.size() == 2)
 		{
 			const auto bottomTransform = GetHPBar(m_ThemeID, BarPositionID_t::Bottom, HPBarVarient_t::Damage);
+			const auto bottomX		   = m_StraightHPBars ? topTransform.Position.x + GetStraightBottomOffsetX() : bottomTransform.Position.x;
 
 			m_pSpriteBatch->SetTransform(
 				idxs[1],
-				{ bottomTransform.Position.x, bottomTransform.Position.y, 0.0f },
+				{ bottomX, bottomTransform.Position.y, 0.0f },
 				glm::f32vec3(0.0f),
 				glm::f32vec3(bottomTransform.Scale)
 			);
 		}
 	}
 
-	// 15th: HP bar vitality bar
+	// 14th: HP bar vitality bar
 	{
 		const auto& idxs = m_SpriteIndices.GetHPBarVitalityIdxs();
 
@@ -1673,23 +1784,24 @@ void DanteHUD2::SetSpritePositions()
 		if (idxs.size() == 2)
 		{
 			const auto bottomTransform = GetHPBar(m_ThemeID, BarPositionID_t::Bottom, HPBarVarient_t::Vitality);
+			const auto bottomX		   = m_StraightHPBars ? topTransform.Position.x + GetStraightBottomOffsetX() : bottomTransform.Position.x;
 
 			m_pSpriteBatch->SetTransform(
 				idxs[1],
-				{ bottomTransform.Position.x, bottomTransform.Position.y, 0.0f },
+				{ bottomX, bottomTransform.Position.y, 0.0f },
 				glm::f32vec3(0.0f),
 				glm::f32vec3(bottomTransform.Scale)
 			);
 		}
 	}
 
-	// 16th: HP bar vitality tail glow
+	// 15th: HP bar vitality tail glow
 	{
 		const auto& idx = m_SpriteIndices.GetHPBarVitalityEndGlowIdx();
 
 		if (m_HPLevel < 11)
 		{
-			const auto x	 = GetVitalityGlowX(BarPositionID_t::Top, m_HPLevel, 1.0f);
+			const auto x	 = GetVitalityGlowX(BarPositionID_t::Top, m_HPLevel, 1.0f, m_StraightHPBars);
 			const auto y	 = GetVitalityBarGlow(m_ThemeID, BarPositionID_t::Top, GlowPos_t::Head).Position.y;
 			const auto scale = GetVitalityBarGlow(m_ThemeID, BarPositionID_t::Top, GlowPos_t::Head).Scale;
 
@@ -1702,7 +1814,7 @@ void DanteHUD2::SetSpritePositions()
 		}
 		else
 		{
-			const auto x	 = GetVitalityGlowX(BarPositionID_t::Bottom, m_HPLevel - 10, 1.0f);
+			const auto x	 = GetVitalityGlowX(BarPositionID_t::Bottom, m_HPLevel - 10, 1.0f, m_StraightHPBars) + GetStraightBottomOffsetX();
 			const auto y	 = GetVitalityBarGlow(m_ThemeID, BarPositionID_t::Bottom, GlowPos_t::Head).Position.y;
 			const auto scale = GetVitalityBarGlow(m_ThemeID, BarPositionID_t::Bottom, GlowPos_t::Head).Scale;
 
@@ -1715,91 +1827,68 @@ void DanteHUD2::SetSpritePositions()
 		}
 	}
 
-	// 17th: HP bar frames
+	// 16th: HP bar frames
 	{
 		const auto& idxs = m_SpriteIndices.GetHPBarFrameIdxs();
+
+		const auto setFrame = [&](size_t i, HPBarFrameVarient_t varient)
+		{
+			const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, varient);
+			// Straight bottom bar sits at the top bar's x, plus the optional offset
+			const auto  x		  = (m_StraightHPBars && i >= 10) ? GetHPBarFrame(m_ThemeID, i - 9, varient).Position.x + GetStraightBottomOffsetX() : transform.Position.x;
+
+			m_pSpriteBatch->SetTransform(
+				idxs[i],
+				{ x, transform.Position.y, 0.0f },
+				glm::f32vec3(0.0f),
+				glm::f32vec3(transform.Scale)
+			);
+		};
 
 		for (size_t i = 0; i < m_HPLevel; i++)
 		{
 			if (m_HPLevel == 1) // If level 1, only a signle frame sprite is used
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Single);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Single);
 			}
 			else if (i == 0) // If higher than level 1, the 1st sprite is a head sprite
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Head);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Head);
 			}
 			else if (i == 10 && m_HPLevel == 11) // If level 11, 11th sprite would be a single frame sprite
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Single);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Single);
 			}
 			else if (i == m_HPLevel - 1) // Last one would be the tail sprite
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Tail);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Tail);
 			}
 			else if (i == 9) // If higher than level 10, 10th would be the tail of the top bar
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Tail);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Tail);
 			}
 			else if (i == 10) // If more than level 11, 11th sprite is the head of the bottom bar
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Head);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Head);
 			}
 			else // Anything else would be the middle sprite
 			{
-				const auto& transform = GetHPBarFrame(m_ThemeID, i + 1, HPBarFrameVarient_t::Middle);
-
-				m_pSpriteBatch->SetTransform(
-					idxs[i],
-					{ transform.Position.x, transform.Position.y, 0.0f },
-					glm::f32vec3(0.0f),
-					glm::f32vec3(transform.Scale)
-				);
+				setFrame(i, HPBarFrameVarient_t::Middle);
 			}
 		}
 	}
+}
+
+float DanteHUD2::GetStraightBottomOffsetX() const
+{
+	using namespace HC::Transforms;
+
+	if (!m_StraightHPBars || !m_StraightHPBarOffset)
+		return 0.0f;
+
+	// Same offset the slanted second bar uses
+	return GetHPBar(m_ThemeID, BarPositionID_t::Bottom, HPBarVarient_t::Background).Position.x
+		 - GetHPBar(m_ThemeID, BarPositionID_t::Top, HPBarVarient_t::Background).Position.x;
 }
 
 void DanteHUD2::SetSpriteMasks()
@@ -1811,11 +1900,11 @@ void DanteHUD2::SetSpriteMasks()
 		switch (i)
 		{
 		case 0:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarBackgroundMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f)));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarBackgroundMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f), m_StraightHPBars));
 			break;
 
 		case 1:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarBackgroundMasks((m_HPLevel - 10) * 0.1f));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarBackgroundMasks((m_HPLevel - 10) * 0.1f, m_StraightHPBars));
 			break;
 
 		default:
@@ -1830,11 +1919,11 @@ void DanteHUD2::SetSpriteMasks()
 		switch (i)
 		{
 		case 0:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarDamageMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f)));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarDamageMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f), m_StraightHPBars));
 			break;
 
 		case 1:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarDamageMasks((m_HPLevel - 10) * 0.1f));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarDamageMasks((m_HPLevel - 10) * 0.1f, m_StraightHPBars));
 			break;
 
 		default:
@@ -1849,11 +1938,11 @@ void DanteHUD2::SetSpriteMasks()
 		switch (i)
 		{
 		case 0:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarVitalityMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f)));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarVitalityMasks(m_HPLevel >= 10 ? 1.0f : (m_HPLevel * 0.1f), m_StraightHPBars));
 			break;
 
 		case 1:
-			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarVitalityMasks((m_HPLevel - 10) * 0.1f));
+			m_pSpriteBatch->SetSpriteMasks(idx, HC::Masks::GetHPBarVitalityMasks((m_HPLevel - 10) * 0.1f, m_StraightHPBars));
 			break;
 
 		default:
@@ -1861,7 +1950,7 @@ void DanteHUD2::SetSpriteMasks()
 		}
 	}
 
-	m_pSpriteBatch->SetSpriteMasks(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), HC::Masks::GetHPBarVitalityEndGlowMasks());
+	m_pSpriteBatch->SetSpriteMasks(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), HC::Masks::GetHPBarVitalityEndGlowMasks(m_StraightHPBars));
 	m_pSpriteBatch->SetSpriteMasks(m_SpriteIndices.GetRoyalguardGaugeIdx(), HC::Masks::GetRGGuageBarMasks(m_RoyalGuardGaugeLevel));
 	m_pSpriteBatch->SetSpriteMasks(m_SpriteIndices.GetStyleExpBarIdx(), HC::Masks::GetStyleExpBarMasks());
 
@@ -1879,17 +1968,17 @@ void DanteHUD2::UpdateHPBarVitality(float fraction)
 
 	// Vitality bar
 	const     auto  vitalSpriteIdxs = m_SpriteIndices.GetHPBarVitalityIdxs();
-	constexpr auto  headMask	    = GetMaskInfo(MaskInfoID_t::HPBarVitalitySlantedHead);
-	constexpr auto  tailMask	    = GetMaskInfo(MaskInfoID_t::HPBarVitalitySlantedTail);
-	constexpr float	fullSpan	    = tailMask.Slanted.Origin.x - headMask.Slanted.Origin.x;
+	const     auto  headMask	    = GetMaskInfo(m_StraightHPBars ? MaskInfoID_t::HPBarVitalityStraightHead : MaskInfoID_t::HPBarVitalitySlantedHead);
+	const     auto  tailMask	    = GetMaskInfo(m_StraightHPBars ? MaskInfoID_t::HPBarVitalityStraightTail : MaskInfoID_t::HPBarVitalitySlantedTail);
+	const     float	fullSpan	    = tailMask.Slanted.Origin.x - headMask.Slanted.Origin.x;
 
 	// End glow
-	const auto glowMaskRangeX	  = HC::Processed::GetGlowMaskRangeX();
+	const auto glowMaskRangeX	  = HC::Processed::GetGlowMaskRangeX(m_StraightHPBars);
 	const auto vitalityEndGlowIdx = m_SpriteIndices.GetHPBarVitalityEndGlowIdx();
 
 	if (m_HPLevel > 10)
 	{
-		constexpr auto fullSpanTopBar		 = fullSpan;
+		const     auto fullSpanTopBar		 = fullSpan;
 		const     auto bottomBarLevel		 = m_HPLevel - 10;
 		const     auto fullBottomBarFraction = bottomBarLevel * 0.1f;
 		const	  auto fullSpanBottomBar	 = fullBottomBarFraction * fullSpan;
@@ -1912,7 +2001,7 @@ void DanteHUD2::UpdateHPBarVitality(float fraction)
 
 				// Glow
 				{
-					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, 10, expectedCurrentFill / fullSpanTopBar);
+					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, 10, expectedCurrentFill / fullSpanTopBar, m_StraightHPBars);
 					constexpr auto  newY		= GetVitalityBarGlow(Theme_t::Colored, BarPositionID_t::Top, GlowPos_t::Head).Position.y;
 					const	  auto  newTrans	= glm::f32vec3{ newX, newY, 0.0f };
 					auto			newMaskInfo = m_pSpriteBatch->GetSpriteMaskInfo(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), 0);
@@ -1934,7 +2023,7 @@ void DanteHUD2::UpdateHPBarVitality(float fraction)
 
 				// Glow
 				{
-					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, 10, 1.0f);
+					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, 10, 1.0f, m_StraightHPBars);
 					constexpr auto  newY		= GetVitalityBarGlow(Theme_t::Colored, BarPositionID_t::Top, GlowPos_t::Head).Position.y;
 					const     auto	newTrans	= glm::f32vec3{ newX, newY, 0.0f };
 					auto			newMaskInfo = m_pSpriteBatch->GetSpriteMaskInfo(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), 0);
@@ -1964,7 +2053,7 @@ void DanteHUD2::UpdateHPBarVitality(float fraction)
 
 				// Glow
 				{
-					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Bottom, bottomBarLevel, expectedBottomFill / fullSpanBottomBar);
+					const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Bottom, bottomBarLevel, expectedBottomFill / fullSpanBottomBar, m_StraightHPBars) + GetStraightBottomOffsetX();
 					constexpr auto  newY		= GetVitalityBarGlow(Theme_t::Colored, BarPositionID_t::Bottom, GlowPos_t::Head).Position.y;
 					const     auto  newTrans	= glm::f32vec3{ newX, newY, 0.0f };
 					auto			newMaskInfo = m_pSpriteBatch->GetSpriteMaskInfo(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), 0);
@@ -2008,7 +2097,7 @@ void DanteHUD2::UpdateHPBarVitality(float fraction)
 
 		// Glow
 		{
-			const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, m_HPLevel, expectedCurrentFill / fullSpanBar);
+			const     auto  newX		= GetVitalityGlowX(BarPositionID_t::Top, m_HPLevel, expectedCurrentFill / fullSpanBar, m_StraightHPBars);
 			constexpr auto  newY		= GetVitalityBarGlow(Theme_t::Colored, BarPositionID_t::Top, GlowPos_t::Head).Position.y;
 			const	  auto  newTrans	= glm::f32vec3{ newX, newY, 0.0f };
 			auto			newMaskInfo = m_pSpriteBatch->GetSpriteMaskInfo(m_SpriteIndices.GetHPBarVitalityEndGlowIdx(), 0);
@@ -2034,13 +2123,13 @@ void DanteHUD2::UpdateHPBarDamage(float fraction)
 	using namespace HC::Masks;
 
 	const     auto  dmgSpriteIdxs	= m_SpriteIndices.GetHPBarDamageIdxs();
-	constexpr auto  headMask	    = GetMaskInfo(MaskInfoID_t::HPBarDamageSlantedHead);
-	constexpr auto  tailMask	    = GetMaskInfo(MaskInfoID_t::HPBarDamageSlantedTail);
-	constexpr float	fullSpan	    = tailMask.Slanted.Origin.x - headMask.Slanted.Origin.x;
+	const     auto  headMask	    = GetMaskInfo(m_StraightHPBars ? MaskInfoID_t::HPBarDamageStraightHead : MaskInfoID_t::HPBarDamageSlantedHead);
+	const     auto  tailMask	    = GetMaskInfo(m_StraightHPBars ? MaskInfoID_t::HPBarDamageStraightTail : MaskInfoID_t::HPBarDamageSlantedTail);
+	const     float	fullSpan	    = tailMask.Slanted.Origin.x - headMask.Slanted.Origin.x;
 
 	if (m_HPLevel > 10)
 	{
-		constexpr auto fullSpanTopBar		 = fullSpan;
+		const     auto fullSpanTopBar		 = fullSpan;
 		const     auto bottomBarLevel		 = m_HPLevel - 10;
 		const     auto fullBottomBarFraction = bottomBarLevel * 0.1f;
 		const	  auto fullSpanBottomBar	 = fullBottomBarFraction * fullSpan;
@@ -2162,6 +2251,12 @@ void DanteHUD2::UpdateDTBarOrbs(float fraction)
 		m_pSpriteBatch->SetOpacity(idx, 0.0f);
 	}
 
+	// Glows only show through ApplyDTOrbPulse
+	for (const auto& idx : m_SpriteIndices.GetDTBarOrbGlowIdxs())
+	{
+		m_pSpriteBatch->SetOpacity(idx, 0.0f);
+	}
+
 	// Fill the orbs that are full
 	for (size_t i = 0; i < numFullOrbs; i++)
 	{
@@ -2178,7 +2273,7 @@ void DanteHUD2::UpdateDTBarOrbs(float fraction)
 void DanteHUD2::UpdateSprites()
 {
 	m_SpriteIndices.UpdateSprites(m_ThemeID, m_ActiveStyle, m_ActiveStyleLevel,
-		m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel);
+		m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel, m_StraightHPBars);
 
 	m_pSpriteBatch->ChangeSprites(m_pD3D11Device, m_SpriteDescs, m_SpriteIndices.GetSpriteIds(), s_pAtlasTexture);
 
@@ -2303,7 +2398,7 @@ void DanteHUD2::DrawDebugControls()
 			scale = m_pSpriteBatch->GetScale(currentSelectedTexture);
 		}
 
-		if (ImGui::SliderInt("Style Level", &styleLevel, 1, 3))
+		if (ImGui::SliderInt("Style Level", &styleLevel, 1, 4))
 		{
 			SetActiveStyleLevel(styleLevel);
 
@@ -2394,6 +2489,12 @@ void DanteHUD2::DrawDebugControls()
 		if (ImGui::SliderFloat("DT Fill", &dtFill, 0.0f, 1.0f))
 		{
 			SetDTFill(dtFill);
+		}
+
+		bool dtReady = m_DTReady;
+		if (ImGui::Checkbox("DT Ready", &dtReady))
+		{
+			SetDTReady(dtReady);
 		}
 
 		if (ImGui::ListBox("Texture List", &currentSelectedTexture, textureIDNames.data(), textureIDNames.size()))
@@ -2566,8 +2667,8 @@ std::string DanteHUD2::DumpSpriteLayout()
 	using namespace HC::Sprites;
 	using MaskType_t = Graphics::BatchedSprites::MaskType_t;
 
-	std::string out = std::format("// Theme {}, style {}, style level {}, HP level {}, DT level {}, RG level {}\n",
-		(int)m_ThemeID, (int)m_ActiveStyle, m_ActiveStyleLevel, m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel);
+	std::string out = std::format("// Theme {}, style {}, style level {}, HP level {}, DT level {}, RG level {}, straight HP {}, offset {}\n",
+		(int)m_ThemeID, (int)m_ActiveStyle, m_ActiveStyleLevel, m_HPLevel, m_DTLevel, m_RoyalGuardGaugeLevel, m_StraightHPBars, m_StraightHPBarOffset);
 	out += std::format("// Fills: HP {:.4f}f, DMG {:.4f}f, RG {:.4f}f, style exp {:.4f}f, DT {:.4f}f\n",
 		m_HPFill, m_DMGFill, m_RoyalguardGuageFill, m_ActiveStyleExpFill, m_DTFill);
 	out += "// { sprite, index, { posX, posY }, scale }\n";

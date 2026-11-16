@@ -61,47 +61,20 @@ enum class SpriteID_t {
 	Fore_G,
 	Fore_R,
 	Frame_Exp,
-	Written_Colored_DG,
-	Written_Crimson_DG,
-	Blurred_Colored_R,
-	Blurred_Crimson_R,
-	Written_Colored_R,
-	Written_Crimson_R,
-	Written_Colored_G,
-	Written_Crimson_G,
-	Blurred_Colored_DG,
-	Blurred_Colored_G,
-	Blurred_Crimson_DG,
-	Blurred_Crimson_G,
 	Frame_DT_4,
-	Blurred_Colored_DS,
-	Blurred_Crimson_DS,
-	Written_Colored_DS,
-	Written_Crimson_DS,
 	Frame_DT_5,
-	Blurred_Colored_S,
-	Blurred_Crimson_S,
-	Written_Colored_S,
-	Written_Crimson_S,
 	Frame_RG_3,
 	Frame_DT_8,
 	Frame_DT_9,
 	Frame_DT_6,
 	Frame_DT_7,
-	Blurred_Colored_QS,
-	Blurred_Crimson_QS,
-	Written_Colored_QS,
-	Written_Crimson_QS,
 	Frame_DT_10,
 	Orb_DT,
-	Blurred_Colored_T,
-	Blurred_Crimson_T,
-	Written_Colored_T,
-	Written_Crimson_T,
 	Fill_RG_3,
 	Frame_Exp_Lv1,
 	Frame_Exp_Lv3,
 	Frame_Exp_Lv2,
+	Frame_Exp_Lv4,
 	Frame_RG_2,
 	Frame_HP_End,
 	Frame_HP_Middle,
@@ -122,6 +95,14 @@ enum class SpriteID_t {
 	Exp_RG,
 	Exp_S,
 	Exp_T,
+	Frame_HP_End_Straight,
+	Frame_HP_Middle_Straight,
+	Frame_HP_Single_Straight,
+	Frame_HP_Start_Straight,
+	Glow_HP_Straight,
+	BG_Orb_DT,
+	Glow_Orb_DT,
+	Glow_Orb_DT_Small,
 
 	SIZE
 };
@@ -570,114 +551,6 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.B = 2080.0f / 4096.0f,
 		}
 	},
-	{ // Written_Colored_DG
-		.RegionRect =
-		{
-			.L = 1300.0f / 4096.0f,
-			.T = 1869.0f / 4096.0f,
-			.R = 2253.0f / 4096.0f,
-			.B = 2059.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_DG
-		.RegionRect =
-		{
-			.L = 2270.0f / 4096.0f,
-			.T = 1869.0f / 4096.0f,
-			.R = 3223.0f / 4096.0f,
-			.B = 2059.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Colored_R
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 2097.0f / 4096.0f,
-			.R = 926.0f / 4096.0f,
-			.B = 2284.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_R
-		.RegionRect =
-		{
-			.L = 943.0f / 4096.0f,
-			.T = 2097.0f / 4096.0f,
-			.R = 1845.0f / 4096.0f,
-			.B = 2284.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_R
-		.RegionRect =
-		{
-			.L = 1862.0f / 4096.0f,
-			.T = 2097.0f / 4096.0f,
-			.R = 2668.0f / 4096.0f,
-			.B = 2284.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_R
-		.RegionRect =
-		{
-			.L = 2685.0f / 4096.0f,
-			.T = 2097.0f / 4096.0f,
-			.R = 3491.0f / 4096.0f,
-			.B = 2284.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_G
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 2301.0f / 4096.0f,
-			.R = 709.0f / 4096.0f,
-			.B = 2473.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_G
-		.RegionRect =
-		{
-			.L = 726.0f / 4096.0f,
-			.T = 2301.0f / 4096.0f,
-			.R = 1411.0f / 4096.0f,
-			.B = 2473.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Colored_DG
-		.RegionRect =
-		{
-			.L = 1428.0f / 4096.0f,
-			.T = 2301.0f / 4096.0f,
-			.R = 2477.0f / 4096.0f,
-			.B = 2472.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Colored_G
-		.RegionRect =
-		{
-			.L = 2494.0f / 4096.0f,
-			.T = 2301.0f / 4096.0f,
-			.R = 3275.0f / 4096.0f,
-			.B = 2472.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_DG
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 2490.0f / 4096.0f,
-			.R = 1073.0f / 4096.0f,
-			.B = 2661.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_G
-		.RegionRect =
-		{
-			.L = 1090.0f / 4096.0f,
-			.T = 2490.0f / 4096.0f,
-			.R = 1871.0f / 4096.0f,
-			.B = 2661.0f / 4096.0f,
-		}
-	},
 	{ // Frame_DT_4
 		.RegionRect =
 		{
@@ -687,42 +560,6 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.B = 2654.0f / 4096.0f,
 		}
 	},
-	{ // Blurred_Colored_DS
-		.RegionRect =
-		{
-			.L = 2137.0f / 4096.0f,
-			.T = 2490.0f / 4096.0f,
-			.R = 2952.0f / 4096.0f,
-			.B = 2653.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_DS
-		.RegionRect =
-		{
-			.L = 2969.0f / 4096.0f,
-			.T = 2490.0f / 4096.0f,
-			.R = 3784.0f / 4096.0f,
-			.B = 2653.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_DS
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 2678.0f / 4096.0f,
-			.R = 743.0f / 4096.0f,
-			.B = 2841.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_DS
-		.RegionRect =
-		{
-			.L = 760.0f / 4096.0f,
-			.T = 2678.0f / 4096.0f,
-			.R = 1479.0f / 4096.0f,
-			.B = 2841.0f / 4096.0f,
-		}
-	},
 	{ // Frame_DT_5
 		.RegionRect =
 		{
@@ -730,42 +567,6 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.T = 2678.0f / 4096.0f,
 			.R = 1718.0f / 4096.0f,
 			.B = 2840.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Colored_S
-		.RegionRect =
-		{
-			.L = 1735.0f / 4096.0f,
-			.T = 2678.0f / 4096.0f,
-			.R = 2658.0f / 4096.0f,
-			.B = 2833.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_S
-		.RegionRect =
-		{
-			.L = 2675.0f / 4096.0f,
-			.T = 2678.0f / 4096.0f,
-			.R = 3598.0f / 4096.0f,
-			.B = 2833.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_S
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 2858.0f / 4096.0f,
-			.R = 851.0f / 4096.0f,
-			.B = 3013.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_S
-		.RegionRect =
-		{
-			.L = 868.0f / 4096.0f,
-			.T = 2858.0f / 4096.0f,
-			.R = 1695.0f / 4096.0f,
-			.B = 3013.0f / 4096.0f,
 		}
 	},
 	{ // Frame_RG_3
@@ -813,42 +614,6 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.B = 3009.0f / 4096.0f,
 		}
 	},
-	{ // Blurred_Colored_QS
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 3030.0f / 4096.0f,
-			.R = 880.0f / 4096.0f,
-			.B = 3180.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_QS
-		.RegionRect =
-		{
-			.L = 897.0f / 4096.0f,
-			.T = 3030.0f / 4096.0f,
-			.R = 1753.0f / 4096.0f,
-			.B = 3180.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_QS
-		.RegionRect =
-		{
-			.L = 1770.0f / 4096.0f,
-			.T = 3030.0f / 4096.0f,
-			.R = 2530.0f / 4096.0f,
-			.B = 3180.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_QS
-		.RegionRect =
-		{
-			.L = 2547.0f / 4096.0f,
-			.T = 3030.0f / 4096.0f,
-			.R = 3307.0f / 4096.0f,
-			.B = 3180.0f / 4096.0f,
-		}
-	},
 	{ // Frame_DT_10
 		.RegionRect =
 		{
@@ -865,42 +630,6 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.T = 3030.0f / 4096.0f,
 			.R = 3704.0f / 4096.0f,
 			.B = 3169.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Colored_T
-		.RegionRect =
-		{
-			.L = 24.0f / 4096.0f,
-			.T = 3197.0f / 4096.0f,
-			.R = 625.0f / 4096.0f,
-			.B = 3336.0f / 4096.0f,
-		}
-	},
-	{ // Blurred_Crimson_T
-		.RegionRect =
-		{
-			.L = 642.0f / 4096.0f,
-			.T = 3197.0f / 4096.0f,
-			.R = 1243.0f / 4096.0f,
-			.B = 3336.0f / 4096.0f,
-		}
-	},
-	{ // Written_Colored_T
-		.RegionRect =
-		{
-			.L = 1260.0f / 4096.0f,
-			.T = 3197.0f / 4096.0f,
-			.R = 1765.0f / 4096.0f,
-			.B = 3336.0f / 4096.0f,
-		}
-	},
-	{ // Written_Crimson_T
-		.RegionRect =
-		{
-			.L = 1782.0f / 4096.0f,
-			.T = 3197.0f / 4096.0f,
-			.R = 2287.0f / 4096.0f,
-			.B = 3336.0f / 4096.0f,
 		}
 	},
 	{ // Fill_RG_3
@@ -937,6 +666,15 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.T = 3197.0f / 4096.0f,
 			.R = 3590.0f / 4096.0f,
 			.B = 3310.0f / 4096.0f,
+		}
+	},
+	{ // Frame_Exp_Lv4
+		.RegionRect =
+		{
+			.L = 1300.0f / 4096.0f,
+			.T = 1869.0f / 4096.0f,
+			.R = 1540.0f / 4096.0f,
+			.B = 1989.0f / 4096.0f,
 		}
 	},
 	{ // Frame_RG_2
@@ -1117,6 +855,79 @@ constexpr SpriteInfo_t SPRITES_INFO[] =
 			.T = 3838.0f / 4096.0f,
 			.R = 2253.0f / 4096.0f,
 			.B = 3854.0f / 4096.0f,
+		}
+	},
+	// Straight frames carry left padding so they reuse the slanted frame transforms.
+	{ // Frame_HP_End_Straight
+		.RegionRect =
+		{
+			.L = 24.0f / 4096.0f,
+			.T = 2120.0f / 4096.0f,
+			.R = 392.0f / 4096.0f,
+			.B = 2230.0f / 4096.0f,
+		}
+	},
+	{ // Frame_HP_Middle_Straight
+		.RegionRect =
+		{
+			.L = 409.0f / 4096.0f,
+			.T = 2120.0f / 4096.0f,
+			.R = 675.0f / 4096.0f,
+			.B = 2230.0f / 4096.0f,
+		}
+	},
+	{ // Frame_HP_Single_Straight
+		.RegionRect =
+		{
+			.L = 692.0f / 4096.0f,
+			.T = 2120.0f / 4096.0f,
+			.R = 1054.0f / 4096.0f,
+			.B = 2230.0f / 4096.0f,
+		}
+	},
+	{ // Frame_HP_Start_Straight
+		.RegionRect =
+		{
+			.L = 1071.0f / 4096.0f,
+			.T = 2120.0f / 4096.0f,
+			.R = 1357.0f / 4096.0f,
+			.B = 2230.0f / 4096.0f,
+		}
+	},
+	{ // Glow_HP_Straight
+		.RegionRect =
+		{
+			.L = 1374.0f / 4096.0f,
+			.T = 2120.0f / 4096.0f,
+			.R = 1588.0f / 4096.0f,
+			.B = 2206.0f / 4096.0f,
+		}
+	},
+	{ // BG_Orb_DT
+		.RegionRect =
+		{
+			.L = 24.0f / 4096.0f,
+			.T = 2264.0f / 4096.0f,
+			.R = 121.0f / 4096.0f,
+			.B = 2360.0f / 4096.0f,
+		}
+	},
+	{ // Glow_Orb_DT
+		.RegionRect =
+		{
+			.L = 2021.0f / 4096.0f,
+			.T = 1841.0f / 4096.0f,
+			.R = 2248.0f / 4096.0f,
+			.B = 2066.0f / 4096.0f,
+		}
+	},
+	{ // Glow_Orb_DT_Small
+		.RegionRect =
+		{
+			.L = 2626.0f / 4096.0f,
+			.T = 1930.0f / 4096.0f,
+			.R = 2825.0f / 4096.0f,
+			.B = 2128.0f / 4096.0f,
 		}
 	},
 };
@@ -1361,75 +1172,6 @@ constexpr auto GetRoyalguardGuageSpriteID(Theme_t theme, size_t level)
 	}
 }
 
-constexpr auto GetStyleExpBarNameColoredSpriteID(Style_t style, bool blurred)
-{
-	switch (style)
-	{
-	default:
-	case Style_t::Trickster:
-		return blurred ? SpriteID_t::Blurred_Colored_T : SpriteID_t::Written_Colored_T;
-
-	case Style_t::Swordmaster:
-		return blurred ? SpriteID_t::Blurred_Colored_S : SpriteID_t::Written_Colored_S;
-
-	case Style_t::Royalguard:
-		return blurred ? SpriteID_t::Blurred_Colored_R : SpriteID_t::Written_Colored_R;
-
-	case Style_t::Gunslinger:
-		return blurred ? SpriteID_t::Blurred_Colored_G : SpriteID_t::Written_Colored_G;
-
-	case Style_t::Darkslayer:
-		return blurred ? SpriteID_t::Blurred_Colored_DS : SpriteID_t::Written_Colored_DS;
-
-	case Style_t::Quicksilver:
-		return blurred ? SpriteID_t::Blurred_Colored_QS : SpriteID_t::Written_Colored_QS;
-
-	case Style_t::Doppleganger:
-		return blurred ? SpriteID_t::Blurred_Colored_DG : SpriteID_t::Written_Colored_DG;
-	}
-}
-
-constexpr auto GetStyleExpBarNameCrimsonSpriteID(Style_t style, bool blurred)
-{
-	switch (style)
-	{
-	default:
-	case Style_t::Trickster:
-		return blurred ? SpriteID_t::Blurred_Crimson_T : SpriteID_t::Written_Crimson_T;
-
-	case Style_t::Swordmaster:
-		return blurred ? SpriteID_t::Blurred_Crimson_S : SpriteID_t::Written_Crimson_S;
-
-	case Style_t::Royalguard:
-		return blurred ? SpriteID_t::Blurred_Crimson_R : SpriteID_t::Written_Crimson_R;
-
-	case Style_t::Gunslinger:
-		return blurred ? SpriteID_t::Blurred_Crimson_G : SpriteID_t::Written_Crimson_G;
-
-	case Style_t::Darkslayer:
-		return blurred ? SpriteID_t::Blurred_Crimson_DS : SpriteID_t::Written_Crimson_DS;
-
-	case Style_t::Quicksilver:
-		return blurred ? SpriteID_t::Blurred_Crimson_QS : SpriteID_t::Written_Crimson_QS;
-
-	case Style_t::Doppleganger:
-		return blurred ? SpriteID_t::Blurred_Crimson_DG : SpriteID_t::Written_Crimson_DG;
-	}
-}
-
-constexpr auto GetStyleExpBarNameSpriteID(Theme_t theme, Style_t style, bool blurred)
-{
-	switch (theme)
-	{
-	case Theme_t::Crimson:
-		return GetStyleExpBarNameCrimsonSpriteID(style, blurred);
-
-	default:
-	case Theme_t::Colored:
-		return GetStyleExpBarNameColoredSpriteID(style, blurred);
-	}
-}
-
 constexpr auto GetStyleExpBarSpriteID(Theme_t theme, Style_t style)
 {
 	if (theme == Theme_t::Crimson)
@@ -1480,6 +1222,9 @@ constexpr auto GetStyleExpBarLevelNumberSpriteID(Theme_t theme, size_t level)
 
 	case 3:
 		return SpriteID_t::Frame_Exp_Lv3;
+
+	case 4:
+		return SpriteID_t::Frame_Exp_Lv4;
 	}
 }
 
@@ -1521,23 +1266,40 @@ constexpr auto GetDTBarOrbSpriteID(Theme_t theme, bool allOrbs)
 	return allOrbs ? SpriteID_t::Allorbs_DT : SpriteID_t::Orb_DT;
 }
 
-constexpr auto GetHPBarFrameSpriteID(Theme_t theme, HPBarFrameVarient_t varient)
+constexpr auto GetDTBarOrbBGSpriteID(Theme_t theme)
+{
+	return SpriteID_t::BG_Orb_DT;
+}
+
+// The first three orbs are the big ones.
+constexpr auto GetDTBarOrbGlowSpriteID(Theme_t theme, size_t orbIdx)
+{
+	return orbIdx < 3 ? SpriteID_t::Glow_Orb_DT : SpriteID_t::Glow_Orb_DT_Small;
+}
+
+// Glow height over the orb's height. The glows match the Allorbs_DT layout (144px big, 109px small orbs), Orb_DT is 138px in a 139px rect.
+constexpr float GetDTBarOrbGlowScale(size_t orbIdx)
+{
+	return orbIdx < 3 ? (225.0f / 144.0f) * (138.0f / 139.0f) : (198.0f / 109.0f) * (138.0f / 139.0f);
+}
+
+constexpr auto GetHPBarFrameSpriteID(Theme_t theme, HPBarFrameVarient_t varient, bool straight = false)
 {
 	// Currently the theme is unused for this
 	switch (varient)
 	{
 	case HPBarFrameVarient_t::Single:
-		return SpriteID_t::Frame_HP_Single;
+		return straight ? SpriteID_t::Frame_HP_Single_Straight : SpriteID_t::Frame_HP_Single;
 
 	case HPBarFrameVarient_t::Head:
-		return SpriteID_t::Frame_HP_Start;
+		return straight ? SpriteID_t::Frame_HP_Start_Straight : SpriteID_t::Frame_HP_Start;
 
 	default:
 	case HPBarFrameVarient_t::Mid:
-		return SpriteID_t::Frame_HP_Middle;
+		return straight ? SpriteID_t::Frame_HP_Middle_Straight : SpriteID_t::Frame_HP_Middle;
 
 	case HPBarFrameVarient_t::Tail:
-		return SpriteID_t::Frame_HP_End;
+		return straight ? SpriteID_t::Frame_HP_End_Straight : SpriteID_t::Frame_HP_End;
 	}
 }
 
@@ -1559,10 +1321,10 @@ constexpr auto GetHPBarDamageSpriteID(Theme_t theme)
 	return SpriteID_t::Dmg_HP;
 }
 
-constexpr auto GetHPBarVitalityTailGlowSpriteID(Theme_t theme)
+constexpr auto GetHPBarVitalityTailGlowSpriteID(Theme_t theme, bool straight = false)
 {
 	// Currently the theme is unused for this
-	return SpriteID_t::Glow_HP;
+	return straight ? SpriteID_t::Glow_HP_Straight : SpriteID_t::Glow_HP;
 }
 
 constexpr const char* GetTextureNameFromSpriteID(SpriteID_t texID)
@@ -1616,47 +1378,20 @@ constexpr const char* GetTextureNameFromSpriteID(SpriteID_t texID)
 	case SpriteID_t::Fore_G: return "Fore_G";
 	case SpriteID_t::Fore_R: return "Fore_R";
 	case SpriteID_t::Frame_Exp: return "Frame_Exp";
-	case SpriteID_t::Written_Colored_DG: return "Written_Colored_DG";
-	case SpriteID_t::Written_Crimson_DG: return "Written_Crimson_DG";
-	case SpriteID_t::Blurred_Colored_R: return "Blurred_Colored_R";
-	case SpriteID_t::Blurred_Crimson_R: return "Blurred_Crimson_R";
-	case SpriteID_t::Written_Colored_R: return "Written_Colored_R";
-	case SpriteID_t::Written_Crimson_R: return "Written_Crimson_R";
-	case SpriteID_t::Written_Colored_G: return "Written_Colored_G";
-	case SpriteID_t::Written_Crimson_G: return "Written_Crimson_G";
-	case SpriteID_t::Blurred_Colored_DG: return "Blurred_Colored_DG";
-	case SpriteID_t::Blurred_Colored_G: return "Blurred_Colored_G";
-	case SpriteID_t::Blurred_Crimson_DG: return "Blurred_Crimson_DG";
-	case SpriteID_t::Blurred_Crimson_G: return "Blurred_Crimson_G";
 	case SpriteID_t::Frame_DT_4: return "Frame_DT_4";
-	case SpriteID_t::Blurred_Colored_DS: return "Blurred_Colored_DS";
-	case SpriteID_t::Blurred_Crimson_DS: return "Blurred_Crimson_DS";
-	case SpriteID_t::Written_Colored_DS: return "Written_Colored_DS";
-	case SpriteID_t::Written_Crimson_DS: return "Written_Crimson_DS";
 	case SpriteID_t::Frame_DT_5: return "Frame_DT_5";
-	case SpriteID_t::Blurred_Colored_S: return "Blurred_Colored_S";
-	case SpriteID_t::Blurred_Crimson_S: return "Blurred_Crimson_S";
-	case SpriteID_t::Written_Colored_S: return "Written_Colored_S";
-	case SpriteID_t::Written_Crimson_S: return "Written_Crimson_S";
 	case SpriteID_t::Frame_RG_3: return "Frame_RG_3";
 	case SpriteID_t::Frame_DT_8: return "Frame_DT_8";
 	case SpriteID_t::Frame_DT_9: return "Frame_DT_9";
 	case SpriteID_t::Frame_DT_6: return "Frame_DT_6";
 	case SpriteID_t::Frame_DT_7: return "Frame_DT_7";
-	case SpriteID_t::Blurred_Colored_QS: return "Blurred_Colored_QS";
-	case SpriteID_t::Blurred_Crimson_QS: return "Blurred_Crimson_QS";
-	case SpriteID_t::Written_Colored_QS: return "Written_Colored_QS";
-	case SpriteID_t::Written_Crimson_QS: return "Written_Crimson_QS";
 	case SpriteID_t::Frame_DT_10: return "Frame_DT_10";
 	case SpriteID_t::Orb_DT: return "Orb_DT";
-	case SpriteID_t::Blurred_Colored_T: return "Blurred_Colored_T";
-	case SpriteID_t::Blurred_Crimson_T: return "Blurred_Crimson_T";
-	case SpriteID_t::Written_Colored_T: return "Written_Colored_T";
-	case SpriteID_t::Written_Crimson_T: return "Written_Crimson_T";
 	case SpriteID_t::Fill_RG_1: return "Fill_RG_1";
 	case SpriteID_t::Frame_Exp_Lv1: return "Frame_Exp_Lv1";
 	case SpriteID_t::Frame_Exp_Lv3: return "Frame_Exp_Lv3";
 	case SpriteID_t::Frame_Exp_Lv2: return "Frame_Exp_Lv2";
+	case SpriteID_t::Frame_Exp_Lv4: return "Frame_Exp_Lv4";
 	case SpriteID_t::Frame_RG_2: return "Frame_RG_2";
 	case SpriteID_t::Frame_HP_End: return "Frame_HP_End";
 	case SpriteID_t::Frame_HP_Middle: return "Frame_HP_Middle";
@@ -1677,6 +1412,14 @@ constexpr const char* GetTextureNameFromSpriteID(SpriteID_t texID)
 	case SpriteID_t::Exp_RG: return "Exp_RG";
 	case SpriteID_t::Exp_S: return "Exp_S";
 	case SpriteID_t::Exp_T: return "Exp_T";
+	case SpriteID_t::Frame_HP_End_Straight: return "Frame_HP_End_Straight";
+	case SpriteID_t::Frame_HP_Middle_Straight: return "Frame_HP_Middle_Straight";
+	case SpriteID_t::Frame_HP_Single_Straight: return "Frame_HP_Single_Straight";
+	case SpriteID_t::Frame_HP_Start_Straight: return "Frame_HP_Start_Straight";
+	case SpriteID_t::Glow_HP_Straight: return "Glow_HP_Straight";
+	case SpriteID_t::BG_Orb_DT: return "BG_Orb_DT";
+	case SpriteID_t::Glow_Orb_DT: return "Glow_Orb_DT";
+	case SpriteID_t::Glow_Orb_DT_Small: return "Glow_Orb_DT_Small";
 	}
 }
 
@@ -1936,21 +1679,12 @@ enum class TransformID_t
 	Style_Exp_Bar_Level_Digit_Lv1,
 	Style_Exp_Bar_Level_Digit_Lv2,
 	Style_Exp_Bar_Level_Digit_Lv3,
+	Style_Exp_Bar_Level_Digit_Lv4,
 	
-	Style_Exp_Bar_Name_Written_Colored_DG,
-	Style_Exp_Bar_Name_Written_Colored_DS,
-	Style_Exp_Bar_Name_Written_Colored_G,
-	Style_Exp_Bar_Name_Written_Colored_QS,
-	Style_Exp_Bar_Name_Written_Colored_R,
-	Style_Exp_Bar_Name_Written_Colored_S,
-	Style_Exp_Bar_Name_Written_Colored_T,
-	Style_Exp_Bar_Name_Written_Crimson_DG,
-	Style_Exp_Bar_Name_Written_Crimson_DS,
-	Style_Exp_Bar_Name_Written_Crimson_G,
-	Style_Exp_Bar_Name_Written_Crimson_QS,
-	Style_Exp_Bar_Name_Written_Crimson_R,
-	Style_Exp_Bar_Name_Written_Crimson_S,
-	Style_Exp_Bar_Name_Written_Crimson_T,
+	HP_Bar_Glow_Straight_Top_Head,
+	HP_Bar_Glow_Straight_Top_Tail,
+	HP_Bar_Glow_Straight_Bottom_Head,
+	HP_Bar_Glow_Straight_Bottom_Tail,
 	
 	SIZE
 };
@@ -2767,89 +2501,36 @@ constexpr SpriteTransform SPRITE_TRANSFORMS[] =
 		.Scale = 0.10499999672174454f,
 		.Position = { 0.13099999725818634f, 0.5799999833106995f },
 	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_DG
+	SpriteTransform // Style_Exp_Bar_Level_Digit_Lv4
 	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_DG,
-		.Scale = 0.25699999928474426f,
-		.Position = { -0.18700000643730164f, 0.7310000061988831f },
+		.SpriteID_t = Sprites::SpriteID_t::Frame_Exp_Lv4,
+		.Scale = 0.10499999672174454f,
+		.Position = { 0.13099999725818634f, 0.5799999833106995f },
 	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_DS
+	// Right edge of the straight glow lands on the straight fill's head/tail.
+	SpriteTransform // HP_Bar_Glow_Straight_Top_Head
 	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_DS,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.23100000619888306f, 0.7519999742507935f },
+		.SpriteID_t = Sprites::SpriteID_t::Glow_HP_Straight,
+		.Scale = 0.0729999989271164f,
+		.Position = { -0.58197f, 0.37700000405311584f },
 	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_G
+	SpriteTransform // HP_Bar_Glow_Straight_Top_Tail
 	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_G,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.23199999332427979f, 0.7739999890327454f },
+		.SpriteID_t = Sprites::SpriteID_t::Glow_HP_Straight,
+		.Scale = 0.0729999989271164f,
+		.Position = { 0.83307f, 0.37700000405311584f },
 	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_QS
+	SpriteTransform // HP_Bar_Glow_Straight_Bottom_Head
 	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_QS,
-		.Scale = 0.19900000095367432f,
-		.Position = { -0.23800000548362732f, 0.7570000290870667f },
+		.SpriteID_t = Sprites::SpriteID_t::Glow_HP_Straight,
+		.Scale = 0.0729999989271164f,
+		.Position = { -0.58197f, 0.1550000011920929f },
 	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_R
+	SpriteTransform // HP_Bar_Glow_Straight_Bottom_Tail
 	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_R,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.2329999953508377f, 0.7519999742507935f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_S
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_S,
-		.Scale = 0.2160000056028366f,
-		.Position = { -0.2199999988079071f, 0.7739999890327454f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Colored_T
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Colored_T,
-		.Scale = 0.13300000131130219f,
-		.Position = { -0.296999990940094f, 0.7670000195503235f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_DG
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_DG,
-		.Scale = 0.25699999928474426f,
-		.Position = { -0.18700000643730164f, 0.7310000061988831f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_DS
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_DS,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.23100000619888306f, 0.7519999742507935f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_G
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_G,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.23199999332427979f, 0.7739999890327454f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_QS
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_QS,
-		.Scale = 0.19900000095367432f,
-		.Position = { -0.23800000548362732f, 0.7570000290870667f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_R
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_R,
-		.Scale = 0.21199999749660492f,
-		.Position = { -0.2329999953508377f, 0.7519999742507935f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_S
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_S,
-		.Scale = 0.2160000056028366f,
-		.Position = { -0.2199999988079071f, 0.7739999890327454f },
-	},
-	SpriteTransform // Style_Exp_Bar_Name_Written_Crimson_T
-	{
-		.SpriteID_t = Sprites::SpriteID_t::Written_Crimson_T,
-		.Scale = 0.13300000131130219f,
-		.Position = { -0.296999990940094f, 0.7670000195503235f },
+		.SpriteID_t = Sprites::SpriteID_t::Glow_HP_Straight,
+		.Scale = 0.0729999989271164f,
+		.Position = { 0.83307f, 0.1550000011920929f },
 	},
 };
 
@@ -3274,7 +2955,7 @@ constexpr const auto& GetHPBarFrame(Theme_t theme, size_t level, HPBarFrameVarie
 	}
 }
 
-constexpr const auto& GetVitalityBarGlow(Theme_t theme, BarPositionID_t barPosition, GlowPos_t glowPosition)
+constexpr const auto& GetVitalityBarGlow(Theme_t theme, BarPositionID_t barPosition, GlowPos_t glowPosition, bool straight = false)
 {
 	switch (barPosition)
 	{
@@ -3283,8 +2964,8 @@ constexpr const auto& GetVitalityBarGlow(Theme_t theme, BarPositionID_t barPosit
 	{
 		switch (glowPosition)
 		{
-		case GlowPos_t::Head: return GetSpriteTransform(TransformID_t::HP_Bar_Glow_Top_Head);
-		case GlowPos_t::Tail: return GetSpriteTransform(TransformID_t::HP_Bar_Glow_Top_Tail);
+		case GlowPos_t::Head: return GetSpriteTransform(straight ? TransformID_t::HP_Bar_Glow_Straight_Top_Head : TransformID_t::HP_Bar_Glow_Top_Head);
+		case GlowPos_t::Tail: return GetSpriteTransform(straight ? TransformID_t::HP_Bar_Glow_Straight_Top_Tail : TransformID_t::HP_Bar_Glow_Top_Tail);
 		}
 	} break;
 
@@ -3292,8 +2973,8 @@ constexpr const auto& GetVitalityBarGlow(Theme_t theme, BarPositionID_t barPosit
 	{
 		switch (glowPosition)
 		{
-		case GlowPos_t::Head: return GetSpriteTransform(TransformID_t::HP_Bar_Glow_Bottom_Head);
-		case GlowPos_t::Tail: return GetSpriteTransform(TransformID_t::HP_Bar_Glow_Bottom_Tail);
+		case GlowPos_t::Head: return GetSpriteTransform(straight ? TransformID_t::HP_Bar_Glow_Straight_Bottom_Head : TransformID_t::HP_Bar_Glow_Bottom_Head);
+		case GlowPos_t::Tail: return GetSpriteTransform(straight ? TransformID_t::HP_Bar_Glow_Straight_Bottom_Tail : TransformID_t::HP_Bar_Glow_Bottom_Tail);
 		}
 	} break;
 	}
@@ -3351,51 +3032,15 @@ constexpr const auto& GetStyleExpBarLevelDigit(Theme_t theme, size_t level)
 	case 1: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Level_Digit_Lv1);
 	case 2: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Level_Digit_Lv2);
 	case 3: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Level_Digit_Lv3);
+	case 4: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Level_Digit_Lv4);
 	}
 }
 
-constexpr const auto& GetStyleExpBarName(Theme_t theme, Style_t style)
-{
-	switch (theme)
-	{
-	default:
-	case Theme_t::Colored:
-	{
-		switch (style)
-		{
-		default:
-		case Style_t::Trickster:    return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_T);
-		case Style_t::Swordmaster:  return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_S);
-		case Style_t::Royalguard:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_R);
-		case Style_t::Gunslinger:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_G);
-		case Style_t::Darkslayer:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_DS);
-		case Style_t::Quicksilver:  return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_QS);
-		case Style_t::Doppleganger: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Colored_DG);
-		}
-	} break;
-
-	case Theme_t::Crimson:
-	{
-		switch (style)
-		{
-		default:
-		case Style_t::Trickster:    return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_T);
-		case Style_t::Swordmaster:  return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_S);
-		case Style_t::Royalguard:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_R);
-		case Style_t::Gunslinger:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_G);
-		case Style_t::Darkslayer:   return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_DS);
-		case Style_t::Quicksilver:  return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_QS);
-		case Style_t::Doppleganger: return GetSpriteTransform(TransformID_t::Style_Exp_Bar_Name_Written_Crimson_DG);
-		}
-	} break;
-	}
-}
-
-auto GetVitalityGlowX(BarPositionID_t barPosition, size_t level, float fraction)
+auto GetVitalityGlowX(BarPositionID_t barPosition, size_t level, float fraction, bool straight = false)
 {
 	Theme_t theme			    = Theme_t::Colored;
-	auto    headPos			    = GetVitalityBarGlow(theme, barPosition, GlowPos_t::Head).Position.x;
-	auto    tailMaxPos		    = GetVitalityBarGlow(theme, barPosition, GlowPos_t::Tail).Position.x;
+	auto    headPos			    = GetVitalityBarGlow(theme, barPosition, GlowPos_t::Head, straight).Position.x;
+	auto    tailMaxPos		    = GetVitalityBarGlow(theme, barPosition, GlowPos_t::Tail, straight).Position.x;
 	auto    currentLevelTailPos = glm::mix(headPos, tailMaxPos, level / 10.0f);
 
 	return glm::mix(headPos, currentLevelTailPos, fraction);
@@ -3417,6 +3062,13 @@ enum class MaskInfoID_t
 	RGGuageBarLV3,
 	StyleExpBarSlantedTail,
 	HPBarTailGlow,
+	HPBarVitalityStraightHead,
+	HPBarVitalityStraightTail,
+	HPBarDamageStraightHead,
+	HPBarDamageStraightTail,
+	HPBarBackgroundStraightHead,
+	HPBarBackgroundStraightTail,
+	HPBarTailGlowStraight,
 
 	SIZE
 };
@@ -3530,6 +3182,70 @@ constexpr Graphics::BatchedSprites::MaskInfo MASKS_INFO[] =
 			.LineNormalDeg = 325.0f,
 			.SoftnessRange = { 0.0f, 0.0f }
 		}
+	},
+	// Straight heads/tails clip the fill to the straight frame's hole (start of level 1 to end of level 10).
+	{ // HPBarVitalityStraightHead
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 0.1459f, 0.0f },
+			.LineNormalDeg = 0.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarVitalityStraightTail
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 33.9886f, 0.0f },
+			.LineNormalDeg = 180.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarDamageStraightHead
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 0.1441f, 0.0f },
+			.LineNormalDeg = 0.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarDamageStraightTail
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 33.569f, 0.0f },
+			.LineNormalDeg = 180.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarBackgroundStraightHead
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 0.1459f, 0.0f },
+			.LineNormalDeg = 0.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarBackgroundStraightTail
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 33.9886f, 0.0f },
+			.LineNormalDeg = 180.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
+	},
+	{ // HPBarTailGlowStraight
+		.Type = Graphics::BatchedSprites::MaskType_t::SlantedMask,
+		.Slanted =
+		{
+			.Origin		   = { 0.0f, 0.0f },
+			.LineNormalDeg = 0.0f,
+			.SoftnessRange = { 0.0f, 0.0f }
+		}
 	}
 };
 
@@ -3540,30 +3256,30 @@ constexpr const auto& GetMaskInfo(MaskInfoID_t maskKey)
 	return MASKS_INFO[(size_t)maskKey];
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarBackgroundMasks(float fraction = 1.0f)
+std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarBackgroundMasks(float fraction = 1.0f, bool straight = false)
 {
-	constexpr auto headMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarBackgroundSlantedHead);
-	auto		   tailMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarBackgroundSlantedTail);
+	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarBackgroundStraightHead : MaskInfoID_t::HPBarBackgroundSlantedHead);
+	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarBackgroundStraightTail : MaskInfoID_t::HPBarBackgroundSlantedTail);
 
 	tailMaskInfo.Slanted.Origin.x = glm::mix(headMaskInfo.Slanted.Origin.x, tailMaskInfo.Slanted.Origin.x, fraction);
 
 	return { headMaskInfo, tailMaskInfo };
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarDamageMasks(float fraction = 1.0f)
+std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarDamageMasks(float fraction = 1.0f, bool straight = false)
 {
-	constexpr auto headMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarDamageSlantedHead);
-	auto		   tailMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarDamageSlantedTail);
+	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarDamageStraightHead : MaskInfoID_t::HPBarDamageSlantedHead);
+	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarDamageStraightTail : MaskInfoID_t::HPBarDamageSlantedTail);
 
 	tailMaskInfo.Slanted.Origin.x = glm::mix(headMaskInfo.Slanted.Origin.x, tailMaskInfo.Slanted.Origin.x, fraction);
 
 	return { headMaskInfo, tailMaskInfo };
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityMasks(float fraction = 1.0f)
+std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityMasks(float fraction = 1.0f, bool straight = false)
 {
-	constexpr auto headMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarVitalitySlantedHead);
-	auto		   tailMaskInfo = GetMaskInfo(MaskInfoID_t::HPBarVitalitySlantedTail);
+	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarVitalityStraightHead : MaskInfoID_t::HPBarVitalitySlantedHead);
+	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarVitalityStraightTail : MaskInfoID_t::HPBarVitalitySlantedTail);
 
 	tailMaskInfo.Slanted.Origin.x = glm::mix(headMaskInfo.Slanted.Origin.x, tailMaskInfo.Slanted.Origin.x, fraction);
 
@@ -3591,24 +3307,24 @@ constexpr std::vector<Graphics::BatchedSprites::MaskInfo> GetRGGuageBarMasks(siz
 	}
 }
 
-constexpr std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityEndGlowMasks()
+constexpr std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityEndGlowMasks(bool straight = false)
 {
-	return { GetMaskInfo(MaskInfoID_t::HPBarTailGlow) };
+	return { GetMaskInfo(straight ? MaskInfoID_t::HPBarTailGlowStraight : MaskInfoID_t::HPBarTailGlow) };
 }
 
 }
 
 namespace Processed
 {
-float GetGlowMaskRangeX()
+float GetGlowMaskRangeX(bool straight = false)
 {
 	using namespace Sprites;
 	using namespace Masks;
 
-	constexpr auto& maskInfo	= GetMaskInfo(MaskInfoID_t::HPBarTailGlow);
-	constexpr auto  angleRad	= glm::radians(maskInfo.Slanted.LineNormalDeg);
-	auto			extra		= glm::abs(glm::tan(angleRad));
-	constexpr auto  spriteWidth = GetSpriteInfo(GetHPBarVitalityTailGlowSpriteID(Theme_t::Colored)).RegionRect.GetAspectRatio();
+	const auto& maskInfo	= GetMaskInfo(straight ? MaskInfoID_t::HPBarTailGlowStraight : MaskInfoID_t::HPBarTailGlow);
+	const auto  angleRad	= glm::radians(maskInfo.Slanted.LineNormalDeg);
+	auto		extra		= glm::abs(glm::tan(angleRad));
+	const auto  spriteWidth = GetSpriteInfo(GetHPBarVitalityTailGlowSpriteID(Theme_t::Colored, straight)).RegionRect.GetAspectRatio();
 
 	return spriteWidth - extra;
 }
