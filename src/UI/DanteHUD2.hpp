@@ -7,6 +7,7 @@
 #include <memory>
 
 namespace Graphics { class EffekseerLayer; }
+namespace HUD { class DTExplosionHUD2; }
 
 namespace HUD::Dante {
 	enum class Theme_t {
@@ -113,6 +114,10 @@ public: // Controls
 	void SetDTActive(bool active);
 	void DrawDTLightningControls();
 
+	// DT Explosion charge over the DT orbs, the charged orbs burst on release.
+	void SetDTExplosionCharge(float charge);
+	void DrawDTExplosionControls();
+
 	// Per-sprite editor, drawn into the caller's ImGui window.
 	void DrawDebugControls();
 	// Current sprite transforms and masks, formatted as code.
@@ -142,6 +147,7 @@ public: // Types Todo: Private
 		inline const auto& GetDTBarOrbBGIdxs() const { return m_DTBarOrbBGIdxs; }
 		inline const auto& GetDTBarOrbIdxs() const { return m_DTBarOrbsIdxs; }
 		inline const auto& GetDTBarOrbGlowIdxs() const { return m_DTBarOrbGlowIdxs; }
+		inline const auto& GetDTBarOrbBurstIdxs() const { return m_DTBarOrbBurstIdxs; }
 		inline const auto& GetDTBarFrameIdxs() const { return m_DTBarFrameIdxs; }
 		inline const auto& GetHPBarBGIdxs() const { return m_HPBarBGIdxs; }
 		inline const auto& GetHPBarDamageIdxs() const { return m_HPBarDamageIdxs; }
@@ -164,6 +170,7 @@ public: // Types Todo: Private
 		std::vector<size_t> m_DTBarOrbBGIdxs{};
 		std::vector<size_t> m_DTBarOrbsIdxs{};
 		std::vector<size_t> m_DTBarOrbGlowIdxs{};
+		std::vector<size_t> m_DTBarOrbBurstIdxs{};
 		std::vector<size_t> m_DTBarFrameIdxs{};
 		std::vector<size_t> m_HPBarBGIdxs{};
 		std::vector<size_t> m_HPBarDamageIdxs{};
@@ -187,6 +194,7 @@ private:
 	void ApplyHPShake(std::vector<SavedSprite>& saved);
 	void ApplyCompassShake(std::vector<SavedSprite>& saved);
 	void ApplyDTOrbPulse(std::vector<SavedSprite>& saved);
+	void ApplyDTExplosionBurst(std::vector<SavedSprite>& saved);
 	void SetSpritePositions();
 	float GetStraightBottomOffsetX() const;
 	void SetSpriteMasks();
@@ -200,6 +208,7 @@ private:
 	bool GetGroupRange(Group_t group, size_t& begin, size_t& end, size_t& anchor) const;
 	bool RenderCompassSmoke();
 	void RenderDTLightning();
+	void RenderDTExplosion();
 
 private: // Members
 	UINT m_Width{ 0 }, m_Height{ 0 };
@@ -270,6 +279,8 @@ private: // Members
 	float m_DTLightningScale{ 10.0f }; // HUD pixels per effect unit
 	glm::vec2 m_DTLightningOffset{ 0.0f, 0.0f }; // HUD pixels from the first DT orb, y up
 	float m_DTLightningSpeed{ 1.0f };
+
+	std::unique_ptr<HUD::DTExplosionHUD2> m_pDTExplosion;
 
 private:
 	static std::shared_ptr<Graphics::Texture2DArrayD3D11> s_pAtlasTexture;

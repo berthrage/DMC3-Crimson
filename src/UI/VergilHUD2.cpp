@@ -7,6 +7,7 @@
 
 #include "DanteHUD2HardcodedData.hpp"
 #include "VergilHUD2HardcodedData.hpp"
+#include "DTExplosionHUD2.hpp"
 #include "EffekseerLayer.hpp"
 #include "imgui.h"
 
@@ -22,7 +23,11 @@ using HUD::Dante::Theme_t;
 constexpr const char* kAtlas1Path = R"(Crimson\assets\crimsonhud\hud2_atlases\atlas1.png)";
 constexpr const char* kAtlas2Path = R"(Crimson\assets\crimsonhud\hud2_atlases\atlas2.png)";
 
-constexpr const wchar_t* kCompassVoidPath = LR"(Crimson\vfx\hud2\vergil_compass_void.efkefc)";
+// Indexed by CompassStyle_t.
+constexpr const wchar_t* kCompassVoidPaths[] = {
+	LR"(Crimson\vfx\hud2\vergil_compass_void_darkslayer.efkefc)",
+	LR"(Crimson\vfx\hud2\vergil_compass_void_quicksilver.efkefc)",
+};
 constexpr const wchar_t* kCompassStormPath = LR"(Crimson\vfx\hud2\vergil_compass_storm.efkefc)";
 constexpr const wchar_t* kDTLightningPath = LR"(Crimson\vfx\hud2\dt_lightning_vergil.efkefc)";
 
@@ -155,9 +160,14 @@ VergilHUD2::VergilHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11De
 		return layer;
 	};
 
-	m_CompassVoid.layer = makeLayer(kCompassVoidPath, true);
-	m_CompassStorm.layer = makeLayer(kCompassStormPath, true);
+	m_CompassVoid.perStyle = true;
+	m_CompassVoid.warmupFrames = 206;
+	m_LastCompassStyle = GetCompassStyle();
+	for (size_t i = 0; i < (size_t)CompassStyle_t::SIZE; i++)
+		m_CompassVoid.layers[i] = makeLayer(kCompassVoidPaths[i], (CompassStyle_t)i == GetCompassStyle());
+	m_CompassStorm.layers[0] = makeLayer(kCompassStormPath, true);
 	m_pDTLightning = makeLayer(kDTLightningPath, false);
+	m_pDTExplosion = std::make_unique<HUD::DTExplosionHUD2>(m_pD3D11Device, m_pD3D11DeviceContext);
 }
 
 VergilHUD2::~VergilHUD2()
@@ -194,10 +204,26 @@ void VergilHUD2::OnUpdate(double ts)
 	if (m_MirageReady)
 		m_MiragePulseTime = std::fmod(m_MiragePulseTime + dt, kDTPulsePeriod);
 
+	const CompassStyle_t compassStyle = GetCompassStyle();
+	const bool styleSwitched = compassStyle != m_LastCompassStyle;
+	m_LastCompassStyle = compassStyle;
+
 	for (CompassEffect* effect : { &m_CompassVoid, &m_CompassStorm })
 	{
-		if (effect->layer && effect->enabled)
-			effect->layer->Update(dt);
+		const size_t activeIdx = GetActiveLayerIdx(*effect);
+		for (size_t i = 0; i < effect->layers.size(); i++)
+		{
+			auto& layer = effect->layers[i];
+			if (!layer)
+				continue;
+
+			const bool active = i == activeIdx;
+			layer->SetPlaying(effect->enabled && active);
+			if (active && styleSwitched && effect->perStyle)
+				layer->Restart(effect->warmupFrames);
+			if (layer->IsPlaying())
+				layer->Update(dt);
+		}
 	}
 
 	if (m_pDTLightning)
@@ -205,6 +231,9 @@ void VergilHUD2::OnUpdate(double ts)
 		m_pDTLightning->SetPlaying(m_DTLightningEnabled && (m_DTActive || m_DTLightningForce) && m_DTLevel > 0);
 		m_pDTLightning->Update(dt);
 	}
+
+	if (m_pDTExplosion)
+		m_pDTExplosion->Update(dt, m_DTLevel > 0 ? m_DTLevel + 2 : 0);
 }
 
 void VergilHUD2::TriggerHPShake(float hpLost)
@@ -316,6 +345,7 @@ bool VergilHUD2::OnDraw()
 
 	ApplyHPShake(saved);
 	ApplyDTOrbPulse(saved);
+	ApplyDTExplosionBurst(saved);
 	ApplyMiragePulse(saved);
 
 	for (size_t g = 0; g < (size_t)Group_t::SIZE; g++)
@@ -336,6 +366,7 @@ bool VergilHUD2::OnDraw()
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext, !effectsDrawn);
 	// The lightning goes in after the sprites so it sits over the whole HUD.
 	RenderDTLightning();
+	RenderDTExplosion();
 
 	// Reverse order so sprites touched twice end up back at their first saved state.
 	for (auto it = saved.rbegin(); it != saved.rend(); ++it)
@@ -384,7 +415,8 @@ bool VergilHUD2::RenderCompassEffects()
 	// Void first, the storm draws over it.
 	for (CompassEffect* effect : { &m_CompassVoid, &m_CompassStorm })
 	{
-		if (!effect->layer || !effect->enabled)
+		auto& layer = effect->layers[GetActiveLayerIdx(*effect)];
+		if (!layer || !effect->enabled)
 			continue;
 
 		// Sprite translations are NDC of the unscaled HUD, the bounds scale doesn't move them in HUD pixels.
@@ -398,8 +430,8 @@ bool VergilHUD2::RenderCompassEffects()
 			cleared = true;
 		}
 
-		effect->layer->SetTransform(position, effect->scale * groupScale);
-		effect->layer->Render(m_pD3D11DeviceContext, pRTV, dims.x, dims.y);
+		layer->SetTransform(position, effect->scale * groupScale);
+		layer->Render(m_pD3D11DeviceContext, pRTV, dims.x, dims.y);
 	}
 
 	return cleared;
@@ -407,29 +439,41 @@ bool VergilHUD2::RenderCompassEffects()
 
 void VergilHUD2::DrawCompassEffectControls()
 {
-	const auto drawControls = [](CompassEffect& effect, const char* id) {
-		if (!effect.layer)
-			return;
-
+	const auto drawControls = [&](CompassEffect& effect, const char* id) {
+		const size_t activeIdx = GetActiveLayerIdx(effect);
 		ImGui::PushID(id);
 		ImGui::Separator();
 		ImGui::TextUnformatted(id);
 
-		ImGui::TextWrapped("Effect: %s", std::filesystem::path(effect.layer->GetEffectPath()).string().c_str());
-		if (effect.layer->IsLoaded())
-			ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Loaded, reloads when the file is saved.");
-		else
-			ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), "Not loaded, it loads as soon as the file exists.");
+		for (size_t i = 0; i < effect.layers.size(); i++)
+		{
+			const auto& layer = effect.layers[i];
+			if (!layer)
+				continue;
+
+			const std::string name = std::filesystem::path(layer->GetEffectPath()).filename().string();
+			const char* state = effect.perStyle && i == activeIdx ? " (active)" : "";
+			if (layer->IsLoaded())
+				ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%s: loaded%s", name.c_str(), state);
+			else
+				ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), "%s: not loaded%s", name.c_str(), state);
+		}
 
 		ImGui::Checkbox("Enabled", &effect.enabled);
 		ImGui::SameLine();
 		if (ImGui::Button("Restart"))
-			effect.layer->Restart();
+			effect.layers[activeIdx]->Restart();
 
 		ImGui::DragFloat("HUD px per unit", &effect.scale, 0.1f, 0.1f, 200.0f, "%.2f");
 		ImGui::DragFloat2("Offset (px, y up)", &effect.offset.x, 0.5f, -1000.0f, 1000.0f, "%.1f");
 		if (ImGui::DragFloat("Speed", &effect.speed, 0.01f, 0.0f, 10.0f, "%.2f"))
-			effect.layer->SetSpeed(effect.speed);
+		{
+			for (const auto& layer : effect.layers)
+				if (layer)
+					layer->SetSpeed(effect.speed);
+		}
+		if (effect.perStyle)
+			ImGui::DragInt("Style switch warm-up (frames)", &effect.warmupFrames, 1.0f, 0, 600);
 
 		ImGui::PopID();
 	};
@@ -490,6 +534,57 @@ void VergilHUD2::DrawDTLightningControls()
 	if (ImGui::DragFloat("Speed", &m_DTLightningSpeed, 0.01f, 0.0f, 10.0f, "%.2f"))
 		m_pDTLightning->SetSpeed(m_DTLightningSpeed);
 
+	ImGui::PopID();
+}
+
+void VergilHUD2::SetDTExplosionCharge(float charge)
+{
+	if (m_pDTExplosion)
+		m_pDTExplosion->SetCharge(charge);
+}
+
+void VergilHUD2::ApplyDTExplosionBurst(std::vector<SavedSprite>& saved)
+{
+	if (!m_pDTExplosion)
+		return;
+
+	const auto& burstIdxs = m_SpriteIndices.GetDTBarOrbBurstIdxs();
+	for (size_t i = 0; i < burstIdxs.size(); i++)
+	{
+		float scale, opacity;
+		if (!m_pDTExplosion->GetOrbBurst(i, scale, opacity))
+			continue;
+
+		SaveSprite(saved, burstIdxs[i]);
+		m_pSpriteBatch->ScaleTo(burstIdxs[i], m_pSpriteBatch->GetScale(burstIdxs[i]) * scale);
+		m_pSpriteBatch->SetOpacity(burstIdxs[i], opacity);
+	}
+}
+
+void VergilHUD2::RenderDTExplosion()
+{
+	if (!m_pDTExplosion || !m_GroupVisible[(size_t)Group_t::DTBars])
+		return;
+
+	std::vector<glm::vec2> orbPositions;
+	for (const size_t idx : m_SpriteIndices.GetDTBarOrbIdxs())
+	{
+		const glm::vec3 orb = m_pSpriteBatch->GetTranslation(idx);
+		orbPositions.push_back({ orb.x * (float)m_Width * 0.5f, orb.y * (float)m_Height * 0.5f });
+	}
+
+	const auto& dims = m_pSpriteBatch->GetDims();
+	m_pDTExplosion->Render(m_pD3D11DeviceContext, m_pSpriteBatch->GetRTV(), dims.x, dims.y,
+		orbPositions, m_GroupTransforms[(size_t)Group_t::DTBars].scale);
+}
+
+void VergilHUD2::DrawDTExplosionControls()
+{
+	if (!m_pDTExplosion)
+		return;
+
+	ImGui::PushID("VergilDTExplosion");
+	m_pDTExplosion->DrawControls();
 	ImGui::PopID();
 }
 
@@ -719,6 +814,7 @@ void VergilHUD2::SpriteIndices::UpdateSprites(size_t hpBarLevel, size_t dtBarLev
 	m_DTBarOrbsIdxs.clear();
 	m_DTBarFrameIdxs.clear();
 	m_DTBarOrbGlowIdxs.clear();
+	m_DTBarOrbBurstIdxs.clear();
 
 	if (dtBarLevel > 0)
 	{
@@ -734,6 +830,10 @@ void VergilHUD2::SpriteIndices::UpdateSprites(size_t hpBarLevel, size_t dtBarLev
 		// Glows go after the frames so they draw over the metal
 		for (size_t i = 0; i < dtBarLevel + 2; i++)
 			m_DTBarOrbGlowIdxs.push_back(push(VergilSprite(HC::Sprites::GetDTBarOrbGlowSpriteID(i))));
+
+		// Orb copies for the DT Explosion release burst, hidden otherwise
+		for (size_t i = 0; i < dtBarLevel + 2; i++)
+			m_DTBarOrbBurstIdxs.push_back(push(VergilSprite(VergilID::Orb_DT)));
 	}
 
 	// HP bars, a second one past level 10
@@ -800,6 +900,7 @@ void VergilHUD2::SetSpritePositions()
 		const auto& bgIdxs = m_SpriteIndices.GetDTBarOrbBGIdxs();
 		const auto& orbIdxs = m_SpriteIndices.GetDTBarOrbIdxs();
 		const auto& glowIdxs = m_SpriteIndices.GetDTBarOrbGlowIdxs();
+		const auto& burstIdxs = m_SpriteIndices.GetDTBarOrbBurstIdxs();
 
 		for (size_t i = 0; i < m_DTLevel + 2; i++)
 		{
@@ -808,6 +909,7 @@ void VergilHUD2::SetSpritePositions()
 
 			place(bgIdxs[i], position, transform.Scale);
 			place(orbIdxs[i], position, transform.Scale);
+			place(burstIdxs[i], position, transform.Scale);
 			place(glowIdxs[i], position, transform.Scale * HC::Sprites::GetDTBarOrbGlowScale(i));
 		}
 	}
@@ -997,6 +1099,10 @@ void VergilHUD2::UpdateDTBarOrbs(float fraction)
 
 	// Glows only show through ApplyDTOrbPulse
 	for (const auto& idx : m_SpriteIndices.GetDTBarOrbGlowIdxs())
+		m_pSpriteBatch->SetOpacity(idx, 0.0f);
+
+	// Bursts only show through ApplyDTExplosionBurst
+	for (const auto& idx : m_SpriteIndices.GetDTBarOrbBurstIdxs())
 		m_pSpriteBatch->SetOpacity(idx, 0.0f);
 
 	for (size_t i = 0; i < numFullOrbs; i++)

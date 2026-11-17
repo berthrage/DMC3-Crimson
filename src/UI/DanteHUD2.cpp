@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "DanteHUD2HardcodedData.hpp"
+#include "DTExplosionHUD2.hpp"
 #include "EffekseerLayer.hpp"
 #include "imgui.h"
 
@@ -210,6 +211,8 @@ DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11Devi
 
 	m_pDTLightning = std::make_unique<Graphics::EffekseerLayer>(m_pD3D11Device, m_pD3D11DeviceContext);
 	m_pDTLightning->SetEffectPath(kDTLightningPath);
+
+	m_pDTExplosion = std::make_unique<HUD::DTExplosionHUD2>(m_pD3D11Device, m_pD3D11DeviceContext);
 }
 
 DanteHUD2::~DanteHUD2()
@@ -281,6 +284,9 @@ void DanteHUD2::OnUpdate(double ts)
 		m_pDTLightning->SetPlaying(m_DTLightningEnabled && (m_DTActive || m_DTLightningForce) && m_DTLevel > 0);
 		m_pDTLightning->Update(dt);
 	}
+
+	if (m_pDTExplosion)
+		m_pDTExplosion->Update(dt, m_DTLevel > 0 ? m_DTLevel + 2 : 0);
 }
 
 void DanteHUD2::TriggerHPShake(float hpLost)
@@ -407,6 +413,7 @@ bool DanteHUD2::OnDraw()
 	ApplyHPShake(saved);
 	ApplyCompassShake(saved);
 	ApplyDTOrbPulse(saved);
+	ApplyDTExplosionBurst(saved);
 
 	for (size_t g = 0; g < (size_t)Group_t::SIZE; g++)
 	{
@@ -427,6 +434,7 @@ bool DanteHUD2::OnDraw()
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext, !smokeDrawn);
 	// The lightning goes in after the sprites so it sits over the whole HUD.
 	RenderDTLightning();
+	RenderDTExplosion();
 
 	// Reverse order so sprites touched twice end up back at their first saved state.
 	for (auto it = saved.rbegin(); it != saved.rend(); ++it)
@@ -633,6 +641,59 @@ void DanteHUD2::DrawDTLightningControls()
 	ImGui::DragFloat2("Offset (px, y up)##DTLightning", &m_DTLightningOffset.x, 0.5f, -1000.0f, 1000.0f, "%.1f");
 	if (ImGui::DragFloat("Speed##DTLightning", &m_DTLightningSpeed, 0.01f, 0.0f, 10.0f, "%.2f"))
 		m_pDTLightning->SetSpeed(m_DTLightningSpeed);
+}
+
+void DanteHUD2::SetDTExplosionCharge(float charge)
+{
+	if (m_pDTExplosion)
+		m_pDTExplosion->SetCharge(charge);
+}
+
+void DanteHUD2::ApplyDTExplosionBurst(std::vector<SavedSprite>& saved)
+{
+	if (!m_pDTExplosion)
+		return;
+
+	const auto& burstIdxs = m_SpriteIndices.GetDTBarOrbBurstIdxs();
+	for (size_t i = 0; i < burstIdxs.size(); i++)
+	{
+		float scale, opacity;
+		if (!m_pDTExplosion->GetOrbBurst(i, scale, opacity))
+			continue;
+
+		const size_t idx = burstIdxs[i];
+		saved.push_back({ idx, m_pSpriteBatch->GetTranslation(idx), m_pSpriteBatch->GetScale(idx),
+			m_pSpriteBatch->GetOpacity(idx), m_pSpriteBatch->GetBrightness(idx), m_pSpriteBatch->GetTint(idx) });
+		m_pSpriteBatch->ScaleTo(idx, m_pSpriteBatch->GetScale(idx) * scale);
+		m_pSpriteBatch->SetOpacity(idx, opacity);
+	}
+}
+
+void DanteHUD2::RenderDTExplosion()
+{
+	if (!m_pDTExplosion || !m_GroupVisible[(size_t)Group_t::DTBars])
+		return;
+
+	std::vector<glm::vec2> orbPositions;
+	for (const size_t idx : m_SpriteIndices.GetDTBarOrbIdxs())
+	{
+		const glm::vec3 orb = m_pSpriteBatch->GetTranslation(idx);
+		orbPositions.push_back({ orb.x * (float)m_Width * 0.5f, orb.y * (float)m_Height * 0.5f });
+	}
+
+	const auto& dims = m_pSpriteBatch->GetDims();
+	m_pDTExplosion->Render(m_pD3D11DeviceContext, m_pSpriteBatch->GetRTV(), dims.x, dims.y,
+		orbPositions, m_GroupTransforms[(size_t)Group_t::DTBars].scale);
+}
+
+void DanteHUD2::DrawDTExplosionControls()
+{
+	if (!m_pDTExplosion)
+		return;
+
+	ImGui::PushID("DanteDTExplosion");
+	m_pDTExplosion->DrawControls();
+	ImGui::PopID();
 }
 
 void DanteHUD2::SetBoundsScale(float scale)
@@ -1287,6 +1348,19 @@ void DanteHUD2::SpriteIndices::UpdateSprites(Theme_t theme, Style_t activeStyle,
 					(size_t)GetDTBarOrbGlowSpriteID(theme, i)
 				);
 			}
+
+			// Orb copies for the DT Explosion release burst, hidden otherwise
+			m_DTBarOrbBurstIdxs.clear();
+			m_DTBarOrbBurstIdxs.reserve(10);
+
+			for (size_t i = 0; i < dtBarLevel + 2; i++)
+			{
+				m_DTBarOrbBurstIdxs.push_back(m_SpriteIds.size());
+
+				m_SpriteIds.push_back(
+					(size_t)GetDTBarOrbSpriteID(theme, false)
+				);
+			}
 		}
 	}
 
@@ -1841,6 +1915,7 @@ void DanteHUD2::SetSpritePositions()
 		const auto idxs = m_SpriteIndices.GetDTBarOrbIdxs();
 		const auto& bgIdxs = m_SpriteIndices.GetDTBarOrbBGIdxs();
 		const auto& glowIdxs = m_SpriteIndices.GetDTBarOrbGlowIdxs();
+		const auto& burstIdxs = m_SpriteIndices.GetDTBarOrbBurstIdxs();
 
 		if (m_DTLevel > 0)
 		{
@@ -1849,7 +1924,7 @@ void DanteHUD2::SetSpritePositions()
 				const auto transform = GetDTBarOrb(m_ThemeID, m_HPLevel < 11 ? BarPositionID_t::Top : BarPositionID_t::Bottom, i + 1);
 				const glm::f32vec3 position = { transform.Position.x + dtOffsetX, transform.Position.y, 0.0f };
 
-				for (const size_t idx : { bgIdxs[i], idxs[i] })
+				for (const size_t idx : { bgIdxs[i], idxs[i], burstIdxs[i] })
 				{
 					m_pSpriteBatch->SetTransform(
 						idx,
@@ -2410,6 +2485,12 @@ void DanteHUD2::UpdateDTBarOrbs(float fraction)
 
 	// Glows only show through ApplyDTOrbPulse
 	for (const auto& idx : m_SpriteIndices.GetDTBarOrbGlowIdxs())
+	{
+		m_pSpriteBatch->SetOpacity(idx, 0.0f);
+	}
+
+	// Bursts only show through ApplyDTExplosionBurst
+	for (const auto& idx : m_SpriteIndices.GetDTBarOrbBurstIdxs())
 	{
 		m_pSpriteBatch->SetOpacity(idx, 0.0f);
 	}

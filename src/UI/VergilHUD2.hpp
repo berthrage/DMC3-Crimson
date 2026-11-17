@@ -51,6 +51,8 @@ public: // Controls
 	void SetDTReady(bool ready);
 	// Lightning over the DT bar, plays while Devil Trigger is active.
 	void SetDTActive(bool active);
+	// DT Explosion charge over the DT orbs, the charged orbs burst on release.
+	void SetDTExplosionCharge(float charge);
 
 	void SetMirageFill(float fill); // 0.0f to 1.0f
 	// The Mirage fill blinks in the DT pulse rhythm while Mirage Trigger can be used.
@@ -75,6 +77,7 @@ public: // Controls
 
 	void DrawCompassEffectControls();
 	void DrawDTLightningControls();
+	void DrawDTExplosionControls();
 	void DrawDebugControls();
 	std::string DumpSpriteLayout();
 
@@ -96,6 +99,7 @@ private:
 		inline const auto& GetDTBarOrbBGIdxs() const { return m_DTBarOrbBGIdxs; }
 		inline const auto& GetDTBarOrbIdxs() const { return m_DTBarOrbsIdxs; }
 		inline const auto& GetDTBarOrbGlowIdxs() const { return m_DTBarOrbGlowIdxs; }
+		inline const auto& GetDTBarOrbBurstIdxs() const { return m_DTBarOrbBurstIdxs; }
 		inline const auto& GetDTBarFrameIdxs() const { return m_DTBarFrameIdxs; }
 		inline const auto& GetHPBarBGIdxs() const { return m_HPBarBGIdxs; }
 		inline const auto& GetHPBarDamageIdxs() const { return m_HPBarDamageIdxs; }
@@ -118,6 +122,7 @@ private:
 		std::vector<size_t> m_DTBarOrbBGIdxs{};
 		std::vector<size_t> m_DTBarOrbsIdxs{};
 		std::vector<size_t> m_DTBarOrbGlowIdxs{};
+		std::vector<size_t> m_DTBarOrbBurstIdxs{};
 		std::vector<size_t> m_DTBarFrameIdxs{};
 		std::vector<size_t> m_HPBarBGIdxs{};
 		std::vector<size_t> m_HPBarDamageIdxs{};
@@ -138,6 +143,7 @@ private:
 	void SaveSprite(std::vector<SavedSprite>& saved, size_t idx) const;
 	void ApplyHPShake(std::vector<SavedSprite>& saved);
 	void ApplyDTOrbPulse(std::vector<SavedSprite>& saved);
+	void ApplyDTExplosionBurst(std::vector<SavedSprite>& saved);
 	void ApplyMiragePulse(std::vector<SavedSprite>& saved);
 	void SetSpritePositions();
 	void SetSpriteMasks();
@@ -150,6 +156,7 @@ private:
 	bool GetGroupRange(Group_t group, size_t& begin, size_t& end, size_t& anchor) const;
 	bool RenderCompassEffects();
 	void RenderDTLightning();
+	void RenderDTExplosion();
 
 private: // Members
 	UINT m_Width{ 0 }, m_Height{ 0 };
@@ -195,15 +202,23 @@ private: // Members
 	std::unique_ptr<Graphics::BatchedSprites> m_pSpriteBatch;
 
 	// Under the compass, filling its hollow middle: the void at the bottom, the storm over it.
+	// The void has one effect per style, only the active style's plays so a switch restarts it.
+	// The storm is shared by all styles and only uses the first layer.
+	enum class CompassStyle_t { Darkslayer = 0, Quicksilver, SIZE };
 	struct CompassEffect {
-		std::unique_ptr<Graphics::EffekseerLayer> layer;
+		std::array<std::unique_ptr<Graphics::EffekseerLayer>, (size_t)CompassStyle_t::SIZE> layers;
+		bool perStyle{ false };
 		bool enabled{ true };
 		float scale{ 11.8f }; // HUD pixels per effect unit
-		glm::vec2 offset{ 0.0f, 0.0f }; // HUD pixels from the compass ring center, y up
+		glm::vec2 offset{ -26.5f, -3.5f }; // HUD pixels from the compass ring center, y up
 		float speed{ 1.0f };
+		int warmupFrames{ 0 }; // Starts this far in on a style switch
 	};
 	CompassEffect m_CompassVoid;
 	CompassEffect m_CompassStorm;
+	CompassStyle_t m_LastCompassStyle{ CompassStyle_t::SIZE };
+	CompassStyle_t GetCompassStyle() const { return m_ActiveStyle == Style_t::Quicksilver ? CompassStyle_t::Quicksilver : CompassStyle_t::Darkslayer; }
+	size_t GetActiveLayerIdx(const CompassEffect& effect) const { return effect.perStyle ? (size_t)GetCompassStyle() : 0; }
 
 	std::unique_ptr<Graphics::EffekseerLayer> m_pDTLightning;
 	bool m_DTActive{ false };
@@ -212,6 +227,8 @@ private: // Members
 	float m_DTLightningScale{ 10.0f }; // HUD pixels per effect unit
 	glm::vec2 m_DTLightningOffset{ 0.0f, 0.0f }; // HUD pixels from the first DT orb, y up
 	float m_DTLightningSpeed{ 1.0f };
+
+	std::unique_ptr<HUD::DTExplosionHUD2> m_pDTExplosion;
 
 private:
 	static std::shared_ptr<Graphics::Texture2DArrayD3D11> s_pAtlasTexture;
