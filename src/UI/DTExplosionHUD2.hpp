@@ -61,6 +61,7 @@ private:
 	float m_ReferenceRate{ 0.0f }; // Charge per second for normal speed, 0 uses the fastest rate of the current charge
 	float m_RateSmoothing{ 0.12f }; // Seconds
 
+	float m_MinReleaseCharge{ 2000.0f }; // Releasing below this skips the burst and release effect
 	float m_BurstTime{ -1.0f };
 	size_t m_BurstOrbs{ 0 };
 	float m_BurstDuration{ 0.375f };

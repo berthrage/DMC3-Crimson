@@ -62,7 +62,7 @@ size_t DTExplosionHUD2::GetReachedOrbs(float charge) const
 
 void DTExplosionHUD2::Release(float charge)
 {
-	m_BurstOrbs = GetReachedOrbs(charge);
+	m_BurstOrbs = charge >= m_MinReleaseCharge ? GetReachedOrbs(charge) : 0;
 	m_BurstTime = m_BurstOrbs > 0 ? 0.0f : -1.0f;
 
 	if (m_ReleaseEnabled && m_BurstOrbs > 0)
@@ -200,6 +200,7 @@ void DTExplosionHUD2::DrawControls()
 
 	ImGui::Separator();
 	ImGui::Text("Release");
+	ImGui::DragFloat("Min charge to explode", &m_MinReleaseCharge, 10.0f, 0.0f, 10000.0f, "%.0f");
 	ImGui::DragFloat("Burst scale", &m_BurstScale, 0.01f, 1.0f, 5.0f, "%.2f");
 	ImGui::DragFloat("Burst duration (s)", &m_BurstDuration, 0.005f, 0.01f, 2.0f, "%.3f");
 	ImGui::Checkbox("Release effect", &m_ReleaseEnabled);
