@@ -182,7 +182,9 @@ namespace Graphics {
             const std::vector<size_t> spriteIndices, std::shared_ptr<Texture2DArrayD3D11> pSpriteTextureArray);
     
     	bool Initialize(ID3D11Device* pD3D11Device, UINT width, UINT height);
-    	bool Draw(ID3D11DeviceContext* pD3D11DeviceContext);
+    	// clear = false keeps whatever was drawn into the target since Clear() and draws the sprites on top.
+    	bool Draw(ID3D11DeviceContext* pD3D11DeviceContext, bool clear = true);
+        void Clear(ID3D11DeviceContext* pD3D11DeviceContext);
         // Recreates the render target, depth buffer and viewport at a new size.
         bool Resize(ID3D11Device* pD3D11Device, UINT width, UINT height);
     
@@ -229,6 +231,7 @@ namespace Graphics {
     	const auto& GetCustomIndices() { return m_SpriteIndices; }
     
     	const auto GetRTSRV() const { return m_pRenderTargetSRV.Get(); };
+        ID3D11RenderTargetView* GetRTV() const { return m_pRenderTargetView.Get(); }
     
     private:
     	//void SortByDepth();

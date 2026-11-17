@@ -610,7 +610,16 @@ namespace Graphics {
     	return true;
     }
     
-    bool BatchedSprites::Draw(ID3D11DeviceContext* pD3D11DeviceContext)
+    void BatchedSprites::Clear(ID3D11DeviceContext* pD3D11DeviceContext)
+    {
+        if (!m_pRenderTargetView)
+            return;
+
+        const std::array<float, 4> clearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+        pD3D11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), clearColor.data());
+    }
+
+    bool BatchedSprites::Draw(ID3D11DeviceContext* pD3D11DeviceContext, bool clear)
     {
     	if (!UpdateSpriteInstanceInfoBuffer(pD3D11DeviceContext))
         {
@@ -710,7 +719,8 @@ namespace Graphics {
     	pD3D11DeviceContext->OMSetDepthStencilState(m_pDepthStencilStateTransparent.Get(), 0);
     	pD3D11DeviceContext->RSSetState(m_pRasterizerState.Get());
     
-    	pD3D11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), blendFactor.data());
+    	if (clear)
+    		pD3D11DeviceContext->ClearRenderTargetView(m_pRenderTargetView.Get(), blendFactor.data());
     	pD3D11DeviceContext->ClearDepthStencilView(m_pDepthStincilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     
     	// **INSTANCED DRAW CALL**

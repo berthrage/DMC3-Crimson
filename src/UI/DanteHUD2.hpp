@@ -6,6 +6,8 @@
 
 #include <memory>
 
+namespace Graphics { class EffekseerLayer; }
+
 namespace HUD::Dante {
 	enum class Theme_t {
 		Colored = 0,
@@ -103,6 +105,10 @@ public: // Controls
 	void SetBoundsScale(float scale);
 	float GetBoundsScale() const { return m_BoundsScale; }
 
+	// Looping smoke behind the compass, the effect is authored white and tinted with this color.
+	void SetCompassSmokeColor(glm::vec4 color);
+	void DrawCompassSmokeControls();
+
 	// Per-sprite editor, drawn into the caller's ImGui window.
 	void DrawDebugControls();
 	// Current sprite transforms and masks, formatted as code.
@@ -188,6 +194,7 @@ private:
 	void UpdateCompassInitialsVisibility();
 	void UpdateSprites();
 	bool GetGroupRange(Group_t group, size_t& begin, size_t& end, size_t& anchor) const;
+	bool RenderCompassSmoke();
 
 private: // Members
 	UINT m_Width{ 0 }, m_Height{ 0 };
@@ -240,6 +247,16 @@ private: // Members
 
 	std::vector<Graphics::SpriteDesc> m_SpriteDescs;
 	std::unique_ptr<Graphics::BatchedSprites> m_pSpriteBatch;
+
+	std::unique_ptr<Graphics::EffekseerLayer> m_pCompassSmoke;
+	bool m_CompassSmokeEnabled{ true };
+	float m_CompassSmokeScale{ 11.8f }; // HUD pixels per effect unit
+	glm::vec2 m_CompassSmokeOffset{ -16.5f, -5.0f }; // HUD pixels, y up
+	float m_CompassSmokeSpeed{ 1.0f };
+	// 60 Hz frames simulated when the direction changes, enough for the plume to reach full length.
+	int m_CompassSmokeWarmupFrames{ 206 };
+	float m_CompassSmokeRotation{ 0.0f };
+	bool m_CompassSmokeRotationSet{ false };
 
 private:
 	static std::shared_ptr<Graphics::Texture2DArrayD3D11> s_pAtlasTexture;

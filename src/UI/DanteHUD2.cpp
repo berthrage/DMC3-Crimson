@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "DanteHUD2HardcodedData.hpp"
+#include "EffekseerLayer.hpp"
 #include "imgui.h"
 
 //#include "HUDDebug.hpp"
@@ -14,6 +15,22 @@ namespace HUD::Dante {
 std::shared_ptr<Graphics::Texture2DArrayD3D11> DanteHUD2::s_pAtlasTexture;
 
 namespace {
+
+constexpr const wchar_t* kCompassSmokePath = LR"(Crimson\vfx\hud2\compass_smoke.efkefc)";
+
+// The smoke is authored pointing down (Royalguard), turn it toward the active style's side of the compass.
+float GetCompassSmokeRotation(Style_t style)
+{
+	constexpr float kQuarterTurn = 1.57079633f;
+	switch (style)
+	{
+	case Style_t::Swordmaster:	return kQuarterTurn;
+	case Style_t::Trickster:	return kQuarterTurn * 2.0f;
+	case Style_t::Gunslinger:
+	case Style_t::Doppleganger:	return -kQuarterTurn;
+	default:					return 0.0f;
+	}
+}
 
 struct AnimKey { float time; float value; };
 
@@ -71,7 +88,7 @@ constexpr int kHPShakeSmallRange = 3;
 constexpr float kHPShakeUnit = 2.0f * 1080.0f / (448.0f * 215.0f);
 
 // Full fade in and out of the ready DT orb glow, in seconds.
-constexpr float kDTPulsePeriod = 0.7f;
+constexpr float kDTPulsePeriod = 0.9f;
 constexpr float kDTPulseMinOpacity = 0.2f;
 
 uint32_t NextShakeRandom(uint32_t& state)
@@ -185,6 +202,10 @@ DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11Devi
 	using RatioFlags = Graphics::BatchedSprites::RatioFlags;
 
 	m_pSpriteBatch->SetRatioFlags((int)RatioFlags::FitToVP);
+
+	m_pCompassSmoke = std::make_unique<Graphics::EffekseerLayer>(m_pD3D11Device, m_pD3D11DeviceContext);
+	m_pCompassSmoke->SetEffectPath(kCompassSmokePath);
+	m_pCompassSmoke->SetPlaying(true);
 }
 
 DanteHUD2::~DanteHUD2()
@@ -234,6 +255,22 @@ void DanteHUD2::OnUpdate(double ts)
 
 	if (m_DTReady)
 		m_DTPulseTime = std::fmod(m_DTPulseTime + dt, kDTPulsePeriod);
+
+	if (m_pCompassSmoke && m_CompassSmokeEnabled)
+	{
+		// Follow the style being switched to right away, not after the compass animation commits it.
+		const float rotation = GetCompassSmokeRotation(m_StyleExitPending ? m_PendingStyle : m_ActiveStyle);
+		if (!m_CompassSmokeRotationSet || rotation != m_CompassSmokeRotation)
+		{
+			m_pCompassSmoke->SetRotation(rotation);
+			// Old particles keep their spawn direction, so restart it already developed in the new one.
+			if (m_CompassSmokeRotationSet)
+				m_pCompassSmoke->Restart(m_CompassSmokeWarmupFrames);
+			m_CompassSmokeRotation = rotation;
+			m_CompassSmokeRotationSet = true;
+		}
+		m_pCompassSmoke->Update(dt);
+	}
 }
 
 void DanteHUD2::TriggerHPShake(float hpLost)
@@ -375,7 +412,9 @@ bool DanteHUD2::OnDraw()
 		}
 	}
 
-	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext);
+	// The smoke goes into the target first so the compass draws over it.
+	const bool smokeDrawn = RenderCompassSmoke();
+	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext, !smokeDrawn);
 
 	// Reverse order so sprites touched twice end up back at their first saved state.
 	for (auto it = saved.rbegin(); it != saved.rend(); ++it)
@@ -476,6 +515,60 @@ void DanteHUD2::SetGroupTransform(Group_t group, float scale, glm::vec2 offset)
 void DanteHUD2::SetGroupVisible(Group_t group, bool visible)
 {
 	m_GroupVisible[(size_t)group] = visible;
+}
+
+void DanteHUD2::SetCompassSmokeColor(glm::vec4 color)
+{
+	if (m_pCompassSmoke)
+		m_pCompassSmoke->SetColor(color);
+}
+
+// Runs with the draw-time transforms applied, so the smoke follows the compass group scale, offset and shake.
+bool DanteHUD2::RenderCompassSmoke()
+{
+	if (!m_pCompassSmoke || !m_CompassSmokeEnabled || !m_GroupVisible[(size_t)Group_t::CompassRoyalguard])
+		return false;
+
+	ID3D11RenderTargetView* pRTV = m_pSpriteBatch->GetRTV();
+	const auto& dims = m_pSpriteBatch->GetDims();
+	if (!pRTV || dims.x == 0 || dims.y == 0)
+		return false;
+
+	// Sprite translations are NDC of the unscaled HUD, the bounds scale doesn't move them in HUD pixels.
+	const glm::vec3 frame = m_pSpriteBatch->GetTranslation(m_SpriteIndices.GetCompassFrameIdx());
+	const glm::vec2 position = {
+		frame.x * (float)m_Width * 0.5f + m_CompassSmokeOffset.x,
+		frame.y * (float)m_Height * 0.5f + m_CompassSmokeOffset.y };
+	const float scale = m_CompassSmokeScale * m_GroupTransforms[(size_t)Group_t::CompassRoyalguard].scale;
+
+	m_pCompassSmoke->SetTransform(position, scale);
+	m_pSpriteBatch->Clear(m_pD3D11DeviceContext);
+	m_pCompassSmoke->Render(m_pD3D11DeviceContext, pRTV, dims.x, dims.y);
+	return true;
+}
+
+void DanteHUD2::DrawCompassSmokeControls()
+{
+	if (!m_pCompassSmoke)
+		return;
+
+	const std::wstring& path = m_pCompassSmoke->GetEffectPath();
+	ImGui::TextWrapped("Effect: %s", std::filesystem::path(path).string().c_str());
+	if (m_pCompassSmoke->IsLoaded())
+		ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Loaded, reloads when the file is saved.");
+	else
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), "Not loaded, it loads as soon as the file exists.");
+
+	ImGui::Checkbox("Enabled##CompassSmoke", &m_CompassSmokeEnabled);
+	ImGui::SameLine();
+	if (ImGui::Button("Restart##CompassSmoke"))
+		m_pCompassSmoke->Restart();
+
+	ImGui::DragFloat("HUD px per unit##CompassSmoke", &m_CompassSmokeScale, 0.1f, 0.1f, 200.0f, "%.2f");
+	ImGui::DragFloat2("Offset (px, y up)##CompassSmoke", &m_CompassSmokeOffset.x, 0.5f, -1000.0f, 1000.0f, "%.1f");
+	if (ImGui::DragFloat("Speed##CompassSmoke", &m_CompassSmokeSpeed, 0.01f, 0.0f, 10.0f, "%.2f"))
+		m_pCompassSmoke->SetSpeed(m_CompassSmokeSpeed);
+	ImGui::DragInt("Style switch warm-up (frames)##CompassSmoke", &m_CompassSmokeWarmupFrames, 1.0f, 0, 600);
 }
 
 void DanteHUD2::SetBoundsScale(float scale)
