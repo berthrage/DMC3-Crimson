@@ -1423,7 +1423,7 @@ constexpr const char* GetTextureNameFromSpriteID(SpriteID_t texID)
 	}
 }
 
-void LoadSpriteDescs(std::vector<Graphics::SpriteDesc>& spriteDescs, const std::string& path)
+inline void LoadSpriteDescs(std::vector<Graphics::SpriteDesc>& spriteDescs, const std::string& path)
 {
 	spriteDescs.reserve((size_t)SpriteID_t::SIZE);
 
@@ -3036,7 +3036,7 @@ constexpr const auto& GetStyleExpBarLevelDigit(Theme_t theme, size_t level)
 	}
 }
 
-auto GetVitalityGlowX(BarPositionID_t barPosition, size_t level, float fraction, bool straight = false)
+inline auto GetVitalityGlowX(BarPositionID_t barPosition, size_t level, float fraction, bool straight = false)
 {
 	Theme_t theme			    = Theme_t::Colored;
 	auto    headPos			    = GetVitalityBarGlow(theme, barPosition, GlowPos_t::Head, straight).Position.x;
@@ -3256,7 +3256,7 @@ constexpr const auto& GetMaskInfo(MaskInfoID_t maskKey)
 	return MASKS_INFO[(size_t)maskKey];
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarBackgroundMasks(float fraction = 1.0f, bool straight = false)
+inline std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarBackgroundMasks(float fraction = 1.0f, bool straight = false)
 {
 	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarBackgroundStraightHead : MaskInfoID_t::HPBarBackgroundSlantedHead);
 	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarBackgroundStraightTail : MaskInfoID_t::HPBarBackgroundSlantedTail);
@@ -3266,7 +3266,7 @@ std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarBackgroundMasks(float fr
 	return { headMaskInfo, tailMaskInfo };
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarDamageMasks(float fraction = 1.0f, bool straight = false)
+inline std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarDamageMasks(float fraction = 1.0f, bool straight = false)
 {
 	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarDamageStraightHead : MaskInfoID_t::HPBarDamageSlantedHead);
 	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarDamageStraightTail : MaskInfoID_t::HPBarDamageSlantedTail);
@@ -3276,7 +3276,7 @@ std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarDamageMasks(float fracti
 	return { headMaskInfo, tailMaskInfo };
 }
 
-std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityMasks(float fraction = 1.0f, bool straight = false)
+inline std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityMasks(float fraction = 1.0f, bool straight = false)
 {
 	const auto headMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarVitalityStraightHead : MaskInfoID_t::HPBarVitalitySlantedHead);
 	auto	   tailMaskInfo = GetMaskInfo(straight ? MaskInfoID_t::HPBarVitalityStraightTail : MaskInfoID_t::HPBarVitalitySlantedTail);
@@ -3316,7 +3316,7 @@ constexpr std::vector<Graphics::BatchedSprites::MaskInfo> GetHPBarVitalityEndGlo
 
 namespace Processed
 {
-float GetGlowMaskRangeX(bool straight = false)
+inline float GetGlowMaskRangeX(bool straight = false)
 {
 	using namespace Sprites;
 	using namespace Masks;

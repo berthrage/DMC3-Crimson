@@ -117,12 +117,17 @@ void HUD_DrawPivotMarker();
 // (single player, splitscreen, or outside of normal play).
 int HUD_SeatCount();
 
-// Crimson HUD 2.0 is selected and stands in for player 1's top-left cockpit group: Dante only, single view, main HUD
-// not hidden. CUIDCockpit00's top-left models and Crimson HUD's top-left addons are left out while this is true.
+// Crimson HUD 2.0 is selected and player 1 plays Dante in a single view.
 bool HUD_DanteHUD2Active();
 // Same for one HUD view: -1 = the single view (HUD_DanteHUD2Active), otherwise that splitscreen view's or shared camera
 // seat's player is Dante.
 bool HUD_DanteHUD2ActiveFor(int view);
+// Same as the two above, for Vergil's Crimson HUD 2.0.
+bool HUD_VergilHUD2Active();
+bool HUD_VergilHUD2ActiveFor(int view);
+// Either character's Crimson HUD 2.0 stands in for that view's top-left cockpit group. CUIDCockpit00's top-left models
+// and Crimson HUD's top-left addons are left out while this is true.
+bool HUD_CrimsonHUD2ActiveFor(int view);
 
 // Where the original lock-on cursor puts a world point (the target's lock-on position): the game's own projection into
 // its HUD frame, then to screen pixels (the splitscreen view of `player` when it runs). False when it cannot be

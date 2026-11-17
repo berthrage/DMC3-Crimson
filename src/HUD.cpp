@@ -1988,7 +1988,7 @@ void DrawCockpitSeat(CockpitFn original, uint8_t* cockpit, int seat) {
 	if (seat > 0) {
 		HideRedOrbModels(cockpit, loaded);
 	}
-	const bool hud2 = HUD_DanteHUD2ActiveFor(seat);
+	const bool hud2 = HUD_CrimsonHUD2ActiveFor(seat);
 	uint8 topLeftLoaded[COCKPIT_TOP_MATRIX_COUNT] = {};
 	if (hud2) {
 		HideTopLeftModels(cockpit, topLeftLoaded);
@@ -2071,7 +2071,7 @@ void __fastcall CockpitTopDrawHook(uint8_t* cockpit) {
 	const auto original = s_cockpitTopDrawHook->GetTrampoline<CockpitFn>();
 	// Splitscreen draws one frame per player, this one is the camera player's.
 	const int view = (CrimsonSplitscreen::ViewCount() >= 2) ? CrimsonSplitscreen::CameraPlayer() : -1;
-	if (!cockpit || !HUD_DanteHUD2ActiveFor(view)) {
+	if (!cockpit || !HUD_CrimsonHUD2ActiveFor(view)) {
 		DrawCockpitTop(original, cockpit);
 		return;
 	}
@@ -2301,32 +2301,53 @@ static bool DanteHUD2Selected() {
 	return CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD) && g_scene == SCENE::GAME;
 }
 
-bool HUD_DanteHUD2Active() {
-	if (!DanteHUD2Selected() || CrimsonSplitscreen::ViewCount() >= 2 || HUD_SeatCount() >= 2) {
-		return false;
+// Character the view's Crimson HUD 2.0 is for, CHARACTER::MAX when it is off.
+static uint8 CrimsonHUD2CharacterFor(int view) {
+	if (!DanteHUD2Selected()) {
+		return CHARACTER::MAX;
 	}
 	// The actor can be gone for a few frames while a room loads, keep the last known character meanwhile.
-	static uint8 s_lastCharacter = CHARACTER::MAX;
-	auto pool = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
-	if (pool && pool[3]) {
-		s_lastCharacter = reinterpret_cast<PlayerActorData*>(pool[3])->character;
-	}
-	return s_lastCharacter == CHARACTER::DANTE;
-}
-
-bool HUD_DanteHUD2ActiveFor(int view) {
 	if (view < 0) {
-		return HUD_DanteHUD2Active();
+		if (CrimsonSplitscreen::ViewCount() >= 2 || HUD_SeatCount() >= 2) {
+			return CHARACTER::MAX;
+		}
+		static uint8 s_lastCharacter = CHARACTER::MAX;
+		auto pool = *reinterpret_cast<byte8***>(appBaseAddr + 0xC90E28);
+		if (pool && pool[3]) {
+			s_lastCharacter = reinterpret_cast<PlayerActorData*>(pool[3])->character;
+		}
+		return s_lastCharacter;
 	}
 	const int views = (CrimsonSplitscreen::ViewCount() >= 2) ? CrimsonSplitscreen::ViewCount() : HUD_SeatCount();
-	if (view >= PLAYER_COUNT || view >= views || !DanteHUD2Selected()) {
-		return false;
+	if (view >= PLAYER_COUNT || view >= views) {
+		return CHARACTER::MAX;
 	}
 	static uint8 s_lastCharacter[PLAYER_COUNT] = { CHARACTER::MAX, CHARACTER::MAX, CHARACTER::MAX, CHARACTER::MAX };
 	if (auto* actor = PlayerMainActorForHud(view)) {
 		s_lastCharacter[view] = reinterpret_cast<PlayerActorData*>(actor)->character;
 	}
-	return s_lastCharacter[view] == CHARACTER::DANTE;
+	return s_lastCharacter[view];
+}
+
+bool HUD_DanteHUD2Active() {
+	return CrimsonHUD2CharacterFor(-1) == CHARACTER::DANTE;
+}
+
+bool HUD_DanteHUD2ActiveFor(int view) {
+	return CrimsonHUD2CharacterFor(view) == CHARACTER::DANTE;
+}
+
+bool HUD_VergilHUD2Active() {
+	return CrimsonHUD2CharacterFor(-1) == CHARACTER::VERGIL;
+}
+
+bool HUD_VergilHUD2ActiveFor(int view) {
+	return CrimsonHUD2CharacterFor(view) == CHARACTER::VERGIL;
+}
+
+bool HUD_CrimsonHUD2ActiveFor(int view) {
+	const uint8 character = CrimsonHUD2CharacterFor(view);
+	return character == CHARACTER::DANTE || character == CHARACTER::VERGIL;
 }
 
 // ProjectToFixed_sub_140031130: (out int4, matrix, vec4, skipDepthWrite) row vector * matrix, perspective divide, 12.4 fixed point
