@@ -109,6 +109,10 @@ public: // Controls
 	void SetCompassSmokeColor(glm::vec4 color);
 	void DrawCompassSmokeControls();
 
+	// Lightning over the DT bar, plays while Devil Trigger is active.
+	void SetDTActive(bool active);
+	void DrawDTLightningControls();
+
 	// Per-sprite editor, drawn into the caller's ImGui window.
 	void DrawDebugControls();
 	// Current sprite transforms and masks, formatted as code.
@@ -195,6 +199,7 @@ private:
 	void UpdateSprites();
 	bool GetGroupRange(Group_t group, size_t& begin, size_t& end, size_t& anchor) const;
 	bool RenderCompassSmoke();
+	void RenderDTLightning();
 
 private: // Members
 	UINT m_Width{ 0 }, m_Height{ 0 };
@@ -257,6 +262,14 @@ private: // Members
 	int m_CompassSmokeWarmupFrames{ 206 };
 	float m_CompassSmokeRotation{ 0.0f };
 	bool m_CompassSmokeRotationSet{ false };
+
+	std::unique_ptr<Graphics::EffekseerLayer> m_pDTLightning;
+	bool m_DTActive{ false };
+	bool m_DTLightningEnabled{ true };
+	bool m_DTLightningForce{ false };
+	float m_DTLightningScale{ 10.0f }; // HUD pixels per effect unit
+	glm::vec2 m_DTLightningOffset{ 0.0f, 0.0f }; // HUD pixels from the first DT orb, y up
+	float m_DTLightningSpeed{ 1.0f };
 
 private:
 	static std::shared_ptr<Graphics::Texture2DArrayD3D11> s_pAtlasTexture;

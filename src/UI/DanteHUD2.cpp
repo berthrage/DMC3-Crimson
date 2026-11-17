@@ -17,6 +17,7 @@ std::shared_ptr<Graphics::Texture2DArrayD3D11> DanteHUD2::s_pAtlasTexture;
 namespace {
 
 constexpr const wchar_t* kCompassSmokePath = LR"(Crimson\vfx\hud2\compass_smoke.efkefc)";
+constexpr const wchar_t* kDTLightningPath = LR"(Crimson\vfx\hud2\dt_lightning_dante.efkefc)";
 
 // The smoke is authored pointing down (Royalguard), turn it toward the active style's side of the compass.
 float GetCompassSmokeRotation(Style_t style)
@@ -206,6 +207,9 @@ DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11Devi
 	m_pCompassSmoke = std::make_unique<Graphics::EffekseerLayer>(m_pD3D11Device, m_pD3D11DeviceContext);
 	m_pCompassSmoke->SetEffectPath(kCompassSmokePath);
 	m_pCompassSmoke->SetPlaying(true);
+
+	m_pDTLightning = std::make_unique<Graphics::EffekseerLayer>(m_pD3D11Device, m_pD3D11DeviceContext);
+	m_pDTLightning->SetEffectPath(kDTLightningPath);
 }
 
 DanteHUD2::~DanteHUD2()
@@ -270,6 +274,12 @@ void DanteHUD2::OnUpdate(double ts)
 			m_CompassSmokeRotationSet = true;
 		}
 		m_pCompassSmoke->Update(dt);
+	}
+
+	if (m_pDTLightning)
+	{
+		m_pDTLightning->SetPlaying(m_DTLightningEnabled && (m_DTActive || m_DTLightningForce) && m_DTLevel > 0);
+		m_pDTLightning->Update(dt);
 	}
 }
 
@@ -415,6 +425,8 @@ bool DanteHUD2::OnDraw()
 	// The smoke goes into the target first so the compass draws over it.
 	const bool smokeDrawn = RenderCompassSmoke();
 	const bool result = m_pSpriteBatch->Draw(m_pD3D11DeviceContext, !smokeDrawn);
+	// The lightning goes in after the sprites so it sits over the whole HUD.
+	RenderDTLightning();
 
 	// Reverse order so sprites touched twice end up back at their first saved state.
 	for (auto it = saved.rbegin(); it != saved.rend(); ++it)
@@ -569,6 +581,58 @@ void DanteHUD2::DrawCompassSmokeControls()
 	if (ImGui::DragFloat("Speed##CompassSmoke", &m_CompassSmokeSpeed, 0.01f, 0.0f, 10.0f, "%.2f"))
 		m_pCompassSmoke->SetSpeed(m_CompassSmokeSpeed);
 	ImGui::DragInt("Style switch warm-up (frames)##CompassSmoke", &m_CompassSmokeWarmupFrames, 1.0f, 0, 600);
+}
+
+void DanteHUD2::SetDTActive(bool active)
+{
+	m_DTActive = active;
+}
+
+// Same as the smoke, but anchored on the first DT orb and drawn over the sprites.
+void DanteHUD2::RenderDTLightning()
+{
+	if (!m_pDTLightning || !m_pDTLightning->IsPlaying() || !m_GroupVisible[(size_t)Group_t::DTBars])
+		return;
+
+	const auto& orbIdxs = m_SpriteIndices.GetDTBarOrbIdxs();
+	ID3D11RenderTargetView* pRTV = m_pSpriteBatch->GetRTV();
+	const auto& dims = m_pSpriteBatch->GetDims();
+	if (orbIdxs.empty() || !pRTV || dims.x == 0 || dims.y == 0)
+		return;
+
+	const glm::vec3 orb = m_pSpriteBatch->GetTranslation(orbIdxs.front());
+	const glm::vec2 position = {
+		orb.x * (float)m_Width * 0.5f + m_DTLightningOffset.x,
+		orb.y * (float)m_Height * 0.5f + m_DTLightningOffset.y };
+	const float scale = m_DTLightningScale * m_GroupTransforms[(size_t)Group_t::DTBars].scale;
+
+	m_pDTLightning->SetTransform(position, scale);
+	m_pDTLightning->Render(m_pD3D11DeviceContext, pRTV, dims.x, dims.y);
+}
+
+void DanteHUD2::DrawDTLightningControls()
+{
+	if (!m_pDTLightning)
+		return;
+
+	const std::wstring& path = m_pDTLightning->GetEffectPath();
+	ImGui::TextWrapped("Effect: %s", std::filesystem::path(path).string().c_str());
+	if (m_pDTLightning->IsLoaded())
+		ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Loaded, reloads when the file is saved.");
+	else
+		ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.3f, 1.0f), "Not loaded, it loads as soon as the file exists.");
+
+	ImGui::Checkbox("Enabled##DTLightning", &m_DTLightningEnabled);
+	ImGui::SameLine();
+	ImGui::Checkbox("Force on (ignore Devil Trigger)##DTLightning", &m_DTLightningForce);
+	ImGui::SameLine();
+	if (ImGui::Button("Restart##DTLightning"))
+		m_pDTLightning->Restart();
+
+	ImGui::DragFloat("HUD px per unit##DTLightning", &m_DTLightningScale, 0.1f, 0.1f, 200.0f, "%.2f");
+	ImGui::DragFloat2("Offset (px, y up)##DTLightning", &m_DTLightningOffset.x, 0.5f, -1000.0f, 1000.0f, "%.1f");
+	if (ImGui::DragFloat("Speed##DTLightning", &m_DTLightningSpeed, 0.01f, 0.0f, 10.0f, "%.2f"))
+		m_pDTLightning->SetSpeed(m_DTLightningSpeed);
 }
 
 void DanteHUD2::SetBoundsScale(float scale)
