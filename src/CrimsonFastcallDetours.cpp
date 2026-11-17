@@ -551,6 +551,15 @@ namespace CrimsonFastcallDetours{
      PlaySFXWithPosByTypeTrampoline trampoline = (PlaySFXWithPosByTypeTrampoline)trampoline_raw;
 
 	 // NEW RISING STAR SFX
+	 // The stack probe below can fault on unrelated callers, and even a caught AV triggers a crash dump, so gate it first.
+	 bool anyInRisingStar = false;
+	 for (uint8 i = 0; i < PLAYER_COUNT; ++i) {
+		 anyInRisingStar |= crimsonPlayer[i].inRisingStar || crimsonPlayer[i].inRisingStarClone;
+	 }
+	 if (type != 12 || !anyInRisingStar) {
+		 return trampoline(fileAddr, index, posPtr, type);
+	 }
+
 	 __try {
 		 if (posPtr < 0x190000) {
 			 volatile uintptr_t actorBase = (uintptr_t)posPtr + 0x40;
@@ -560,7 +569,7 @@ namespace CrimsonFastcallDetours{
 				 auto& actorData = *actorPtr;
 				 auto& inRisingStar = (actorData.newEntityIndex == 0) ? crimsonPlayer[actorData.newPlayerIndex].inRisingStar :
 					 crimsonPlayer[actorData.newPlayerIndex].inRisingStarClone;
-				 if (type == 12 && inRisingStar && actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) {
+				 if (inRisingStar && actorData.action == ACTION_VERGIL::BEOWULF_RISING_SUN) {
 					 type = 11;
 				 }
 			 }
