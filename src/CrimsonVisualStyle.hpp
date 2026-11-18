@@ -20,7 +20,7 @@ struct VisualStyleTracking {
 	bool styleRanksMeter = true;
 	bool stylishPtsCounter = true;
 	bool lockOn = true;
-	std::string selectedHUD = "Crimson HUD";
+	std::string selectedHUD = "Crimson HUD 2.0";
 
 	static constexpr auto Metadata() {
 		return std::make_tuple(
