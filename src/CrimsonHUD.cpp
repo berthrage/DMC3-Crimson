@@ -5680,8 +5680,8 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 		instance.hud->SetActiveStyleExpFillAmount(styleExpFill);
 	}
 
-	instance.hud->SetStraightHPBars(activeCrimsonConfig.CrimsonHudAddons.straightHPBars);
-	instance.hud->SetStraightHPBarOffset(activeCrimsonConfig.CrimsonHudAddons.straightHPBarsOffset);
+	// Dante always draws straight HP bars, flush stacked; Vergil's HUD keeps the slanted ones.
+	instance.hud->SetStraightHPBars(true);
 
 	CrimsonHUD2UpdateBars(instance, *instance.hud, mainActorData, actorAddr);
 

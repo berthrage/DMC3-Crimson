@@ -215,8 +215,6 @@ struct CrimsonConfig {
 		bool lockOnStunDisplacement = true;
 		bool stunDisplacementNumericHud = false;
 		bool lockOnColorsCharacter = true;
-		bool straightHPBars = false;
-		bool straightHPBarsOffset = false;
 		std::string selectedStyleRanks = "Crimson";
 		std::string selectedStyleRanksAccolades = "1 - DMC3Default";
 
@@ -234,8 +232,6 @@ struct CrimsonConfig {
 				std::make_pair("lockOnStunDisplacement", &CrimsonHudAddons::lockOnStunDisplacement),
 				std::make_pair("stunDisplacementNumericHud", &CrimsonHudAddons::stunDisplacementNumericHud),
 				std::make_pair("lockOnColorsCharacter", &CrimsonHudAddons::lockOnColorsCharacter),
-				std::make_pair("straightHPBars", &CrimsonHudAddons::straightHPBars),
-				std::make_pair("straightHPBarsOffset", &CrimsonHudAddons::straightHPBarsOffset),
 				std::make_pair("selectedStyleRanks", &CrimsonHudAddons::selectedStyleRanks),
 				std::make_pair("selectedStyleRanksAccolades", &CrimsonHudAddons::selectedStyleRanksAccolades)
 			);
