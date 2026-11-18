@@ -46,6 +46,7 @@
 #include "CrimsonClock.hpp"
 #include "UI\EmbeddedImages.hpp"
 #include "UI\DanteHUD2.hpp"
+#include "UI\VergilHUD2.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonHUD.hpp"
@@ -3624,7 +3625,7 @@ static void StyleDisplayWindowView(int view) {
 void StyleDisplayWindow() {
 	// Crimson HUD 2.0 draws its own top-left group.
 	ForEachHudView([](int view) {
-		if (!HUD_DanteHUD2ActiveFor(view)) {
+		if (!HUD_CrimsonHUD2ActiveFor(view)) {
 			StyleDisplayWindowView(view);
 		}
 	});
@@ -3988,7 +3989,7 @@ static void StyleEXPDisplayWindowView(int view) {
 
 void StyleEXPDisplayWindow() {
 	ForEachHudView([](int view) {
-		if (!HUD_DanteHUD2ActiveFor(view)) {
+		if (!HUD_CrimsonHUD2ActiveFor(view)) {
 			StyleEXPDisplayWindowView(view);
 		}
 	});
@@ -4133,7 +4134,7 @@ static void StyleLvlDispWindowView(int view) {
 
 void StyleLvlDispWindow() {
 	ForEachHudView([](int view) {
-		if (!HUD_DanteHUD2ActiveFor(view)) {
+		if (!HUD_CrimsonHUD2ActiveFor(view)) {
 			StyleLvlDispWindowView(view);
 		}
 	});
@@ -4272,7 +4273,7 @@ static void RoyalGaugeDispWindowView(int view) {
 
 void RoyalGaugeDispWindow() {
 	ForEachHudView([](int view) {
-		if (!HUD_DanteHUD2ActiveFor(view)) {
+		if (!HUD_CrimsonHUD2ActiveFor(view)) {
 			RoyalGaugeDispWindowView(view);
 		}
 	});
@@ -4397,7 +4398,12 @@ static void MirageGaugeMainPlayerView(int view) {
 }
 
 void MirageGaugeMainPlayer() {
-	ForEachHudView(MirageGaugeMainPlayerView);
+	// Vergil's Crimson HUD 2.0 has its own Mirage gauge.
+	ForEachHudView([](int view) {
+		if (!HUD_VergilHUD2ActiveFor(view)) {
+			MirageGaugeMainPlayerView(view);
+		}
+	});
 }
 
 Texture2DD3D11 *getCrimsonGradient()
@@ -4850,16 +4856,10 @@ void InitTextures(ID3D11Device* pd3dDevice) {
 
 #pragma region Crimson HUD 2.0
 
-// One HUD per player (player 1's is also the single view's), each with the values it last applied.
-struct DanteHUD2Instance {
-	std::unique_ptr<HUD::Dante::DanteHUD2> hud;
-	int lastAppliedStyle = -1;
-	uint32 lastStyleLevel = UINT32_MAX;
-	float lastStyleExpFill = -1.0f;
+// HP and DT values a Crimson HUD 2.0 last applied, shared by Dante's and Vergil's.
+struct CrimsonHUD2Bars {
 	size_t lastHPLevel = 0;
 	size_t lastDTLevel = SIZE_MAX;
-	size_t lastRoyalguardLevel = 0;
-	float lastRoyalguardFill = -1.0f;
 	float lastDTFill = -1.0f;
 	float lastVitalityFill = -1.0f;
 	float lastHitPoints = -1.0f;
@@ -4869,10 +4869,29 @@ struct DanteHUD2Instance {
 	byte8* lastActorAddr = nullptr;
 	float actorRestoreGraceTimer = 0.0f;
 };
+
+// One HUD per player (player 1's is also the single view's), each with the values it last applied.
+struct DanteHUD2Instance : CrimsonHUD2Bars {
+	std::unique_ptr<HUD::Dante::DanteHUD2> hud;
+	int lastAppliedStyle = -1;
+	uint32 lastStyleLevel = UINT32_MAX;
+	float lastStyleExpFill = -1.0f;
+	size_t lastRoyalguardLevel = 0;
+	float lastRoyalguardFill = -1.0f;
+};
 static DanteHUD2Instance s_DanteHUD2[PLAYER_COUNT];
 
 static DanteHUD2Instance& DanteHUD2InstanceFor(int view) {
 	return s_DanteHUD2[view < 0 ? 0 : view];
+}
+
+struct VergilHUD2Instance : CrimsonHUD2Bars {
+	std::unique_ptr<HUD::Vergil::VergilHUD2> hud;
+};
+static VergilHUD2Instance s_VergilHUD2[PLAYER_COUNT];
+
+static VergilHUD2Instance& VergilHUD2InstanceFor(int view) {
+	return s_VergilHUD2[view < 0 ? 0 : view];
 }
 
 // Per-group scale around the group's anchor sprite, then an offset in sprite space.
@@ -4935,6 +4954,16 @@ static constexpr const char* DANTE_HUD2_SPLIT_CODE_NAMES[DANTE_HUD2_SPLIT_COUNT]
 };
 static DanteHUD2Layout s_DanteHUD2SplitLayouts[DANTE_HUD2_SPLIT_COUNT] = {
 	DANTE_HUD2_LAYOUT_HALVES, DANTE_HUD2_LAYOUT_QUADS, DANTE_HUD2_LAYOUT_SHARED,
+};
+
+// Vergil's groups, used in every layout in place of Dante's. His EXP bar group has no style name.
+constexpr DanteHUD2Group VERGIL_HUD2_GROUPS[(size_t)HUD::Dante::Group_t::SIZE] = {
+	{ 0.940f, 0.0000f, 0.0000f }, { 1.055f, 0.0000f, 0.0000f }, { 1.100f, 0.0430f, 0.0000f }, { 1.325f, -0.0370f, 0.0000f } };
+static DanteHUD2Group s_VergilHUD2Groups[(size_t)HUD::Dante::Group_t::SIZE] = {
+	VERGIL_HUD2_GROUPS[0], VERGIL_HUD2_GROUPS[1], VERGIL_HUD2_GROUPS[2], VERGIL_HUD2_GROUPS[3],
+};
+static constexpr const char* VERGIL_HUD2_GROUP_NAMES[(size_t)HUD::Dante::Group_t::SIZE] = {
+	"HP bars", "DT bars", "EXP bar", "Compass + Mirage gauge",
 };
 
 // Render target size, keeps the 1500x430 ratio the sprite layout relies on.
@@ -5011,6 +5040,21 @@ static HUD::Dante::Style_t MapGameStyleToHUD(int style) {
 	}
 }
 
+// Same style color the style switch flux uses.
+static glm::vec4 DanteHUD2StyleColor(int style) {
+	int colorIndex = style;
+	switch (style) {
+	case STYLE::SWORDMASTER: colorIndex = 1; break;
+	case STYLE::GUNSLINGER:  colorIndex = 2; break;
+	case STYLE::TRICKSTER:   colorIndex = 0; break;
+	}
+	if (colorIndex < 0 || colorIndex > 5) {
+		colorIndex = 0;
+	}
+	const auto& color = activeCrimsonConfig.StyleSwitchFX.Flux.fluxColor[colorIndex];
+	return glm::vec4(color[0], color[1], color[2], color[3]) / 255.0f;
+}
+
 // 1000 max HP per level, up to 20000 (level 20).
 static size_t MapMaxHPToHPLevel(float maxHitPoints) {
 	const float level = (std::max)(0.0f, maxHitPoints / 1000.0f + 0.5f);
@@ -5027,34 +5071,11 @@ static size_t MapMaxMagicToDTLevel(float maxMagicPoints) {
 }
 
 static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAddr);
+static void VergilHUD2UpdateFromActor(VergilHUD2Instance& instance, int view, byte8* actorAddr);
 
-static void DanteHUD2RenderView(int view) {
-	DanteHUD2Instance& instance = DanteHUD2InstanceFor(view);
-	auto* actor = reinterpret_cast<byte8*>(HudViewActor(view));
-	if (!actor && !instance.hud) {
-		return;
-	}
-
-	if (!instance.hud) {
-		instance.hud = std::make_unique<HUD::Dante::DanteHUD2>(D3D11::device, D3D11::deviceContext,
-			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
-		instance.hud->SetHUDTheme(HUD::Dante::Theme_t::Colored);
-		// Crimson HUD 1.0's style name is drawn in its place (StyleTextDisplayWindow).
-		instance.hud->SetStyleNameVisible(false);
-		// Darkslayer isn't in Crimson yet.
-		instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Darkslayer, false);
-		instance.hud->SetActiveStyleLevel(3);
-		instance.hud->SetRGGaugeLevel(3);
-		instance.hud->SetActiveStyleExpFillAmount(1.0f);
-	}
-	HUD::Dante::DanteHUD2& hud = *instance.hud;
-
-	// No actor while a room loads: keep showing the last state.
-	if (actor && !s_DanteHUD2FreezeValues) {
-		DanteHUD2UpdateFromActor(instance, actor);
-	}
-	hud.OnUpdate((double)CrimsonClock::DeltaTime());
-
+// Draws a view's Crimson HUD 2.0 into its render target and puts it on screen, the same for both characters.
+template <typename HUDType>
+static void CrimsonHUD2Present(int view, HUDType& hud, const DanteHUD2Group* groups = nullptr) {
 	// Fades with the cockpit's top-left group, the part of CUIDCockpit00 this stands in for.
 	const float alpha = s_DanteHUD2ForceVisible ? 1.0f : HudViewTopLeftAlpha(view);
 	if (alpha <= 0.0f) {
@@ -5069,7 +5090,7 @@ static void DanteHUD2RenderView(int view) {
 	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
 	hud.SetBoundsScale(layout.bounds);
 	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
-		const DanteHUD2Group& group = layout.groups[g];
+		const DanteHUD2Group& group = groups ? groups[g] : layout.groups[g];
 		const auto groupId = (HUD::Dante::Group_t)g;
 		hud.SetGroupTransform(groupId, group.scale, { group.offsetX, group.offsetY });
 		hud.SetGroupVisible(groupId, groupId == HUD::Dante::Group_t::CompassRoyalguard ? showCompass : !hideMain);
@@ -5096,6 +5117,57 @@ static void DanteHUD2RenderView(int view) {
 	}
 }
 
+static void DanteHUD2RenderView(int view) {
+	DanteHUD2Instance& instance = DanteHUD2InstanceFor(view);
+	auto* actor = reinterpret_cast<byte8*>(HudViewActor(view));
+	if (!actor && !instance.hud) {
+		return;
+	}
+
+	if (!instance.hud) {
+		instance.hud = std::make_unique<HUD::Dante::DanteHUD2>(D3D11::device, D3D11::deviceContext,
+			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+		instance.hud->SetHUDTheme(HUD::Dante::Theme_t::Colored);
+		// Darkslayer isn't in Crimson yet.
+		instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Darkslayer, false);
+		instance.hud->SetActiveStyleLevel(3);
+		instance.hud->SetRGGaugeLevel(3);
+		instance.hud->SetActiveStyleExpFillAmount(1.0f);
+	}
+	HUD::Dante::DanteHUD2& hud = *instance.hud;
+
+	// No actor while a room loads: keep showing the last state.
+	if (actor && !s_DanteHUD2FreezeValues) {
+		DanteHUD2UpdateFromActor(instance, actor);
+	}
+	hud.SetCompassSmokeColor(DanteHUD2StyleColor(instance.lastAppliedStyle));
+	hud.OnUpdate((double)CrimsonClock::DeltaTime());
+
+	CrimsonHUD2Present(view, hud);
+}
+
+// Same size and layout as Dante's, so it shares his placement, with its own group tuning.
+static void VergilHUD2RenderView(int view) {
+	VergilHUD2Instance& instance = VergilHUD2InstanceFor(view);
+	auto* actor = reinterpret_cast<byte8*>(HudViewActor(view));
+	if (!actor && !instance.hud) {
+		return;
+	}
+
+	if (!instance.hud) {
+		instance.hud = std::make_unique<HUD::Vergil::VergilHUD2>(D3D11::device, D3D11::deviceContext,
+			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+	}
+	HUD::Vergil::VergilHUD2& hud = *instance.hud;
+
+	if (actor && !s_DanteHUD2FreezeValues) {
+		VergilHUD2UpdateFromActor(instance, view, actor);
+	}
+	hud.OnUpdate((double)CrimsonClock::DeltaTime());
+
+	CrimsonHUD2Present(view, hud, s_VergilHUD2Groups);
+}
+
 void DanteHUD2Render() {
 	if (g_inGameCutscene || g_inCredits || (!CockpitShownForDanteHUD2() && !s_DanteHUD2ForceVisible)) {
 		return;
@@ -5107,12 +5179,16 @@ void DanteHUD2Render() {
 	if (views < 2) {
 		if (HUD_DanteHUD2Active()) {
 			DanteHUD2RenderView(-1);
+		} else if (HUD_VergilHUD2Active()) {
+			VergilHUD2RenderView(-1);
 		}
 		return;
 	}
 	for (int view = 0; view < views; ++view) {
 		if (HUD_DanteHUD2ActiveFor(view)) {
 			DanteHUD2RenderView(view);
+		} else if (HUD_VergilHUD2ActiveFor(view)) {
+			VergilHUD2RenderView(view);
 		}
 	}
 }
@@ -5159,7 +5235,7 @@ bool DanteHUD2PlayerTagPlacement(int player, float& x, float& y, float& scale) {
 		}
 		view = -1;
 	}
-	if (!HUD_DanteHUD2ActiveFor(view)) {
+	if (!HUD_CrimsonHUD2ActiveFor(view)) {
 		return false;
 	}
 	const DanteHUD2Layout& layout = DanteHUD2LayoutFor(view);
@@ -5227,6 +5303,42 @@ static void DanteHUD2GroupControls(DanteHUD2Layout& layout, const DanteHUD2Layou
 	ImGui::PopID();
 }
 
+static void VergilHUD2GroupControls() {
+	ImGui::Text("Vergil group scale");
+	ImGui::TextWrapped("Vergil uses the same screen placement as Dante, with independent group transforms.");
+	// Same labels as Dante's group controls in the same window, the IDs would collide without this.
+	ImGui::PushID("VergilGroups");
+	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+		const char* name = VERGIL_HUD2_GROUP_NAMES[g];
+		if (!name) {
+			continue;
+		}
+		DanteHUD2Group& group = s_VergilHUD2Groups[g];
+		ImGui::PushID((int)g);
+		ImGui::Text("%s", name);
+		ImGui::DragFloat("scale", &group.scale, 0.005f, 0.1f, 3.0f, "%.3f");
+		ImGui::DragFloat2("offset", &group.offsetX, 0.001f, -2.0f, 2.0f, "%.4f");
+		ImGui::SameLine();
+		if (ImGui::Button("Reset")) {
+			group = VERGIL_HUD2_GROUPS[g];
+		}
+		ImGui::PopID();
+	}
+	ImGui::PopID();
+}
+
+static std::string VergilHUD2GroupCode() {
+	char text[128];
+	std::string code = "static DanteHUD2Group s_VergilHUD2Groups[(size_t)HUD::Dante::Group_t::SIZE] = { ";
+	for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
+		const DanteHUD2Group& group = s_VergilHUD2Groups[g];
+		snprintf(text, sizeof(text), "{ %.3ff, %.4ff, %.4ff }%s", group.scale, group.offsetX, group.offsetY,
+			g + 1 < (size_t)HUD::Dante::Group_t::SIZE ? ", " : " };\n");
+		code += text;
+	}
+	return code;
+}
+
 static std::string DanteHUD2LayoutCode(const char* name, const DanteHUD2Layout& layout) {
 	char text[256];
 	snprintf(text, sizeof(text), "constexpr DanteHUD2Layout %s = { %.1ff, %.1ff, %.3ff, %.3ff,\n\t{ ",
@@ -5251,9 +5363,9 @@ void DanteHUD2TuningWindow(bool* open) {
 		return;
 	}
 
-	if (!HUD_DanteHUD2Active()) {
-		ImGui::TextWrapped("Crimson HUD 2.0 is not active (select it in Interface > Select HUD and play as Dante in single player). "
-			"Values still apply once it is. Multiplayer has its own window.");
+	if (!HUD_DanteHUD2Active() && !HUD_VergilHUD2Active()) {
+		ImGui::TextWrapped("Crimson HUD 2.0 is not active (select it in Interface > Select HUD and play as Dante or Vergil in "
+			"single player). Values still apply once it is. Multiplayer has its own window.");
 	}
 
 	const bool smaller = DanteHUD2Smaller();
@@ -5268,6 +5380,8 @@ void DanteHUD2TuningWindow(bool* open) {
 	ImGui::Separator();
 	DanteHUD2GroupControls(layout, defaults);
 	ImGui::Separator();
+	VergilHUD2GroupControls();
+	ImGui::Separator();
 
 	if (ImGui::Button("Reset placement")) {
 		layout = defaults;
@@ -5275,6 +5389,7 @@ void DanteHUD2TuningWindow(bool* open) {
 	ImGui::SameLine();
 	if (ImGui::Button("Copy as code")) {
 		std::string code = DanteHUD2LayoutCode(smaller ? "DANTE_HUD2_LAYOUT_SMALLER" : "DANTE_HUD2_LAYOUT", layout);
+		code += VergilHUD2GroupCode();
 		code += "// Groups: ";
 		for (size_t g = 0; g < (size_t)HUD::Dante::Group_t::SIZE; g++) {
 			code += DANTE_HUD2_GROUP_NAMES[g];
@@ -5283,7 +5398,41 @@ void DanteHUD2TuningWindow(bool* open) {
 		if (s_DanteHUD2[0].hud) {
 			code += s_DanteHUD2[0].hud->DumpSpriteLayout();
 		}
+		if (s_VergilHUD2[0].hud) {
+			code += s_VergilHUD2[0].hud->DumpSpriteLayout();
+		}
 		ImGui::SetClipboardText(code.c_str());
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Compass smoke")) {
+		if (s_DanteHUD2[0].hud) {
+			ImGui::TextWrapped("Path is relative to the game folder. Effect units are centered on the compass, y up, front view. "
+				"Author it white, it is tinted with the style color.");
+			s_DanteHUD2[0].hud->DrawCompassSmokeControls();
+		} else {
+			ImGui::TextWrapped("The HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("DT lightning")) {
+		if (s_DanteHUD2[0].hud) {
+			ImGui::TextWrapped("Path is relative to the game folder. Effect units are centered on the first DT orb, y up, front view. "
+				"Drawn over every HUD sprite, in its own colors.");
+			s_DanteHUD2[0].hud->DrawDTLightningControls();
+		} else {
+			ImGui::TextWrapped("The HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("DT Explosion charge")) {
+		if (s_DanteHUD2[0].hud) {
+			s_DanteHUD2[0].hud->DrawDTExplosionControls();
+		} else {
+			ImGui::TextWrapped("The HUD has not been created yet, it is created the first time it shows in game.");
+		}
 	}
 
 	ImGui::Separator();
@@ -5293,6 +5442,46 @@ void DanteHUD2TuningWindow(bool* open) {
 			s_DanteHUD2[0].hud->DrawDebugControls();
 		} else {
 			ImGui::TextWrapped("The HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Vergil compass void / storm")) {
+		if (s_VergilHUD2[0].hud) {
+			ImGui::TextWrapped("Path is relative to the game folder. Effect units are centered on the compass ring, y up, front view. "
+				"Both draw under the compass, the storm over the void.");
+			s_VergilHUD2[0].hud->DrawCompassEffectControls();
+		} else {
+			ImGui::TextWrapped("Vergil's HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Vergil DT lightning")) {
+		if (s_VergilHUD2[0].hud) {
+			ImGui::TextWrapped("Path is relative to the game folder. Effect units are centered on the first DT orb, y up, front view.");
+			s_VergilHUD2[0].hud->DrawDTLightningControls();
+		} else {
+			ImGui::TextWrapped("Vergil's HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Vergil DT Explosion charge")) {
+		if (s_VergilHUD2[0].hud) {
+			s_VergilHUD2[0].hud->DrawDTExplosionControls();
+		} else {
+			ImGui::TextWrapped("Vergil's HUD has not been created yet, it is created the first time it shows in game.");
+		}
+	}
+
+	ImGui::Separator();
+	if (ImGui::CollapsingHeader("Vergil sprites")) {
+		if (s_VergilHUD2[0].hud) {
+			ImGui::TextWrapped("Sprite edits are reset when the levels change. They edit player 1's HUD.");
+			s_VergilHUD2[0].hud->DrawDebugControls();
+		} else {
+			ImGui::TextWrapped("Vergil's HUD has not been created yet, it is created the first time it shows in game.");
 		}
 	}
 
@@ -5321,11 +5510,11 @@ void DanteHUD2SplitTuningWindow(bool* open) {
 		}
 		bool anyView = false;
 		for (int view = 0; view < viewCount; ++view) {
-			anyView = anyView || HUD_DanteHUD2ActiveFor(view);
+			anyView = anyView || HUD_CrimsonHUD2ActiveFor(view);
 		}
 		if (!anyView) {
 			ImGui::TextWrapped("Crimson HUD 2.0 is not active for any player (select it in Interface > Select HUD, it shows "
-				"for players playing as Dante).");
+				"for players playing as Dante or Vergil).");
 		}
 	} else {
 		ImGui::TextWrapped("Not in a multiplayer session (or in a cutscene). Values still apply once it is on.");
@@ -5383,6 +5572,74 @@ void DanteHUD2SplitTuningWindow(bool* open) {
 	ImGui::End();
 }
 
+// HP and DT bars, the same for both characters.
+template <typename HUDType>
+static void CrimsonHUD2UpdateBars(CrimsonHUD2Bars& bars, HUDType& hud, PlayerActorData& actorData, byte8* actorAddr) {
+	const size_t hpLevel = MapMaxHPToHPLevel(actorData.maxHitPoints);
+	if (hpLevel != bars.lastHPLevel) {
+		bars.lastHPLevel = hpLevel;
+		hud.SetHPLevel(hpLevel);
+	}
+
+	const size_t dtLevel = MapMaxMagicToDTLevel(actorData.maxMagicPoints);
+	if (dtLevel != bars.lastDTLevel) {
+		bars.lastDTLevel = dtLevel;
+		hud.SetDTLevel(dtLevel);
+	}
+
+	const float dtFraction = actorData.maxMagicPoints > 0.0f ? actorData.magicPoints / actorData.maxMagicPoints : 0.0f;
+	if (dtFraction != bars.lastDTFill) {
+		bars.lastDTFill = dtFraction;
+		hud.SetDTFill(dtFraction);
+	}
+	hud.SetDTReady(actorData.magicPoints >= 3000.0f && !actorData.devil);
+	hud.SetDTActive(actorData.devil);
+	hud.SetDTExplosionCharge(actorData.dtExplosionCharge);
+
+	// The red damage bar trails vitality and drains down to it kDamageBarDelay after the last hit.
+	const float hpFraction = actorData.maxHitPoints > 0.0f ? actorData.hitPoints / actorData.maxHitPoints : 0.0f;
+	const float deltaTime = CrimsonClock::DeltaTime();
+
+	if (actorAddr != bars.lastActorAddr) {
+		bars.lastActorAddr = actorAddr;
+		bars.damageSnapTimer = 0.0f;
+		bars.actorRestoreGraceTimer = kActorRestoreGraceDuration;
+	}
+	if (bars.actorRestoreGraceTimer > 0.0f) {
+		bars.actorRestoreGraceTimer -= deltaTime;
+	}
+	if (hpFraction < bars.lastVitalityFill && bars.actorRestoreGraceTimer <= 0.0f) {
+		bars.damageSnapTimer = 0.0f;
+		if (bars.lastHitPoints >= 0.0f) {
+			hud.TriggerHPShake(bars.lastHitPoints - actorData.hitPoints);
+		}
+	}
+	bars.lastHitPoints = actorData.hitPoints;
+	if (hpFraction != bars.lastVitalityFill) {
+		if (hpFraction > bars.lastVitalityFill) {
+			bars.actorRestoreGraceTimer = kActorRestoreGraceDuration;
+		}
+		if (hpFraction > bars.lastVitalityFill || bars.actorRestoreGraceTimer > 0.0f) {
+			bars.damageSnapTimer = 0.0f;
+			if (hpFraction != bars.lastDamageFill) {
+				bars.lastDamageFill = hpFraction;
+				hud.SetHPDamageAmount(hpFraction);
+			}
+		}
+		bars.lastVitalityFill = hpFraction;
+		hud.SetHPVitalityAmount(hpFraction);
+	}
+	if (bars.lastVitalityFill >= 0.0f) {
+		bars.damageSnapTimer += deltaTime;
+		if (bars.damageSnapTimer >= kDamageBarDelay && hpFraction != bars.lastDamageFill) {
+			const float gap = bars.lastDamageFill - hpFraction;
+			const float drain = (std::max)(gap * (1.0f - std::exp(-kDamageBarDrainSpeed * deltaTime)), kDamageBarMinDrain * deltaTime);
+			bars.lastDamageFill = (gap <= drain) ? hpFraction : bars.lastDamageFill - drain;
+			hud.SetHPDamageAmount(bars.lastDamageFill);
+		}
+	}
+}
+
 static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAddr) {
 	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
 
@@ -5401,9 +5658,17 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 	const bool hasStyleExp = mainActorData.style != STYLE::QUICKSILVER && mainActorData.style != STYLE::DOPPELGANGER;
 	instance.hud->SetStyleLevelVisible(hasStyleExp);
 
-	const size_t displayedStyleLevel = (std::min)(static_cast<size_t>(mainActorData.styleLevel) + 1, static_cast<size_t>(3));
-	if (mainActorData.styleLevel != instance.lastStyleLevel) {
-		instance.lastStyleLevel = mainActorData.styleLevel;
+	// Level 4 is the bought modded-moves unlock on top of a maxed style, same as Crimson HUD 1.0's diamonds.
+	const auto& unlocks = ExpConfig::missionExpDataDante.unlocks;
+	const bool styleLevel4 = mainActorData.styleLevel >= 2 && (
+		(mainActorData.style == STYLE::SWORDMASTER && unlocks[UNLOCK_DANTE::SWORDMASTER_MODDED_MOVES]) ||
+		(mainActorData.style == STYLE::TRICKSTER && unlocks[UNLOCK_DANTE::TRICKSTER_MODDED_MOVES]) ||
+		(mainActorData.style == STYLE::ROYALGUARD && unlocks[UNLOCK_DANTE::ROYALGUARD_MODDED_MOVES]) ||
+		(mainActorData.style == STYLE::GUNSLINGER && unlocks[UNLOCK_DANTE::GUNSLINGER_MODDED_MOVES]));
+	const size_t displayedStyleLevel = styleLevel4 ? 4
+		: (std::min)(static_cast<size_t>(mainActorData.styleLevel) + 1, static_cast<size_t>(3));
+	if (displayedStyleLevel != instance.lastStyleLevel) {
+		instance.lastStyleLevel = static_cast<uint32>(displayedStyleLevel);
 		instance.hud->SetActiveStyleLevel(displayedStyleLevel);
 	}
 	const float styleExpMax = mainActorData.styleLevel == 0 ? 30000.0f : 99999.0f;
@@ -5415,17 +5680,10 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 		instance.hud->SetActiveStyleExpFillAmount(styleExpFill);
 	}
 
-	const size_t hpLevel = MapMaxHPToHPLevel(mainActorData.maxHitPoints);
-	if (hpLevel != instance.lastHPLevel) {
-		instance.lastHPLevel = hpLevel;
-		instance.hud->SetHPLevel(hpLevel);
-	}
+	instance.hud->SetStraightHPBars(activeCrimsonConfig.CrimsonHudAddons.straightHPBars);
+	instance.hud->SetStraightHPBarOffset(activeCrimsonConfig.CrimsonHudAddons.straightHPBarsOffset);
 
-	const size_t dtLevel = MapMaxMagicToDTLevel(mainActorData.maxMagicPoints);
-	if (dtLevel != instance.lastDTLevel) {
-		instance.lastDTLevel = dtLevel;
-		instance.hud->SetDTLevel(dtLevel);
-	}
+	CrimsonHUD2UpdateBars(instance, *instance.hud, mainActorData, actorAddr);
 
 	// Royalguard gauge holds 3000 release damage per Royalguard level.
 	const size_t royalguardLevel = (std::min)(static_cast<size_t>(heldStyleExpDataDante.missionStyleLevels[STYLE::ROYALGUARD]) + 1, static_cast<size_t>(3));
@@ -5439,55 +5697,47 @@ static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAd
 		instance.lastRoyalguardFill = royalguardFraction;
 		instance.hud->SetRGGuageAmount(royalguardFraction);
 	}
+}
 
-	const float dtFraction = mainActorData.maxMagicPoints > 0.0f ? mainActorData.magicPoints / mainActorData.maxMagicPoints : 0.0f;
-	if (dtFraction != instance.lastDTFill) {
-		instance.lastDTFill = dtFraction;
-		instance.hud->SetDTFill(dtFraction);
-	}
+static void VergilHUD2UpdateFromActor(VergilHUD2Instance& instance, int view, byte8* actorAddr) {
+	auto& mainActorData = *reinterpret_cast<PlayerActorData*>(actorAddr);
+	HUD::Vergil::VergilHUD2& hud = *instance.hud;
 
-	// The red damage bar trails vitality and drains down to it kDamageBarDelay after the last hit.
-	const float hpFraction = mainActorData.maxHitPoints > 0.0f ? mainActorData.hitPoints / mainActorData.maxHitPoints : 0.0f;
-	const float deltaTime = CrimsonClock::DeltaTime();
+	using HUDStyle = HUD::Vergil::Style_t;
+	hud.SetActiveStyle(mainActorData.style == STYLE::QUICKSILVER ? HUDStyle::Quicksilver
+		: mainActorData.style == STYLE::DOPPELGANGER ? HUDStyle::Doppleganger : HUDStyle::Darkslayer);
 
-	if (actorAddr != instance.lastActorAddr) {
-		instance.lastActorAddr = actorAddr;
-		instance.damageSnapTimer = 0.0f;
-		instance.actorRestoreGraceTimer = kActorRestoreGraceDuration;
-	}
-	if (instance.actorRestoreGraceTimer > 0.0f) {
-		instance.actorRestoreGraceTimer -= deltaTime;
-	}
-	if (hpFraction < instance.lastVitalityFill && instance.actorRestoreGraceTimer <= 0.0f) {
-		instance.damageSnapTimer = 0.0f;
-		if (instance.lastHitPoints >= 0.0f) {
-			instance.hud->TriggerHPShake(instance.lastHitPoints - mainActorData.hitPoints);
+	// Same rules as Dante's: Quicksilver and Doppelganger have no style exp. Dark Slayer tops out at level 3 for now,
+	// the HUD already takes level 4 if Vergil gets one to buy.
+	const bool hasStyleExp = mainActorData.style != STYLE::QUICKSILVER && mainActorData.style != STYLE::DOPPELGANGER;
+	hud.SetStyleLevelVisible(hasStyleExp);
+
+	hud.SetActiveStyleLevel((std::min)(static_cast<size_t>(mainActorData.styleLevel) + 1, static_cast<size_t>(3)));
+	const float styleExpMax = mainActorData.styleLevel == 0 ? 30000.0f : 99999.0f;
+	hud.SetActiveStyleExpFillAmount((!hasStyleExp || mainActorData.styleLevel >= 2)
+		? 1.0f
+		: (std::max)(0.0f, mainActorData.styleExpPoints) / styleExpMax);
+
+	CrimsonHUD2UpdateBars(instance, hud, mainActorData, actorAddr);
+
+	const auto& doppel = crimsonPlayer[view < 0 ? 0 : view].vergilDoppelganger;
+	const bool mirageEnabled = activeCrimsonGameplay.Gameplay.Vergil.mirageTrigger;
+	hud.SetMirageGaugeVisible(mirageEnabled);
+	hud.SetMirageFill(doppel.maxMiragePoints > 0.0f
+		? (std::clamp)(doppel.miragePoints / doppel.maxMiragePoints, 0.0f, 1.0f) : 0.0f);
+	hud.SetMirageReady(mirageEnabled && !mainActorData.doppelganger && doppel.miragePoints > 0 && doppel.cooldownTime <= 0);
+
+	// activationDirection: 0 haste (right), 1 medium (up), 2 max (left).
+	HUD::Vergil::DoppelDelay_t delay = HUD::Vergil::DoppelDelay_t::SIZE;
+	if (mainActorData.doppelganger) {
+		switch (doppel.activationDirection) {
+		case 0: delay = HUD::Vergil::DoppelDelay_t::Right; break;
+		case 1: delay = HUD::Vergil::DoppelDelay_t::Top; break;
+		case 2: delay = HUD::Vergil::DoppelDelay_t::Left; break;
+		default: break;
 		}
 	}
-	instance.lastHitPoints = mainActorData.hitPoints;
-	if (hpFraction != instance.lastVitalityFill) {
-		if (hpFraction > instance.lastVitalityFill) {
-			instance.actorRestoreGraceTimer = kActorRestoreGraceDuration;
-		}
-		if (hpFraction > instance.lastVitalityFill || instance.actorRestoreGraceTimer > 0.0f) {
-			instance.damageSnapTimer = 0.0f;
-			if (hpFraction != instance.lastDamageFill) {
-				instance.lastDamageFill = hpFraction;
-				instance.hud->SetHPDamageAmount(hpFraction);
-			}
-		}
-		instance.lastVitalityFill = hpFraction;
-		instance.hud->SetHPVitalityAmount(hpFraction);
-	}
-	if (instance.lastVitalityFill >= 0.0f) {
-		instance.damageSnapTimer += deltaTime;
-		if (instance.damageSnapTimer >= kDamageBarDelay && hpFraction != instance.lastDamageFill) {
-			const float gap = instance.lastDamageFill - hpFraction;
-			const float drain = (std::max)(gap * (1.0f - std::exp(-kDamageBarDrainSpeed * deltaTime)), kDamageBarMinDrain * deltaTime);
-			instance.lastDamageFill = (gap <= drain) ? hpFraction : instance.lastDamageFill - drain;
-			instance.hud->SetHPDamageAmount(instance.lastDamageFill);
-		}
-	}
+	hud.SetActiveDoppelDelay(delay);
 }
 
 #pragma endregion
