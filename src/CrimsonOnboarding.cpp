@@ -333,7 +333,7 @@ namespace {
                   VISUALSTYLEPRESETS::HYBRID },
                 { &modernPreview,
                   "MODERN VISUAL STYLE",
-                  "I want all the modernized visuals included in Crimson HUD 1.0,\nfeaturing a sleek interface inspired by DMC5.",
+                  "I want all the modernized visuals included in Crimson HUD 2.0,\nfeaturing a sleek interface inspired by DMC5.",
                   VISUALSTYLEPRESETS::MODERN },
             };
 
