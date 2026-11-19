@@ -28,6 +28,9 @@ public:
 	VergilHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height);
 	virtual ~VergilHUD2();
 
+	// Loads the shared atlas so the first HUD of a stage doesn't hitch on it.
+	static void PreloadTextures(ID3D11Device* pD3D11Device);
+
 public:
 	const auto& GetWidth() { return m_Width; }
 	const auto& GetHeight() { return m_Height; }

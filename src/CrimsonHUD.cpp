@@ -5117,6 +5117,23 @@ static void CrimsonHUD2Present(int view, HUDType& hud, const DanteHUD2Group* gro
 	}
 }
 
+// HUD 2.0 builds its sprite batch and loads its effects here, so the boot preload and the first stage frame share it.
+static void CreateDanteHUD2(DanteHUD2Instance& instance, ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext) {
+	instance.hud = std::make_unique<HUD::Dante::DanteHUD2>(pD3D11Device, pD3D11DeviceContext,
+		(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+	instance.hud->SetHUDTheme(HUD::Dante::Theme_t::Colored);
+	// Darkslayer isn't in Crimson yet.
+	instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Darkslayer, false);
+	instance.hud->SetActiveStyleLevel(3);
+	instance.hud->SetRGGaugeLevel(3);
+	instance.hud->SetActiveStyleExpFillAmount(1.0f);
+}
+
+static void CreateVergilHUD2(VergilHUD2Instance& instance, ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext) {
+	instance.hud = std::make_unique<HUD::Vergil::VergilHUD2>(pD3D11Device, pD3D11DeviceContext,
+		(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+}
+
 static void DanteHUD2RenderView(int view) {
 	DanteHUD2Instance& instance = DanteHUD2InstanceFor(view);
 	auto* actor = reinterpret_cast<byte8*>(HudViewActor(view));
@@ -5125,14 +5142,7 @@ static void DanteHUD2RenderView(int view) {
 	}
 
 	if (!instance.hud) {
-		instance.hud = std::make_unique<HUD::Dante::DanteHUD2>(D3D11::device, D3D11::deviceContext,
-			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
-		instance.hud->SetHUDTheme(HUD::Dante::Theme_t::Colored);
-		// Darkslayer isn't in Crimson yet.
-		instance.hud->SetStyleInitialsVisible(HUD::Dante::Style_t::Darkslayer, false);
-		instance.hud->SetActiveStyleLevel(3);
-		instance.hud->SetRGGaugeLevel(3);
-		instance.hud->SetActiveStyleExpFillAmount(1.0f);
+		CreateDanteHUD2(instance, D3D11::device, D3D11::deviceContext);
 	}
 	HUD::Dante::DanteHUD2& hud = *instance.hud;
 
@@ -5155,8 +5165,7 @@ static void VergilHUD2RenderView(int view) {
 	}
 
 	if (!instance.hud) {
-		instance.hud = std::make_unique<HUD::Vergil::VergilHUD2>(D3D11::device, D3D11::deviceContext,
-			(UINT)kDanteHUD2Width, (UINT)kDanteHUD2Height);
+		CreateVergilHUD2(instance, D3D11::device, D3D11::deviceContext);
 	}
 	HUD::Vergil::VergilHUD2& hud = *instance.hud;
 
@@ -5166,6 +5175,20 @@ static void VergilHUD2RenderView(int view) {
 	hud.OnUpdate((double)CrimsonClock::DeltaTime());
 
 	CrimsonHUD2Present(view, hud, s_VergilHUD2Groups);
+}
+
+void PreloadHUD2Textures(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext) {
+	HUD::Dante::DanteHUD2::PreloadTextures(pD3D11Device);
+	HUD::Vergil::VergilHUD2::PreloadTextures(pD3D11Device);
+
+	// Build the single-player HUDs now; their sprite batches, shader compiles and effect loads would otherwise all land
+	// on the first frame of a stage.
+	if (!s_DanteHUD2[0].hud) {
+		CreateDanteHUD2(s_DanteHUD2[0], pD3D11Device, pD3D11DeviceContext);
+	}
+	if (!s_VergilHUD2[0].hud) {
+		CreateVergilHUD2(s_VergilHUD2[0], pD3D11Device, pD3D11DeviceContext);
+	}
 }
 
 void DanteHUD2Render() {

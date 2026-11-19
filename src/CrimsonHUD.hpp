@@ -28,6 +28,8 @@ void StyleLvlDispWindow();
 void RoyalGaugeDispWindow();
 void MirageGaugeMainPlayer();
 void DanteHUD2Render();
+// Loads Crimson HUD 2.0's sprite atlases and builds its single-player HUDs up front, so the first stage doesn't hitch.
+void PreloadHUD2Textures(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext);
 void DanteHUD2TuningWindow(bool* open);
 // Crimson HUD 2.0 placement in multiplayer, one per layout (splitscreen halves / quadrants, shared camera).
 void DanteHUD2SplitTuningWindow(bool* open);

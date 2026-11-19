@@ -120,13 +120,18 @@ DC::Sprites::HPBarFrameVarient_t GetHPFrameSpriteVarient(size_t i, size_t level)
 
 }
 
-VergilHUD2::VergilHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height)
-	: m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height)
+void VergilHUD2::PreloadTextures(ID3D11Device* pD3D11Device)
 {
 	if (!s_pAtlasTexture) {
 		s_pAtlasTexture = std::make_shared<Graphics::Texture2DArrayD3D11>(
-			std::vector<std::string>{ kAtlas1Path, kAtlas2Path }, m_pD3D11Device);
+			std::vector<std::string>{ kAtlas1Path, kAtlas2Path }, pD3D11Device);
 	}
+}
+
+VergilHUD2::VergilHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height)
+	: m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height)
+{
+	PreloadTextures(pD3D11Device);
 
 	if (m_SpriteDescs.size() == 0) {
 		DC::Sprites::LoadSpriteDescs(m_SpriteDescs, kAtlas1Path);

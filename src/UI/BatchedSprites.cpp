@@ -131,6 +131,10 @@ namespace Graphics {
     	HRESULT hr;
     
     
+    	// Compiled once per process; every batch after the first reuses the bytecode.
+    	static ComPtr<ID3DBlob> s_pVertexShaderBlob;
+    	static ComPtr<ID3DBlob> s_pPixelShaderBlob;
+
     	// Create the vertex shader
     	{
     		//Log("BatchedSprites: Starting vertex shader creation");
@@ -247,22 +251,24 @@ namespace Graphics {
     
     		//Log("BatchedSprites: About to compile vertex shader");
     
-    		ComPtr<ID3DBlob> pVertexShaderBlob;
     		ComPtr<ID3DBlob> pErrorBlob;
-    
-    		hr = D3DCompile(VERTEX_SHADER, strlen(VERTEX_SHADER), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &pVertexShaderBlob, &pErrorBlob);
-    
-            if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
-            {
-                Log(GetLastErrorMsg().c_str());
-                Log("BatchedSprites: Vertex shader compilation FAILED: %s", (const char*)pErrorBlob->GetBufferPointer());
 
-                return false;
-            }
+    		if (!s_pVertexShaderBlob)
+    		{
+    			hr = D3DCompile(VERTEX_SHADER, strlen(VERTEX_SHADER), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &s_pVertexShaderBlob, &pErrorBlob);
+
+    			if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
+    			{
+    				Log(GetLastErrorMsg().c_str());
+    				Log("BatchedSprites: Vertex shader compilation FAILED: %s", (const char*)pErrorBlob->GetBufferPointer());
+
+    				return false;
+    			}
+    		}
 
     		//Log("BatchedSprites: Vertex shader compiled successfully");
     
-    		hr = pD3D11Device->CreateVertexShader(pVertexShaderBlob->GetBufferPointer(), pVertexShaderBlob->GetBufferSize(), NULL, &m_pVertexShader);
+    		hr = pD3D11Device->CreateVertexShader(s_pVertexShaderBlob->GetBufferPointer(), s_pVertexShaderBlob->GetBufferSize(), NULL, &m_pVertexShader);
     
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__)) {
                 Log(GetLastErrorMsg().c_str());
@@ -274,8 +280,8 @@ namespace Graphics {
     		hr = pD3D11Device->CreateInputLayout(
                 s_VertexInputLayout,
     			sizeof(s_VertexInputLayout) / sizeof(D3D11_INPUT_ELEMENT_DESC),
-    			pVertexShaderBlob->GetBufferPointer(),
-                pVertexShaderBlob->GetBufferSize(),
+    			s_pVertexShaderBlob->GetBufferPointer(),
+                s_pVertexShaderBlob->GetBufferSize(),
                 &m_pInputLayout
             );
     
@@ -430,22 +436,24 @@ namespace Graphics {
     
     		//Log("BatchedSprites: About to compile pixel shader");
     
-    		ComPtr<ID3DBlob> pPixelShaderBlob;
     		ComPtr<ID3DBlob> pErrorBlob;
-    
-    		hr = D3DCompile(PIXEL_SHADER, strlen(PIXEL_SHADER), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &pPixelShaderBlob, &pErrorBlob);
-    
-            if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
-            {
-                Log(GetLastErrorMsg().c_str());
-                Log("BatchedSprites: Pixel shader compilation FAILED: %s", (const char*)pErrorBlob->GetBufferPointer());
 
-                return false;
-            }
+    		if (!s_pPixelShaderBlob)
+    		{
+    			hr = D3DCompile(PIXEL_SHADER, strlen(PIXEL_SHADER), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &s_pPixelShaderBlob, &pErrorBlob);
+
+    			if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
+    			{
+    				Log(GetLastErrorMsg().c_str());
+    				Log("BatchedSprites: Pixel shader compilation FAILED: %s", (const char*)pErrorBlob->GetBufferPointer());
+
+    				return false;
+    			}
+    		}
     
     		//Log("BatchedSprites: Pixel shader compiled successfully");
     
-    		hr = pD3D11Device->CreatePixelShader(pPixelShaderBlob->GetBufferPointer(), pPixelShaderBlob->GetBufferSize(), NULL, &m_pPixelShader);
+    		hr = pD3D11Device->CreatePixelShader(s_pPixelShaderBlob->GetBufferPointer(), s_pPixelShaderBlob->GetBufferSize(), NULL, &m_pPixelShader);
     
     		if (FAILED(hr)) {
     			Log("BatchedSprites: CreatePixelShader FAILED with HRESULT: 0x%08X", hr);

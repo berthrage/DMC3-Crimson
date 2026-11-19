@@ -2371,8 +2371,37 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	return false;
 }
 
+// The sprite atlases and HUD 2.0 objects are built here, while the game is still in the menus, instead of when a stage
+// first draws them.
+static void PreloadSpriteTextures(IDXGISwapChain* pSwapChain) {
+	static bool done = false;
+
+	if (done)
+		return;
+
+	ID3D11Device* pD3D11Device = nullptr;
+
+	if (FAILED(pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device))) || !pD3D11Device)
+		return;
+
+	WW::WeaponWheel::PreloadTextures(pD3D11Device);
+
+	if (CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
+		ID3D11DeviceContext* pD3D11DeviceContext = nullptr;
+		pD3D11Device->GetImmediateContext(&pD3D11DeviceContext);
+
+		CrimsonHUD::PreloadHUD2Textures(pD3D11Device, pD3D11DeviceContext);
+
+		pD3D11DeviceContext->Release();
+	}
+
+	pD3D11Device->Release();
+	done = true;
+}
+
  void DummyWeaponWheelController (IDXGISwapChain* pSwapChain) {
-	// We initiate this so that texture lovoid DummyWeaponWheelController(IDXGISwapChain* pSwapChain)ading is done on startup and not when the wheel is opened in-game.
+	// The wheel's textures are already up from PreloadSpriteTextures; this builds one wheel so its first in-game open
+	// doesn't pay for the batch setup.
 	static WeaponWheelState dummyWWState;
 
 	if (!dummyWeaponWheel) {
@@ -17746,6 +17775,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
     CrimsonTimers::CallAllTimers();
 
     MultiplayerBars(pSwapChain);
+	PreloadSpriteTextures(pSwapChain);
 	DummyWeaponWheelController(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
 	WeaponWheelsMultiplayerController(pSwapChain);

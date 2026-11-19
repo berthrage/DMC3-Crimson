@@ -1090,15 +1090,7 @@ namespace WW
 
     std::shared_ptr<Graphics::Texture2DArrayD3D11> WeaponWheel::s_pTextureArray = {};
 
-    WeaponWheel::WeaponWheel(
-        ID3D11Device* pD3D11Device,
-        ID3D11DeviceContext* pD3D11DeviceContext,
-        UINT width,
-        UINT height,
-        std::vector<WeaponIDs> weapons,
-        WheelThemes themeID)
-        : m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height),
-        m_Weapons(weapons), m_ThemeID(themeID)
+    void WeaponWheel::PreloadTextures(ID3D11Device* pD3D11Device)
     {
         // Load the sprite descriptors only once
         if (g_SpriteDescs.size() == 0) {
@@ -1114,9 +1106,22 @@ namespace WW
             for (const auto& sDesc : g_SpriteDescs)
                 paths.push_back(sDesc.GetTexturePath());
 
-            s_pTextureArray = std::make_shared<Graphics::Texture2DArrayD3D11>(paths, m_pD3D11Device);
+            s_pTextureArray = std::make_shared<Graphics::Texture2DArrayD3D11>(paths, pD3D11Device);
             Log("[WeaponWheel] Texture array created with %zu textures", paths.size());
         }
+    }
+
+    WeaponWheel::WeaponWheel(
+        ID3D11Device* pD3D11Device,
+        ID3D11DeviceContext* pD3D11DeviceContext,
+        UINT width,
+        UINT height,
+        std::vector<WeaponIDs> weapons,
+        WheelThemes themeID)
+        : m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height),
+        m_Weapons(weapons), m_ThemeID(themeID)
+    {
+        PreloadTextures(pD3D11Device);
 
         m_SpriteIndices.UpdateSprites(m_ThemeID, m_Weapons);
 

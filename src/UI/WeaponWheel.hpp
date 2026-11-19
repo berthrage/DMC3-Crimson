@@ -57,6 +57,9 @@ namespace WW
             WheelThemes themeID = WheelThemes::Neutral);
         virtual ~WeaponWheel();
 
+        // Loads the sprite descriptors and the texture array once, so it doesn't hitch the first time a wheel is built.
+        static void PreloadTextures(ID3D11Device* pD3D11Device);
+
         /// <summary>
         /// Changes the weapons shown in the wheel
         /// </summary>

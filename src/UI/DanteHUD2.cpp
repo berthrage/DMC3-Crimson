@@ -15,6 +15,8 @@ namespace HUD::Dante {
 
 std::shared_ptr<Graphics::Texture2DArrayD3D11> DanteHUD2::s_pAtlasTexture;
 
+constexpr const char* kAtlasPath = R"(Crimson\assets\crimsonhud\hud2_atlases\atlas1.png)";
+
 namespace {
 
 constexpr const wchar_t* kCompassSmokePath = LR"(Crimson\vfx\hud2\compass_smoke.efkefc)";
@@ -171,18 +173,20 @@ glm::vec2 GetSlotOutwardDir(CompassSlot_t slot)
 
 }
 
+void DanteHUD2::PreloadTextures(ID3D11Device* pD3D11Device)
+{
+	if (!s_pAtlasTexture) {
+		s_pAtlasTexture = std::make_shared<Graphics::Texture2DArrayD3D11>(kAtlasPath, pD3D11Device);
+	}
+}
+
 DanteHUD2::DanteHUD2(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext, UINT width, UINT height)
 	: m_pD3D11Device(pD3D11Device), m_pD3D11DeviceContext(pD3D11DeviceContext), m_Width(width), m_Height(height)
 {
-	constexpr auto texturePath = R"(Crimson\assets\crimsonhud\hud2_atlases\atlas1.png)";
-
-	// Initialize the atlas texture for the sprites only once
-	if (!s_pAtlasTexture) {
-		s_pAtlasTexture = std::make_shared<Graphics::Texture2DArrayD3D11>(texturePath, m_pD3D11Device);
-	}
+	PreloadTextures(pD3D11Device);
 
 	if (m_SpriteDescs.size() == 0) {
-		HC::Sprites::LoadSpriteDescs(m_SpriteDescs, texturePath);
+		HC::Sprites::LoadSpriteDescs(m_SpriteDescs, kAtlasPath);
 	}
 
 	m_SpriteIndices.UpdateSprites(m_ThemeID, m_ActiveStyle, m_ActiveStyleLevel,
