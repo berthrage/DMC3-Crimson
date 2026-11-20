@@ -639,6 +639,9 @@ public:
 	virtual void ResetStateForDefferedContext() = 0;
 };
 
+// Opacity/Blend accumulate alpha as coverage instead of MAX, for targets composited as premultiplied.
+void EnableCoverageAlpha(const RendererRef& renderer);
+
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------

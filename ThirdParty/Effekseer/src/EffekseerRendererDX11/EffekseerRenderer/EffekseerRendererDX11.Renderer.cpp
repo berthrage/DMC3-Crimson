@@ -266,6 +266,15 @@ RendererRef Renderer::Create(
 	return Create(graphicsDevice, squareMaxCount, depthFunc, isMSAAEnabled);
 }
 
+void EnableCoverageAlpha(const RendererRef& renderer)
+{
+	if (renderer == nullptr)
+		return;
+
+	auto impl = static_cast<RendererImplemented*>(renderer.Get());
+	static_cast<RenderState*>(impl->GetRenderState())->UseCoverageAlpha();
+}
+
 //----------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------

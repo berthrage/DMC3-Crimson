@@ -38,6 +38,8 @@ public:
 	virtual ~RenderState();
 
 	void Update(bool forced);
+
+	void UseCoverageAlpha();
 };
 
 //-----------------------------------------------------------------------------------

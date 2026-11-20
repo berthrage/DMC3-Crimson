@@ -178,6 +178,36 @@ RenderState::~RenderState()
 	}
 }
 
+// Default alpha op is MAX, which under-counts coverage when Blend particles overlap.
+// Accumulate a + d*(1-a) instead so the target can be composited as premultiplied.
+void RenderState::UseCoverageAlpha()
+{
+	const ::Effekseer::AlphaBlendType types[] = {::Effekseer::AlphaBlendType::Opacity, ::Effekseer::AlphaBlendType::Blend};
+
+	for (auto type : types)
+	{
+		auto& state = m_bStates[(int32_t)type];
+		if (state == nullptr)
+			continue;
+
+		D3D11_BLEND_DESC desc;
+		state->GetDesc(&desc);
+		for (int32_t k = 0; k < 8; k++)
+		{
+			desc.RenderTarget[k].SrcBlendAlpha = D3D11_BLEND_ONE;
+			desc.RenderTarget[k].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+			desc.RenderTarget[k].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		}
+
+		ID3D11BlendState* replacement = nullptr;
+		if (SUCCEEDED(m_renderer->GetDevice()->CreateBlendState(&desc, &replacement)))
+		{
+			ES_SAFE_RELEASE(state);
+			state = replacement;
+		}
+	}
+}
+
 //-----------------------------------------------------------------------------------
 //
 //-----------------------------------------------------------------------------------

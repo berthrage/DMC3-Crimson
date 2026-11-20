@@ -12,6 +12,7 @@ namespace HUD {
 
 // DT Explosion charge over the DT orbs, the same for Dante's and Vergil's HUD 2.0.
 // Every 1000 charge is one orb; the first 3 light as soon as the charge starts since the explosion only spends orbs past them.
+// Their 1-3 effect waits for the first full orb of charge.
 class DTExplosionHUD2 {
 public:
 	static constexpr size_t kMaxOrbs = 10;

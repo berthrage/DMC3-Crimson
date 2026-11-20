@@ -45,7 +45,7 @@ private:
 	void Play(int startFrame = 0);
 	void Stop();
 	void StopWarmUp();
-	void StepWarmUp();
+	void StepWarmUp(float dt);
 	void ApplyTransform();
 	void ApplyTransform(Effekseer::Handle handle, float rotation);
 	void ApplyColor();
@@ -59,6 +59,8 @@ private:
 	// A restart with start frames is simulated in slices on a hidden handle, then swapped in, so it costs no hitch.
 	Effekseer::Handle m_WarmHandle{ -1 };
 	int m_WarmRemaining{ 0 };
+	int m_WarmTotal{ 0 };
+	float m_WarmBudget{ 0.0f };
 	float m_ActiveRotation{ 0.0f };
 
 	std::wstring m_Path;

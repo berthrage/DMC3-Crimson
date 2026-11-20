@@ -106,7 +106,7 @@ void DTExplosionHUD2::Update(float dt, size_t orbCount)
 	m_ChargingOrbSpeed = reference > 0.0f ? (std::min)(m_Rate / reference, 1.0f) : 1.0f;
 	const size_t chargingOrb = (size_t)(charge / kChargePerOrb);
 
-	m_pFirstOrbs->SetPlaying(m_ReachedOrbs > 0);
+	m_pFirstOrbs->SetPlaying(m_ReachedOrbs > 0 && charge >= kChargePerOrb);
 	m_pFirstOrbs->SetSpeed(m_Speed);
 	m_pFirstOrbs->Update(dt);
 

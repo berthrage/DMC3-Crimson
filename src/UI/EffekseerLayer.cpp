@@ -14,8 +14,8 @@ constexpr float kCameraDistance = 1000.0f;
 // presented frame; at 500 fps the old code integrated them 500 times a second.
 constexpr float kSimulationStep = 1.0f / 60.0f;
 constexpr int kMaxCatchUpSteps = 4;
-// Frames of a warm-up simulated per Update; 206 at once was a visible hitch.
-constexpr int kWarmUpStepsPerUpdate = 12;
+// A warm-up is spread over this much real time so it lands equally fast at any frame rate; 206 frames at once was a visible hitch.
+constexpr float kWarmUpDuration = 0.1f;
 
 uint8_t ToColorByte(float value)
 {
@@ -37,6 +37,9 @@ EffekseerLayer::EffekseerLayer(ID3D11Device* pD3D11Device, ID3D11DeviceContext* 
 		m_Renderer.Reset();
 		return;
 	}
+
+	// The HUD target is composited premultiplied, so overlapping Blend particles need real coverage alpha.
+	EffekseerRendererDX11::EnableCoverageAlpha(m_Renderer);
 
 	m_Manager->SetSpriteRenderer(m_Renderer->CreateSpriteRenderer());
 	m_Manager->SetRibbonRenderer(m_Renderer->CreateRibbonRenderer());
@@ -158,7 +161,7 @@ void EffekseerLayer::Update(float dt)
 		m_WarmRemaining -= steps;
 	}
 
-	StepWarmUp();
+	StepWarmUp(dt);
 }
 
 void EffekseerLayer::Render(ID3D11DeviceContext* pD3D11DeviceContext, ID3D11RenderTargetView* pRTV, UINT width, UINT height)
@@ -267,6 +270,8 @@ void EffekseerLayer::Play(int startFrame)
 		m_WarmHandle = m_Manager->Play(m_Effect, Effekseer::Vector3D(0.0f, 0.0f, 0.0f), 0);
 		m_Manager->SetShown(m_WarmHandle, false);
 		m_WarmRemaining = startFrame;
+		m_WarmTotal = startFrame;
+		m_WarmBudget = 0.0f;
 		ApplyTransform();
 		ApplyColor();
 		return;
@@ -294,7 +299,7 @@ void EffekseerLayer::StopWarmUp()
 	m_WarmRemaining = 0;
 }
 
-void EffekseerLayer::StepWarmUp()
+void EffekseerLayer::StepWarmUp(float dt)
 {
 	if (m_Manager == nullptr || m_WarmHandle < 0)
 		return;
@@ -306,7 +311,10 @@ void EffekseerLayer::StepWarmUp()
 		return;
 	}
 
-	const int steps = std::min(m_WarmRemaining, kWarmUpStepsPerUpdate);
+	// Capped so a long frame (boot, loading) can't overflow the int cast.
+	m_WarmBudget = std::min(m_WarmBudget + (float)m_WarmTotal * dt / kWarmUpDuration, (float)m_WarmRemaining);
+	const int steps = std::max(0, std::min(m_WarmRemaining, (int)m_WarmBudget));
+	m_WarmBudget -= (float)steps;
 	for (int i = 0; i < steps; i++)
 		m_Manager->UpdateHandle(m_WarmHandle, 1.0f);
 	m_WarmRemaining -= steps;

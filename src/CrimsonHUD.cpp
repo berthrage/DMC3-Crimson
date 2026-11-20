@@ -5073,6 +5073,32 @@ static size_t MapMaxMagicToDTLevel(float maxMagicPoints) {
 static void DanteHUD2UpdateFromActor(DanteHUD2Instance& instance, byte8* actorAddr);
 static void VergilHUD2UpdateFromActor(VergilHUD2Instance& instance, int view, byte8* actorAddr);
 
+// The HUD 2.0 target holds premultiplied color (sprites and Effekseer blend into a target cleared to 0), so ImGui's
+// straight SrcAlpha blend would apply alpha twice and make the HUD effects look see-through.
+static void HUD2PremultipliedBlendCallback(const ImDrawList*, const ImDrawCmd*) {
+	static ID3D11BlendState* s_pBlendState = nullptr;
+	if (!s_pBlendState) {
+		if (!D3D11::device) {
+			return;
+		}
+		D3D11_BLEND_DESC desc = {};
+		desc.RenderTarget[0].BlendEnable = TRUE;
+		desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+		if (FAILED(D3D11::device->CreateBlendState(&desc, &s_pBlendState))) {
+			s_pBlendState = nullptr;
+			return;
+		}
+	}
+	const float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	D3D11::deviceContext->OMSetBlendState(s_pBlendState, blendFactor, 0xffffffff);
+}
+
 // Draws a view's Crimson HUD 2.0 into its render target and puts it on screen, the same for both characters.
 template <typename HUDType>
 static void CrimsonHUD2Present(int view, HUDType& hud, const DanteHUD2Group* groups = nullptr) {
@@ -5109,8 +5135,12 @@ static void CrimsonHUD2Present(int view, HUDType& hud, const DanteHUD2Group* gro
 	const ImVec2 end(pos.x + baseSize.x * boundsScale, pos.y + baseSize.y * boundsScale);
 	auto* drawList = ImGui::GetBackgroundDrawList();
 	drawList->PushClipRect(areaMin, areaMax, true);
+	drawList->AddCallback(HUD2PremultipliedBlendCallback, nullptr);
+	// Premultiplied, so the fade scales color too.
+	const int fade = (int)(alpha * 255.0f);
 	drawList->AddImage((ImTextureID)hud.GetSRV(), pos, end, ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
-		IM_COL32(255, 255, 255, (int)(alpha * 255.0f)));
+		IM_COL32(fade, fade, fade, fade));
+	drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 	drawList->PopClipRect();
 	if (s_DanteHUD2ShowBounds) {
 		ImGui::GetForegroundDrawList()->AddRect(pos, end, IM_COL32(255, 0, 255, 200));
