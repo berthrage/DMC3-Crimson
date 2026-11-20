@@ -1491,7 +1491,24 @@ static DWORD WINAPI Hooked_XInputGetState(DWORD dwUserIndex, XINPUT_STATE* pStat
 	if (CrimsonSDL::PopulateXInputStateFromSdlSlot((int)physSlot, pState)) {
 		result = ERROR_SUCCESS;
 	} else {
-		result = s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
+		// With no pad on a slot, the real XInputGetState re-enumerates its device interfaces
+		// (a cfgmgr32 DeviceIoControl) on every poll, and the overlay polls us many times per
+		// frame. Remember a miss for a moment instead of paying that syscall each time.
+		static DWORD s_lastFailTick[PLAYER_COUNT] = {};
+		constexpr DWORD kFailRecheckMs = 500;
+
+		const bool recentFail = physSlot < PLAYER_COUNT && s_lastFailTick[physSlot] != 0 &&
+			(GetTickCount() - s_lastFailTick[physSlot]) < kFailRecheckMs;
+
+		if (recentFail) {
+			ZeroMemory(pState, sizeof(*pState));
+			result = ERROR_DEVICE_NOT_CONNECTED;
+		} else {
+			result = s_XInputGetStateHook->GetTrampoline<decltype(&XInputGetState)>()(physSlot, pState);
+			if (physSlot < PLAYER_COUNT) {
+				s_lastFailTick[physSlot] = (result == ERROR_SUCCESS) ? 0 : GetTickCount();
+			}
+		}
 	}
 
 	// Touchpad injection: when touchpad is pressed and any character slot has a

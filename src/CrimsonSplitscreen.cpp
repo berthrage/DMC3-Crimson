@@ -9,12 +9,14 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <d3d11.h>
 #include <wrl/client.h>
 
 #include "../Core/Core.hpp"
+#include "Global/HooksBase.hpp"
 #include "ImGui/imgui.h"
 #include "Global.hpp"
 #include "Utility/Detour.hpp"
@@ -644,10 +646,142 @@ void Composite(Render* render, int player, int viewCount) {
 	}
 }
 
-// SubmitDrawList_sub_14032D8C0
+// GPU timestamp probe: a timestamp query before every game draw; the gap to the next mark is
+// that draw's GPU cost (plus any state/copy work in between), summed per draw signature.
+constexpr size_t GPU_PROBE_RING = 4;
+constexpr size_t GPU_PROBE_MAX_MARKS = 512;
+
+struct GpuProbeFrame {
+	Microsoft::WRL::ComPtr<ID3D11Query> disjoint;
+	std::vector<Microsoft::WRL::ComPtr<ID3D11Query>> stamps;
+	std::vector<uint64_t> keys;
+	bool submitted = false;
+};
+
+struct GpuProbeState {
+	GpuProbeFrame frames[GPU_PROBE_RING];
+	size_t current = 0;
+	bool open = false;
+	ID3D11Device* device = nullptr;
+	ID3D11DeviceContext* context = nullptr;
+	std::unordered_map<uint64_t, std::pair<double, int>> cost;
+	double totalMs = 0.0;
+	int frames_n = 0;
+	std::chrono::steady_clock::time_point reportAt = std::chrono::steady_clock::now();
+};
+GpuProbeState s_gpu;
+
+// type: 1 Draw, 2 DrawIndexed, 3 overlay start, 4 end
+uint64_t GpuProbeKey(uint64_t type, uint64_t a, uint64_t b, uint64_t target) {
+	return (type << 60) | ((a & 0xFFFF) << 44) | ((b & 0xFFFFF) << 24) | ((target >> 4) & 0xFFFFFF);
+}
+
+void GpuProbeMark(uint64_t key) {
+	if (!s_gpu.context || !s_gpu.device) return;
+	auto& f = s_gpu.frames[s_gpu.current];
+	if (!s_gpu.open) {
+		if (f.submitted) return;
+		if (!f.disjoint) {
+			D3D11_QUERY_DESC qd = {D3D11_QUERY_TIMESTAMP_DISJOINT, 0};
+			s_gpu.device->CreateQuery(&qd, f.disjoint.GetAddressOf());
+		}
+		if (!f.disjoint) return;
+		f.keys.clear();
+		s_gpu.context->Begin(f.disjoint.Get());
+		s_gpu.open = true;
+	}
+	if (f.keys.size() >= GPU_PROBE_MAX_MARKS) return;
+	if (f.stamps.size() <= f.keys.size()) {
+		D3D11_QUERY_DESC qd = {D3D11_QUERY_TIMESTAMP, 0};
+		Microsoft::WRL::ComPtr<ID3D11Query> q;
+		s_gpu.device->CreateQuery(&qd, q.GetAddressOf());
+		f.stamps.push_back(q);
+	}
+	if (!f.stamps[f.keys.size()]) return;
+	s_gpu.context->End(f.stamps[f.keys.size()].Get());
+	f.keys.push_back(key);
+}
+
+void GpuProbeCapture(__int64 render, uint64_t type, uint64_t a, uint64_t b) {
+	s_gpu.device = *reinterpret_cast<ID3D11Device**>(render + 8);
+	s_gpu.context = *reinterpret_cast<ID3D11DeviceContext**>(render + 0x10);
+	const uint64_t target = *reinterpret_cast<uint64_t*>(reinterpret_cast<uintptr_t>(appBaseAddr) + 0xC0B3F0);
+	GpuProbeMark(GpuProbeKey(type, a, b, target));
+}
+
+void GpuProbeCollect() {
+	for (auto& f : s_gpu.frames) {
+		if (!f.submitted) continue;
+		D3D11_QUERY_DATA_TIMESTAMP_DISJOINT dj = {};
+		if (s_gpu.context->GetData(f.disjoint.Get(), &dj, sizeof(dj), D3D11_ASYNC_GETDATA_DONOTFLUSH) != S_OK) continue;
+		const size_t n = f.keys.size();
+		std::vector<UINT64> t(n);
+		bool ok = !dj.Disjoint && n > 1;
+		for (size_t i = 0; ok && i < n; ++i) {
+			ok = s_gpu.context->GetData(f.stamps[i].Get(), &t[i], sizeof(UINT64), D3D11_ASYNC_GETDATA_DONOTFLUSH) == S_OK;
+		}
+		if (ok) {
+			const double toMs = 1000.0 / (double)dj.Frequency;
+			for (size_t i = 0; i + 1 < n; ++i) {
+				const double ms = (double)(t[i + 1] - t[i]) * toMs;
+				auto& c = s_gpu.cost[f.keys[i]];
+				c.first += ms;
+				++c.second;
+			}
+			s_gpu.totalMs += (double)(t[n - 1] - t[0]) * toMs;
+			++s_gpu.frames_n;
+		}
+		f.submitted = false;
+	}
+
+	const auto now = std::chrono::steady_clock::now();
+	if (now - s_gpu.reportAt < std::chrono::seconds(2) || s_gpu.frames_n == 0) return;
+	s_gpu.reportAt = now;
+
+	std::vector<std::pair<uint64_t, std::pair<double, int>>> rows(s_gpu.cost.begin(), s_gpu.cost.end());
+	std::sort(rows.begin(), rows.end(), [](const auto& a, const auto& b) { return a.second.first > b.second.first; });
+	Log("GPU: %.3f ms/frame (first draw to end) over %d frames", s_gpu.totalMs / s_gpu.frames_n, s_gpu.frames_n);
+	for (size_t i = 0; i < rows.size() && i < 10; ++i) {
+		const uint64_t k = rows[i].first;
+		Log("GPU:   type %llu a=0x%llX b=%llu target=0x%llX | %.3f ms/frame | %.1f calls/frame",
+			k >> 60, (k >> 44) & 0xFFFF, (k >> 24) & 0xFFFFF, ((k & 0xFFFFFF) << 4),
+			rows[i].second.first / s_gpu.frames_n, (double)rows[i].second.second / s_gpu.frames_n);
+	}
+	s_gpu.cost.clear();
+	s_gpu.totalMs = 0.0;
+	s_gpu.frames_n = 0;
+}
+
+typedef __int64(__fastcall* DrawFn)(__int64, int, unsigned int, unsigned int, void*);
+typedef __int64(__fastcall* DrawIndexedFn)(__int64, int, unsigned int, unsigned int, void*, unsigned int);
+std::unique_ptr<Utility::Detour_t> s_drawHook;
+std::unique_ptr<Utility::Detour_t> s_drawIndexedHook;
+
+__int64 __fastcall DrawProbe(__int64 render, int flags, unsigned int count, unsigned int stride, void* data) {
+	GpuProbeCapture(render, 1, (uint64_t)flags, count);
+	return s_drawHook->GetTrampoline<DrawFn>()(render, flags, count, stride, data);
+}
+
+__int64 __fastcall DrawIndexedProbe(__int64 render, int topology, unsigned int indexCount, unsigned int indexSize, void* indices, unsigned int vertexCount) {
+	GpuProbeCapture(render, 2, (uint64_t)topology, indexCount);
+	return s_drawIndexedHook->GetTrampoline<DrawIndexedFn>()(render, topology, indexCount, indexSize, indices, vertexCount);
+}
+
 __int64 __fastcall SubmitDrawListHook(int a1) {
 	const auto original = s_submitDrawListHook->GetTrampoline<SubmitDrawListFn>();
-	const __int64 result = original(a1);
+
+	// Perf probe: draw-list submission is the CPU half of the frame; Present reports it.
+	__int64 result;
+	if constexpr (kPerfProbes) {
+		LARGE_INTEGER submitStart, submitEnd;
+		QueryPerformanceCounter(&submitStart);
+		result = original(a1);
+		QueryPerformanceCounter(&submitEnd);
+		g_perfSubmitTicks += submitEnd.QuadPart - submitStart.QuadPart;
+		++g_perfSubmitCount;
+	} else {
+		result = original(a1);
+	}
 
 	auto* render = reinterpret_cast<Render*>(appBaseAddr + RENDER_OFFSET);
 	auto* cameraCtrl = *reinterpret_cast<uint8_t**>(appBaseAddr + CAMERA_CTRL_PTR_OFFSET);
@@ -1161,6 +1295,22 @@ void __fastcall LockOnCursorUpdateHook(uint8_t* cursor) {
 
 } // namespace
 
+void GpuProbeOverlayStart() {
+	if constexpr (!kPerfProbes) return;
+	GpuProbeMark(GpuProbeKey(3, 0, 0, 0));
+}
+
+void GpuProbeEndFrame() {
+	if constexpr (!kPerfProbes) return;
+	if (!s_gpu.open) return;
+	GpuProbeMark(GpuProbeKey(4, 0, 0, 0));
+	s_gpu.context->End(s_gpu.frames[s_gpu.current].disjoint.Get());
+	s_gpu.frames[s_gpu.current].submitted = true;
+	s_gpu.open = false;
+	s_gpu.current = (s_gpu.current + 1) % GPU_PROBE_RING;
+	GpuProbeCollect();
+}
+
 namespace CrimsonSplitscreen {
 
 // Only while playing: scene GAME + EVENT::MAIN, outside of cutscenes. The camera and HUD objects
@@ -1427,6 +1577,15 @@ void InitHooks() {
 	s_submitDrawListHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + SUBMIT_DRAW_LIST_OFFSET, &SubmitDrawListHook, 0, "SubmitDrawList_sub_14032D8C0");
 	s_submitDrawListHook->Toggle(true);
+
+	if (kPerfProbes) {
+		s_drawHook = std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + 0x43F90, &DrawProbe, 0, "D3D11_Draw_sub_140043F90");
+		s_drawHook->Toggle(true);
+		s_drawIndexedHook = std::make_unique<Utility::Detour_t>(
+			(uintptr_t)appBaseAddr + 0x425B0, &DrawIndexedProbe, 0, "D3D11_DrawIndexed_sub_1400425B0");
+		s_drawIndexedHook->Toggle(true);
+	}
 
 	s_updatePlayerInputHook = std::make_unique<Utility::Detour_t>(
 		(uintptr_t)appBaseAddr + UPDATE_PLAYER_INPUT_OFFSET, &UpdatePlayerInputHook, 0, "UpdatePlayerInput_sub_1401EBCF0");

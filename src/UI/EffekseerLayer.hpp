@@ -23,7 +23,8 @@ public:
 
 	void SetPlaying(bool playing);
 	bool IsPlaying() const { return m_Playing; }
-	// startFrame > 0 simulates that many 60 Hz frames up front, so it shows already developed.
+	// startFrame > 0 simulates that many 60 Hz frames up front, spread over the next updates; the current effect keeps
+	// playing until the new one is ready.
 	void Restart(int startFrame = 0);
 
 	// Multiplies every color in the effect, author it white to take this color as is.
@@ -43,14 +44,22 @@ private:
 	void CheckReload(float dt);
 	void Play(int startFrame = 0);
 	void Stop();
+	void StopWarmUp();
+	void StepWarmUp();
 	void ApplyTransform();
+	void ApplyTransform(Effekseer::Handle handle, float rotation);
 	void ApplyColor();
+	void ApplyColor(Effekseer::Handle handle);
 
 private:
 	Effekseer::ManagerRef m_Manager;
 	EffekseerRendererDX11::RendererRef m_Renderer;
 	Effekseer::EffectRef m_Effect;
 	Effekseer::Handle m_Handle{ -1 };
+	// A restart with start frames is simulated in slices on a hidden handle, then swapped in, so it costs no hitch.
+	Effekseer::Handle m_WarmHandle{ -1 };
+	int m_WarmRemaining{ 0 };
+	float m_ActiveRotation{ 0.0f };
 
 	std::wstring m_Path;
 	std::filesystem::file_time_type m_LastWriteTime{};
@@ -60,6 +69,7 @@ private:
 	bool m_Playing{ false };
 	float m_Speed{ 1.0f };
 	float m_Time{ 0.0f };
+	float m_PendingTime{ 0.0f };
 	glm::vec2 m_Position{ 0.0f, 0.0f };
 	float m_Scale{ 1.0f };
 	float m_Rotation{ 0.0f };

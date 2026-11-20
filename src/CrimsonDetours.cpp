@@ -27,6 +27,7 @@
 #include "CrimsonOnTick.hpp"
 #include "CrimsonEfk.hpp"
 #include "CrimsonSplitscreen.hpp"
+#include "Graphics.hpp"
 #include "HUD.hpp"
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
@@ -34,6 +35,7 @@
 #include "CrimsonDetours.hpp"
 #include "CrimsonSDL.hpp"
 #include "CrimsonGameplay.hpp"
+#include "DMC3VideoAudio.hpp"
 
 namespace CrimsonDetours {
 
@@ -152,6 +154,12 @@ namespace CrimsonDetours {
 		std::uint64_t g_FixCrashArkhamPt2Doppel_ReturnAddr2;
 		std::uint64_t g_FixCrashArkhamPt2Doppel_CallAddr2;
 		void FixCrashArkhamPt2DoppelDetour2();
+
+		// FixVideoAudioDevice
+		std::uint64_t g_FixVideoAudioDevice_ReturnAddr;
+		std::uint64_t g_FixVideoAudioDevice_FailAddr;
+		void* g_FixVideoAudioDevice_Call;
+		void FixVideoAudioDeviceDetour();
 
 		// EnsureAirRisingDragonLaunch
 		std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
@@ -1825,6 +1833,7 @@ void InitDetours() {
 	CameraSweepEyeDetour();
 	LdkInitDetour();
 	CrimsonEfk::EffekInitRenderHook();
+	Graphics::InitVertexRing();
 	CrimsonSplitscreen::InitHooks();
 	HUD_InitAdjustmentHooks();
 	CrimsonOnTick::ToggleOnTickFuncs(true);
@@ -3165,6 +3174,28 @@ void ToggleMission5CrashFix(bool enable) {
 	g_FixCrashM5_ReturnAddr2 = FixMission5CrashHook2->GetReturnAddress();
 	g_FixCrashM5_JmpAddr2 = (uintptr_t)appBaseAddr + 0x5A436; 
 	FixMission5CrashHook2->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleVideoAudioDeviceFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// VideoAudioInit_sub_14003C7E0, rdi = PCFullMotionVideo, rbx = &video->xaudio2
+	// dmc3.exe+3C8B2 - 48 8B 01          - mov rax,[rcx]
+	// dmc3.exe+3C8B5 - 89 6C 24 20       - mov [rsp+20],ebp
+	// dmc3.exe+3C8B9 - FF 50 50          - call qword ptr [rax+50] { CreateMasteringVoice, result ignored }
+	// dmc3.exe+3C8BC - 48 8B 0B          - mov rcx,[rbx]
+	static std::unique_ptr<Utility::Detour_t> FixVideoAudioDeviceHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3C8B2, &FixVideoAudioDeviceDetour, 10);
+	g_FixVideoAudioDevice_ReturnAddr = FixVideoAudioDeviceHook->GetReturnAddress();
+	g_FixVideoAudioDevice_FailAddr = (uintptr_t)appBaseAddr + 0x3C978; // the XAudio2Create failure path
+	g_FixVideoAudioDevice_Call = &DMC3VideoAudio::CreateMasteringVoice;
+	FixVideoAudioDeviceHook->Toggle(enable);
 
 	run = enable;
 }

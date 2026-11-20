@@ -4,6 +4,10 @@
 #include "Config.hpp"
 #include "Global.hpp"
 #include "Vars.hpp"
+#include "Global/HooksBase.hpp"
+#include "Utility/Detour.hpp"
+
+#include <memory>
 
 #include "Core/Macros.h"
 
@@ -296,6 +300,78 @@ void Toggle(bool enable) {
 }
 
 }; // namespace Graphics
+
+
+namespace {
+
+constexpr uintptr_t UPLOAD_VERTEX_STREAM_OFFSET = 0x43190;
+constexpr uintptr_t VERTEX_RING_UNITS_IMM_OFFSET = 0x42DED;
+constexpr uint8_t VERTEX_RING_UNITS_ORIGINAL = 0x28;
+constexpr uint8_t VERTEX_RING_UNITS_PATCHED = 8;
+
+typedef void(__fastcall* UploadVertexStreamFn)(__int64, int, int*, unsigned int);
+std::unique_ptr<Utility::Detour_t> s_uploadVertexStreamHook;
+
+// UploadVertexStream_sub_140043190: the vertex ring has no bounds check and is shrunk at init (see
+// Graphics::InitVertexRing), so drop a draw that would run past the end instead of writing out of the mapping.
+void __fastcall UploadVertexStreamHook(__int64 render, int flags, int* data, unsigned int count) {
+	const auto original = s_uploadVertexStreamHook->GetTrampoline<UploadVertexStreamFn>();
+
+	unsigned int stride = ((flags & 0x40000002) == 0x40000002) ? 0x10 : 0xC;
+	if (flags & 0x100) stride += 8;
+	if (flags & 0x40) stride += 0x10;
+	if (flags & 0x20000) stride += 4;
+	const unsigned long long capacity = 0x18000ull * *reinterpret_cast<unsigned long long*>(render + 0x1798);
+	const unsigned long long used = *reinterpret_cast<unsigned long long*>(render + 0x17A0);
+	if (used + (unsigned long long)stride * count > capacity) {
+		static bool s_logged = false;
+		if (!s_logged) {
+			s_logged = true;
+			Log("Vertex ring overflow: %llu + %u x %u > %llu, draw skipped", used, stride, count, capacity);
+		}
+		return;
+	}
+
+	if (!kPerfProbes) {
+		original(render, flags, data, count);
+		return;
+	}
+
+	const long long offsetBefore = (long long)used;
+	LARGE_INTEGER start, end;
+	QueryPerformanceCounter(&start);
+	original(render, flags, data, count);
+	QueryPerformanceCounter(&end);
+
+	const long long ticks = end.QuadPart - start.QuadPart;
+	g_perfUploadTicks += ticks;
+	if (offsetBefore == 0) g_perfDiscardTicks += ticks;
+	g_perfVerts += count;
+	g_perfRingUnits = *reinterpret_cast<long long*>(render + 0x1798);
+	const long long offsetAfter = *reinterpret_cast<long long*>(render + 0x17A0);
+	if (offsetAfter > g_perfPeakBytes) g_perfPeakBytes = offsetAfter;
+	++g_perfDrawCount;
+}
+
+} // namespace
+
+namespace Graphics {
+
+// Must run before the D3D11 device is created: the ring buffers are sized from this immediate.
+void InitVertexRing() {
+	// SwapChainCreation_sub_140042890: vertex ring size in 0x18000 units (mov qword [r14+1798h], 28h)
+	auto* units = reinterpret_cast<uint8_t*>(appBaseAddr + VERTEX_RING_UNITS_IMM_OFFSET);
+	if (*units == VERTEX_RING_UNITS_ORIGINAL) {
+		uint8_t newUnits = VERTEX_RING_UNITS_PATCHED;
+		_patch(reinterpret_cast<char*>(units), reinterpret_cast<char*>(&newUnits), 1);
+	}
+
+	s_uploadVertexStreamHook = std::make_unique<Utility::Detour_t>(
+		(uintptr_t)appBaseAddr + UPLOAD_VERTEX_STREAM_OFFSET, &UploadVertexStreamHook, 0, "UploadVertexStream_sub_140043190");
+	s_uploadVertexStreamHook->Toggle(true);
+}
+
+} // namespace Graphics
 
 
 void UpdateFrameRate() {

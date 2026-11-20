@@ -1147,6 +1147,18 @@ namespace WW
     WeaponWheel::~WeaponWheel()
     {}
 
+    void WeaponWheel::MatchTargetSize(UINT width, UINT height)
+    {
+        if (m_Width == width && m_Height == height)
+            return;
+
+        m_Width  = width;
+        m_Height = height;
+
+        if (m_pSpriteBatch && m_pD3D11Device)
+            m_pSpriteBatch->Resize(m_pD3D11Device, width, height);
+    }
+
     void WeaponWheel::SetWeapons(std::vector<WeaponIDs> weapons)
     {
         m_PreviousWeapons = m_Weapons;

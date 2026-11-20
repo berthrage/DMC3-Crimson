@@ -2417,6 +2417,27 @@ static_assert(sizeof(EventData) == 48);
 
 // $EventDataEnd
 
+// DMC3::PCFullMotionVideo (vtable 0x1403713B8), the .wmv cutscene player.
+struct PCFullMotionVideo {
+    _(0x274);
+    bool paused;           // 0x274
+    bool stopped;          // 0x275
+    bool finished;         // 0x276 GetState reports 4 (done) once set and Update stops touching the video
+    _(0x21);
+    void* xaudio2;         // 0x298 IXAudio2 (2.7)
+    void* masteringVoice;  // 0x2A0
+    void* sourceVoice;     // 0x2A8
+    _(0xD0);
+    uint32 audioPending;   // 0x380 VideoUpdate re-runs VideoAudioInit_sub_14003C7E0 while non zero
+};
+
+static_assert(offsetof(PCFullMotionVideo, paused) == 0x274);
+static_assert(offsetof(PCFullMotionVideo, finished) == 0x276);
+static_assert(offsetof(PCFullMotionVideo, xaudio2) == 0x298);
+static_assert(offsetof(PCFullMotionVideo, masteringVoice) == 0x2A0);
+static_assert(offsetof(PCFullMotionVideo, sourceVoice) == 0x2A8);
+static_assert(offsetof(PCFullMotionVideo, audioPending) == 0x380);
+
 // $NextEventDataStart
 
 struct NextEventData {

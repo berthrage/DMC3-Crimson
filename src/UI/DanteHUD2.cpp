@@ -273,10 +273,11 @@ void DanteHUD2::OnUpdate(double ts)
 		const float rotation = GetCompassSmokeRotation(m_StyleExitPending ? m_PendingStyle : m_ActiveStyle);
 		if (!m_CompassSmokeRotationSet || rotation != m_CompassSmokeRotation)
 		{
-			m_pCompassSmoke->SetRotation(rotation);
 			// Old particles keep their spawn direction, so restart it already developed in the new one.
+			// The restart comes first: the warm-up runs in the background and the old smoke keeps its rotation until it is ready.
 			if (m_CompassSmokeRotationSet)
 				m_pCompassSmoke->Restart(m_CompassSmokeWarmupFrames);
+			m_pCompassSmoke->SetRotation(rotation);
 			m_CompassSmokeRotation = rotation;
 			m_CompassSmokeRotationSet = true;
 		}

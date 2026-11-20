@@ -77,6 +77,24 @@ extern bool g_appInactive;
 // Low-latency flip model optimization globals
 extern HANDLE g_frameLatencyWaitableObject;
 extern bool g_flipModelLatencyOptimized;
+// Perf probe: QPC ticks spent inside draw-list submission, and how many submissions,
+// since the last Present-side report. See SwapChainWrapper::Present.
+extern volatile long long g_perfSubmitTicks;
+extern volatile long g_perfSubmitCount;
+// Perf probe: same, for the per-draw vertex upload (includes the Map stall) and the draw count.
+extern volatile long long g_perfUploadTicks;
+extern volatile long g_perfDrawCount;
+extern volatile long long g_perfDiscardTicks;
+extern volatile long long g_perfPeakBytes;
+extern volatile long long g_perfVerts;
+extern volatile long long g_perfRingUnits;
+// Timing probes (Perf: / GPU: lines in the log). Off for normal builds.
+constexpr bool kPerfProbes = false;
+void GpuProbeOverlayStart();
+void GpuProbeEndFrame();
+// Frames the CPU may run ahead of the GPU. At 1, Present waits for the previous frame every
+// time and submission can never overlap the GPU; the swap chain needs BufferCount > this.
+constexpr UINT kFlipModelFrameLatency = 2;
 
 extern long g_flipSkip;
 

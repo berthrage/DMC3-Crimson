@@ -46,7 +46,7 @@
 #include "UI/WeaponWheel.hpp"
 #include "CrimsonHighFPSFixes.hpp"
 #include "CrimsonMusicSwitcher.hpp"
-#include "CrashHandler.hpp"
+#include "CrashHandlerLoader.hpp"
 
 
 
@@ -64,7 +64,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
 
         Log("Session started.");
 
-        InstallCrashHandler(".\\logs\\CrimsonCrash.dmp");
+        InstallCrashHandlerFromDll(".\\logs\\CrimsonCrash.dmp");
 
         if (!Core_Memory_Init()) {
             Log("Core_Memory_Init failed.");
@@ -309,6 +309,7 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         CrimsonDetours::ToggleCerberusCrashFix(true);
         CrimsonDetours::ToggleVergilM3CrashFix(true);
         CrimsonDetours::ToggleMission5CrashFix(true);
+        CrimsonDetours::ToggleVideoAudioDeviceFix(true);
         CrimsonPatches::ToggleM6CrashFix(true);
         CrimsonPatches::ToggleTempFixHighFPSEnigmaShls(true);
         CrimsonDetours::ToggleArkhamPt2GrabCrashFix(true);

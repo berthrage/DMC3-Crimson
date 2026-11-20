@@ -40,9 +40,12 @@ static volatile LONG gStopDumpThread = 0;
 static size_t gCrashMemoryBase = 0;
 static DWORD gLastDumpCode = 0;
 static DWORD64 gLastDumpAddress = 0;
+static DWORD gLastFaultCode = 0;
+static DWORD64 gLastFaultAddress = 0;
 
 static MINIDUMP_EXCEPTION_INFORMATION gMei{};
 static LPTOP_LEVEL_EXCEPTION_FILTER gPrevExceptionFilter = nullptr;
+static PVOID gVehHandle = nullptr;
 
 #define MSGBOX_TITLE "Crimson Crash Handler"
 
@@ -327,6 +330,8 @@ bool InitializeDbgHelp() {
     return true;
 }
 
+static bool gDumpOnlyReferencedModules = false;
+
 static BOOL CALLBACK OpenMiniDumpCallback(void*, PMINIDUMP_CALLBACK_INPUT input, PMINIDUMP_CALLBACK_OUTPUT output) {
     if (!input || !output) {
         return FALSE;
@@ -334,7 +339,9 @@ static BOOL CALLBACK OpenMiniDumpCallback(void*, PMINIDUMP_CALLBACK_INPUT input,
 
     switch (input->CallbackType) {
     case ModuleCallback:
-        if (!(output->ModuleWriteFlags & ModuleReferencedByMemory)) {
+        // Only the memory scan marks modules as referenced; without it the whole list is needed
+        // to resolve stack frames.
+        if (gDumpOnlyReferencedModules && !(output->ModuleWriteFlags & ModuleReferencedByMemory)) {
             output->ModuleWriteFlags &= ~ModuleWriteModule;
         }
         return TRUE;
@@ -351,6 +358,11 @@ static BOOL CALLBACK OpenMiniDumpCallback(void*, PMINIDUMP_CALLBACK_INPUT input,
 static void WriteCrashDump() {
     if (!gCrashed) {
         return;
+    }
+
+    if (gMei.ExceptionPointers) {
+        gLastDumpCode = gMei.ExceptionPointers->ExceptionRecord->ExceptionCode;
+        gLastDumpAddress = (DWORD64)gMei.ExceptionPointers->ExceptionRecord->ExceptionAddress;
     }
 
     crashMemoryOffset = gCrashMemoryBase;
@@ -373,11 +385,15 @@ static void WriteCrashDump() {
         if (INVALID_HANDLE_VALUE == hFile) {
             Log("WriteCrashDump: CreateFile failed %u\n", GetLastError());
         } else {
-            MINIDUMP_TYPE type = (MINIDUMP_TYPE)(MiniDumpNormal | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory | MiniDumpWithHandleData );
+            // Walking the whole address space and the handle table takes seconds, so only the
+            // opt-in dump pays for it.
+            MINIDUMP_TYPE type = MiniDumpNormal;
             if (fullDump) {
-                type = (MINIDUMP_TYPE)(type | MiniDumpWithDataSegs | MiniDumpWithCodeSegs | MiniDumpWithHandleData);
+                type = (MINIDUMP_TYPE)(type | MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory |
+                    MiniDumpWithDataSegs | MiniDumpWithCodeSegs | MiniDumpWithHandleData);
             }
             MINIDUMP_CALLBACK_INFORMATION mci = {OpenMiniDumpCallback, nullptr};
+            gDumpOnlyReferencedModules = fullDump;
 
             BOOL ok = minidump_write_dump(GetCurrentProcess(), GetCurrentProcessId(), hFile, type, &gMei, nullptr, &mci);
             Log("WriteCrashDump: MiniDumpWriteDump %s (%08X)\n", ok ? "ok" : "failed", ok ? 0 : (unsigned int)GetLastError());
@@ -427,7 +443,7 @@ static void RunCrashDump(DWORD timeoutMs) {
     }
 }
 
-static LONG WINAPI CrashDumpVectoredExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) {
+static LONG WINAPI CrashFaultVectoredExceptionHandler(EXCEPTION_POINTERS* exceptionInfo) {
     if (!exceptionInfo || !exceptionInfo->ExceptionRecord) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
@@ -437,26 +453,19 @@ static LONG WINAPI CrashDumpVectoredExceptionHandler(EXCEPTION_POINTERS* excepti
 
     DWORD code = exceptionInfo->ExceptionRecord->ExceptionCode;
     DWORD64 address = (DWORD64)exceptionInfo->ExceptionRecord->ExceptionAddress;
-    // A handled exception thrown repeatedly from one place is dumped once; a
-    // different fault later overwrites the dump.
-    if (gLastDumpCode == code && gLastDumpAddress == address) {
+    // First chance only: the game may recover from this fault, and dumping here stalls the
+    // faulting thread for seconds. A fault that really kills the game is dumped by the
+    // unhandled filter.
+    if (gLastFaultCode == code && gLastFaultAddress == address) {
         return EXCEPTION_CONTINUE_SEARCH;
     }
-    gLastDumpCode = code;
-    gLastDumpAddress = address;
+    gLastFaultCode = code;
+    gLastFaultAddress = address;
 
     DWORD64 offset = 0;
     const char* module = ModuleNameForAddress(address, &offset);
-    Log("CrashDumpVectoredExceptionHandler: code %08X at %s+0x%I64X\n", (unsigned int)code, module ? module : "?", offset);
+    Log("CrashFaultVectoredExceptionHandler: code %08X at %s+0x%I64X\n", (unsigned int)code, module ? module : "?", offset);
 
-    gCrashed = true;
-    gMei.ThreadId = GetCurrentThreadId();
-    gMei.ExceptionPointers = exceptionInfo;
-    RunCrashDump(30000);
-
-    // Let normal exception handling continue: if nothing handles it, the
-    // unhandled filter reports and terminates. This keeps a recoverable
-    // access violation from killing the game.
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
@@ -699,6 +708,7 @@ void InstallCrashHandler(const char* crashFilePath) {
     // Both the injector and Crimson.dll install this; only the first one does.
     HANDLE singleton = CreateEventA(nullptr, TRUE, FALSE, "Local\\CrimsonCrashHandlerInstalled");
     if (singleton && GetLastError() == ERROR_ALREADY_EXISTS) {
+        Log("InstallCrashHandler: another handler is already installed, skipping\n");
         CloseHandle(singleton);
         return;
     }
@@ -730,7 +740,7 @@ void InstallCrashHandler(const char* crashFilePath) {
     }
     gPrevExceptionFilter = SetUnhandledExceptionFilter(CrashDumpExceptionHandler);
     // 1 means that our handler will be called first, 0 would be: last
-    AddVectoredExceptionHandler(1, CrashDumpVectoredExceptionHandler);
+    gVehHandle = AddVectoredExceptionHandler(1, CrashFaultVectoredExceptionHandler);
 
     signal(SIGABRT, onSignalAbort);
     ::set_terminate(onTerminate);
@@ -748,6 +758,11 @@ void UninstallCrashHandler() {
         return;
     }
 
+    if (gVehHandle) {
+        RemoveVectoredExceptionHandler(gVehHandle);
+        gVehHandle = nullptr;
+    }
+
     if (gPrevExceptionFilter) {
         SetUnhandledExceptionFilter(gPrevExceptionFilter);
     }
@@ -758,6 +773,9 @@ void UninstallCrashHandler() {
 
     CloseHandle(gDumpThread);
     CloseHandle(gDumpEvent);
+
+    gDumpThread = nullptr;
+    gDumpEvent = nullptr;
 }
 
 

@@ -5058,13 +5058,16 @@ void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr) {
 	void* stunDisplacementPtr = nullptr;
 	void* maxStunDisplacementPtr = nullptr;
 
+	// A released target leaves stale but non-null values behind (a leftover 0x5B1 in CDamageAddr is
+	// the known one), and the reads below are already inside __try, so a range/alignment test is all
+	// the guarding this needs; a VirtualQuery per read cost ~10% of the frame.
 	__try {
 		uintptr_t CDamageAddr = reinterpret_cast<uintptr_t>(enemyActorData->CDamageAddr);
-		if (!CDamageAddr) __leave;
+		if (CDamageAddr < 0x10000 || (CDamageAddr & 0x7) != 0) __leave;
 		CDamage& cDamage = *reinterpret_cast<CDamage*>(CDamageAddr);
 
 		uintptr_t cDamageCalcAddr = reinterpret_cast<uintptr_t>(cDamage.CDamageCalcAddr);
-		if (!cDamageCalcAddr) __leave;
+		if (cDamageCalcAddr < 0x10000 || (cDamageCalcAddr & 0x7) != 0) __leave;
 		CDamageCalc& cDamageCalc = *reinterpret_cast<CDamageCalc*>(cDamageCalcAddr);
 
 		// Fetch current stun/displacement pointer

@@ -28,6 +28,7 @@ set(MASM_SRC
     masm/CerbDamageFix.asm
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
+    masm/FixVideoAudioDevice.asm
     masm/FixCStageSetGateSpawn.asm
     masm/FixSecretMissionTimerFPS.asm
     masm/FixStaggerGravity.asm
@@ -191,8 +192,8 @@ file(GLOB MAIN_SRC
     Config.cpp
     Config.hpp
     Crimson.cpp 
-    CrashHandler.cpp
-    CrashHandler.hpp
+    CrashHandlerLoader.cpp
+    CrashHandlerLoader.hpp
     CrimsonConfig.cpp
     CrimsonConfig.hpp
     CrimsonConfigGameplay.cpp
@@ -320,6 +321,8 @@ file(GLOB MAIN_SRC
     CrimsonStageInteraction.hpp
     CrimsonCostume.cpp
     CrimsonCostume.hpp
+    DMC3VideoAudio.cpp
+    DMC3VideoAudio.hpp
     NvApiReflex.cpp
     NvApiReflex.hpp
 )
@@ -353,6 +356,13 @@ set(UI_SRC
     UI/DanteHUD2.cpp
     UI/DanteHUD2.hpp
     UI/DanteHUD2HardcodedData.hpp
+    UI/VergilHUD2.cpp
+    UI/VergilHUD2.hpp
+    UI/VergilHUD2HardcodedData.hpp
+    UI/DTExplosionHUD2.cpp
+    UI/DTExplosionHUD2.hpp
+    UI/EffekseerLayer.cpp
+    UI/EffekseerLayer.hpp
     UI/EmbeddedImages.cpp
     UI/EmbeddedImages.hpp
     UI/GenericAnimation.cpp
@@ -408,8 +418,6 @@ project(dinput8_injector)
 
 set(DI_SOURCE
     dinput8.cpp
-    CrashHandler.hpp
-    CrashHandler.cpp
 )
 
 set(DI_CORE_SOURCE
@@ -442,4 +450,43 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
 
 set_target_properties(${PROJECT_NAME} PROPERTIES 
 OUTPUT_NAME dinput8_injector)
+
+project(CrashHandler)
+
+set(CH_SOURCE
+    CrashHandler.cpp
+    CrashHandler.hpp
+    CrashHandlerDll.cpp
+)
+
+set(CH_CORE_SOURCE
+    Core/DebugSwitch.hpp
+    Core/Core.cpp
+    Core/Core.hpp
+    Core/DataTypes.hpp
+)
+
+set(CH_CORE_HEADER
+    Core/Macros.h
+)
+
+source_group("Core" FILES ${CH_CORE_SOURCE} ${CH_CORE_HEADER})
+source_group("Source" FILES ${CH_SOURCE})
+
+add_library(${PROJECT_NAME} SHARED
+            ${CH_SOURCE}
+            ${CH_CORE_SOURCE}
+            ${CH_CORE_HEADER}
+)
+
+target_compile_options(${PROJECT_NAME} PRIVATE
+    ${CXX_FLAGS}
+)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE crashhandler_pch.hpp)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${CXX_LIBS}) # Dependencies
+
+set_target_properties(${PROJECT_NAME} PROPERTIES 
+OUTPUT_NAME CrashHandler)
 

@@ -10,6 +10,12 @@ namespace {
 
 constexpr float kReloadCheckInterval = 0.5f;
 constexpr float kCameraDistance = 1000.0f;
+// HUD effects are decorative, so they are stepped at a fixed rate instead of once per
+// presented frame; at 500 fps the old code integrated them 500 times a second.
+constexpr float kSimulationStep = 1.0f / 60.0f;
+constexpr int kMaxCatchUpSteps = 4;
+// Frames of a warm-up simulated per Update; 206 at once was a visible hitch.
+constexpr int kWarmUpStepsPerUpdate = 12;
 
 uint8_t ToColorByte(float value)
 {
@@ -77,7 +83,11 @@ void EffekseerLayer::SetPlaying(bool playing)
 
 void EffekseerLayer::Restart(int startFrame)
 {
-	Stop();
+	if (startFrame > 0)
+		StopWarmUp();
+	else
+		Stop();
+
 	if (m_Playing)
 		Play(startFrame);
 }
@@ -117,13 +127,38 @@ void EffekseerLayer::Update(float dt)
 
 	CheckReload(dt);
 
-	if (m_Playing && (m_Handle < 0 || !m_Manager->Exists(m_Handle)))
+	if (m_Playing && m_WarmHandle < 0 && (m_Handle < 0 || !m_Manager->Exists(m_Handle)))
 		Play();
 
-	Effekseer::Manager::UpdateParameter updateParam;
-	updateParam.DeltaFrame = dt * 60.0f * m_Speed;
-	m_Manager->Update(updateParam);
-	m_Time += dt * m_Speed;
+	// Every HUD layer is updated whether or not it is playing, so walking the manager for a
+	// stopped layer was pure cost: an idle DT lightning layer simulated nothing every frame.
+	if (!m_Playing)
+	{
+		m_PendingTime = 0.0f;
+		return;
+	}
+
+	m_PendingTime += dt * m_Speed;
+
+	int steps = (int)(m_PendingTime / kSimulationStep);
+	if (steps > 0)
+	{
+		// Do not replay a backlog in one burst after a stall.
+		if (steps > kMaxCatchUpSteps)
+			steps = kMaxCatchUpSteps;
+
+		m_PendingTime -= steps * kSimulationStep;
+		if (m_PendingTime > kSimulationStep * kMaxCatchUpSteps)
+			m_PendingTime = 0.0f;
+
+		Effekseer::Manager::UpdateParameter updateParam;
+		updateParam.DeltaFrame = (float)steps;
+		m_Manager->Update(updateParam);
+		m_Time += steps * kSimulationStep;
+		m_WarmRemaining -= steps;
+	}
+
+	StepWarmUp();
 }
 
 void EffekseerLayer::Render(ID3D11DeviceContext* pD3D11DeviceContext, ID3D11RenderTargetView* pRTV, UINT width, UINT height)
@@ -224,27 +259,92 @@ void EffekseerLayer::Play(int startFrame)
 	if (m_Manager == nullptr || m_Effect == nullptr)
 		return;
 
-	// The start frames are simulated on the next Update, after the transform below is set.
-	m_Handle = m_Manager->Play(m_Effect, Effekseer::Vector3D(0.0f, 0.0f, 0.0f), startFrame);
+	if (startFrame > 0)
+	{
+		StopWarmUp();
+		if (m_Handle >= 0)
+			m_ActiveRotation = m_Rotation;
+		m_WarmHandle = m_Manager->Play(m_Effect, Effekseer::Vector3D(0.0f, 0.0f, 0.0f), 0);
+		m_Manager->SetShown(m_WarmHandle, false);
+		m_WarmRemaining = startFrame;
+		ApplyTransform();
+		ApplyColor();
+		return;
+	}
+
+	m_Handle = m_Manager->Play(m_Effect, Effekseer::Vector3D(0.0f, 0.0f, 0.0f), 0);
+	m_PendingTime = 0.0f;
 	ApplyTransform();
 	ApplyColor();
 }
 
 void EffekseerLayer::Stop()
 {
+	StopWarmUp();
 	if (m_Manager != nullptr && m_Handle >= 0)
 		m_Manager->StopEffect(m_Handle);
 	m_Handle = -1;
 }
 
+void EffekseerLayer::StopWarmUp()
+{
+	if (m_Manager != nullptr && m_WarmHandle >= 0)
+		m_Manager->StopEffect(m_WarmHandle);
+	m_WarmHandle = -1;
+	m_WarmRemaining = 0;
+}
+
+void EffekseerLayer::StepWarmUp()
+{
+	if (m_Manager == nullptr || m_WarmHandle < 0)
+		return;
+
+	if (!m_Manager->Exists(m_WarmHandle))
+	{
+		m_WarmHandle = -1;
+		m_WarmRemaining = 0;
+		return;
+	}
+
+	const int steps = std::min(m_WarmRemaining, kWarmUpStepsPerUpdate);
+	for (int i = 0; i < steps; i++)
+		m_Manager->UpdateHandle(m_WarmHandle, 1.0f);
+	m_WarmRemaining -= steps;
+	if (m_WarmRemaining > 0)
+		return;
+
+	m_Manager->SetShown(m_WarmHandle, true);
+	m_Manager->UpdateHandle(m_WarmHandle, 0.0f);
+	if (m_Handle >= 0)
+		m_Manager->StopEffect(m_Handle);
+	m_Handle = m_WarmHandle;
+	m_WarmHandle = -1;
+	m_ActiveRotation = m_Rotation;
+	ApplyTransform();
+	ApplyColor();
+}
+
 void EffekseerLayer::ApplyTransform()
 {
-	if (m_Manager == nullptr || m_Handle < 0)
+	if (m_WarmHandle >= 0)
+	{
+		ApplyTransform(m_WarmHandle, m_Rotation);
+		ApplyTransform(m_Handle, m_ActiveRotation);
+		return;
+	}
+
+	m_ActiveRotation = m_Rotation;
+	ApplyTransform(m_Handle, m_Rotation);
+}
+
+void EffekseerLayer::ApplyTransform(Effekseer::Handle handle, float rotation)
+{
+	if (m_Manager == nullptr || handle < 0)
 		return;
 
 	// Row vectors: rows 0 and 1 are where the x and y axes end up.
-	const float c = std::cos(m_Rotation) * m_Scale;
-	const float s = std::sin(m_Rotation) * m_Scale;
+	const float c = std::cos(rotation) * m_Scale;
+	const float s = std::sin(rotation) * m_Scale;
 	Effekseer::Matrix43 matrix;
 	matrix.Scaling(m_Scale, m_Scale, m_Scale);
 	matrix.Value[0][0] = c;
@@ -254,15 +354,21 @@ void EffekseerLayer::ApplyTransform()
 	matrix.Value[3][0] = m_Position.x;
 	matrix.Value[3][1] = m_Position.y;
 	matrix.Value[3][2] = 0.0f;
-	m_Manager->SetMatrix(m_Handle, matrix);
+	m_Manager->SetMatrix(handle, matrix);
 }
 
 void EffekseerLayer::ApplyColor()
 {
-	if (m_Manager == nullptr || m_Handle < 0)
+	ApplyColor(m_Handle);
+	ApplyColor(m_WarmHandle);
+}
+
+void EffekseerLayer::ApplyColor(Effekseer::Handle handle)
+{
+	if (m_Manager == nullptr || handle < 0)
 		return;
 
-	m_Manager->SetAllColor(m_Handle, Effekseer::Color(ToColorByte(m_Color.r), ToColorByte(m_Color.g),
+	m_Manager->SetAllColor(handle, Effekseer::Color(ToColorByte(m_Color.r), ToColorByte(m_Color.g),
 		ToColorByte(m_Color.b), ToColorByte(m_Color.a)));
 }
 

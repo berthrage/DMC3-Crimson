@@ -677,7 +677,7 @@ static IDXGISwapChain* CreateFlipSwapChain(ID3D11Device* device, HWND window, ui
     desc.Format                = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count      = 1;
     desc.BufferUsage           = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount           = 2;
+    desc.BufferCount           = kFlipModelFrameLatency + 1;
     desc.Scaling               = DXGI_SCALING_STRETCH;
     desc.SwapEffect            = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     desc.AlphaMode             = DXGI_ALPHA_MODE_UNSPECIFIED;
@@ -704,7 +704,7 @@ static IDXGISwapChain* CreateFlipSwapChain(ID3D11Device* device, HWND window, ui
     IDXGISwapChain2* swapChain2 = nullptr;
 
     if (SUCCEEDED(swapChain->QueryInterface(__uuidof(IDXGISwapChain2), reinterpret_cast<void**>(&swapChain2))) && swapChain2) {
-        swapChain2->SetMaximumFrameLatency(1);
+        swapChain2->SetMaximumFrameLatency(kFlipModelFrameLatency);
 
         g_frameLatencyWaitableObject = swapChain2->GetFrameLatencyWaitableObject();
         g_flipModelLatencyOptimized  = (g_frameLatencyWaitableObject != nullptr);

@@ -492,7 +492,7 @@ namespace CrimsonFastcallDetours{
      PlaySFXWithPosByTypeTrampoline trampoline = (PlaySFXWithPosByTypeTrampoline)trampoline_raw;
 
 	 // NEW RISING STAR SFX
-	 // The stack probe below can fault on unrelated callers, and even a caught AV triggers a crash dump, so gate it first.
+	 // The stack probe below faults on unrelated callers, so gate it first.
 	 bool anyInRisingStar = false;
 	 for (uint8 i = 0; i < PLAYER_COUNT; ++i) {
 		 anyInRisingStar |= crimsonPlayer[i].inRisingStar || crimsonPlayer[i].inRisingStarClone;

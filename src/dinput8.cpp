@@ -16,7 +16,6 @@
 #include <vector>
 #include <stdlib.h>
 #include <cstring>
-#include "CrashHandler.hpp"
 
 namespace DI8 {
 
@@ -61,14 +60,6 @@ namespace Hook::DI8 {
 
 HRESULT DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, const IID& riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter) {
 #pragma comment(linker, "/EXPORT:DirectInput8Create=" DECORATED_FUNCTION_NAME)
-
-    InitLog("logs", "Crash.txt");
-    InstallCrashHandler(".\\logs\\CrimsonCrash.dmp");
-    if (!InitializeDbgHelp()) {
-        Log("Init_DbgHelp failed.");
-
-        return 0;
-    }
 
     return ::Base::DI8::DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
 }
@@ -267,9 +258,6 @@ byte32 DllMain(HINSTANCE instance, byte32 reason, void* reserved) {
 
         Init();
         Load();
-    }
-    if (reason == DLL_PROCESS_DETACH) {
-        UninstallCrashHandler();
     }
 
     return 1;

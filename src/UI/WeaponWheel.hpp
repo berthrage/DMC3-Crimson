@@ -60,6 +60,9 @@ namespace WW
         // Loads the sprite descriptors and the texture array once, so it doesn't hitch the first time a wheel is built.
         static void PreloadTextures(ID3D11Device* pD3D11Device);
 
+        // Rebuilds the render target when the UI size changed since the wheel was built.
+        void MatchTargetSize(UINT width, UINT height);
+
         /// <summary>
         /// Changes the weapons shown in the wheel
         /// </summary>

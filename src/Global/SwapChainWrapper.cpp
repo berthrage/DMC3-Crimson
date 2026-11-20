@@ -156,6 +156,11 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::GetLastPresentCount(UINT* pLastPrese
 // Present
 
 HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flags) {
+    static LARGE_INTEGER s_perfPrevEnd = {};
+    LARGE_INTEGER perfEntry, perfAfterPace;
+    QueryPerformanceCounter(&perfEntry);
+    GpuProbeOverlayStart();
+
     // First-frame init — deferring this here means we don't need to
     // worry about the device context being ready during creation.
     static bool s_firstFrameInitDone = false;
@@ -218,6 +223,7 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     } else if (!activeCrimsonConfig.System.nvidiaReflex) {
         FPSLimiter_Apply();
     }
+    QueryPerformanceCounter(&perfAfterPace);
 
     // NVIDIA Reflex / PCL Stats: begin frame marker (SIMULATION_START)
     static uint64_t s_reflexFrameID = 0;
@@ -328,7 +334,68 @@ HRESULT STDMETHODCALLTYPE SwapChainWrapper::Present(UINT SyncInterval, UINT Flag
     }
 
     // Present — the one that actually hits the GPU.
+    LARGE_INTEGER perfBeforePresent, perfAfterPresent;
+    GpuProbeEndFrame();
+    QueryPerformanceCounter(&perfBeforePresent);
     HRESULT hr = m_real->Present(SyncInterval, presentFlags);
+    QueryPerformanceCounter(&perfAfterPresent);
+
+    if constexpr (kPerfProbes) {
+        static LARGE_INTEGER s_perfFreq = {};
+        static LARGE_INTEGER s_lastPresent = {};
+        static LARGE_INTEGER s_reportAt = {};
+        static double s_submitMs = 0.0, s_presentMs = 0.0, s_uploadMs = 0.0, s_discardMs = 0.0;
+        static double s_logicMs = 0.0, s_paceMs = 0.0, s_overlayMs = 0.0;
+        static int s_frames = 0, s_submits = 0, s_draws = 0;
+        static long long s_verts = 0, s_peakBytes = 0;
+
+        if (s_perfFreq.QuadPart == 0) {
+            QueryPerformanceFrequency(&s_perfFreq);
+            QueryPerformanceCounter(&s_lastPresent);
+            s_reportAt = s_lastPresent;
+        }
+
+        const double toMs = 1000.0 / (double)s_perfFreq.QuadPart;
+        s_submitMs += (double)g_perfSubmitTicks * toMs;
+        s_submits += (int)g_perfSubmitCount;
+        g_perfSubmitTicks = 0;
+        g_perfSubmitCount = 0;
+        s_uploadMs += (double)g_perfUploadTicks * toMs;
+        s_draws += (int)g_perfDrawCount;
+        g_perfUploadTicks = 0;
+        g_perfDrawCount = 0;
+        s_discardMs += (double)g_perfDiscardTicks * toMs;
+        s_verts += g_perfVerts;
+        if (g_perfPeakBytes > s_peakBytes) s_peakBytes = g_perfPeakBytes;
+        g_perfDiscardTicks = 0;
+        g_perfVerts = 0;
+        g_perfPeakBytes = 0;
+        s_presentMs += (double)(perfAfterPresent.QuadPart - perfBeforePresent.QuadPart) * toMs;
+        if (s_perfPrevEnd.QuadPart != 0) s_logicMs += (double)(perfEntry.QuadPart - s_perfPrevEnd.QuadPart) * toMs;
+        s_paceMs += (double)(perfAfterPace.QuadPart - perfEntry.QuadPart) * toMs;
+        s_overlayMs += (double)(perfBeforePresent.QuadPart - perfAfterPace.QuadPart) * toMs;
+        s_perfPrevEnd = perfAfterPresent;
+        ++s_frames;
+
+        const double reported = (double)(perfAfterPresent.QuadPart - s_reportAt.QuadPart) / (double)s_perfFreq.QuadPart;
+        if (reported >= 2.0 && s_frames > 0) {
+            const double frames = (double)s_frames;
+            const double fps = frames / reported;
+            Log("Perf: %.1f fps | frame %.3f ms | submit %.3f ms (%d/frame) | upload %.3f ms (%d draws) | present %.3f ms",
+                fps, 1000.0 / fps, s_submitMs / frames, s_submits / s_frames,
+                s_uploadMs / frames, s_draws / s_frames, s_presentMs / frames);
+            Log("Perf: first-draw(discard) %.3f ms/frame | verts/frame %lld | peak ring bytes/frame %lld | ring units %lld",
+                s_discardMs / frames, s_verts / s_frames, s_peakBytes, g_perfRingUnits);
+            Log("Perf: game-logic+submit %.3f ms | pacing %.3f ms | overlay+efk %.3f ms",
+                s_logicMs / frames, s_paceMs / frames, s_overlayMs / frames);
+            s_logicMs = s_paceMs = s_overlayMs = 0.0;
+            s_submitMs = s_presentMs = s_uploadMs = s_discardMs = 0.0;
+            s_frames = s_submits = s_draws = 0;
+            s_verts = s_peakBytes = 0;
+            s_reportAt = perfAfterPresent;
+        }
+        s_lastPresent = perfAfterPresent;
+    }
 
     // NVIDIA Reflex / PCL Stats: mark present end
     if (GetNvApiReflex().IsNvApiLoaded()) {

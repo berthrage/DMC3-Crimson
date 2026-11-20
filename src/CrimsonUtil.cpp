@@ -54,19 +54,4 @@ float smoothstep(float edge0, float edge1, float x) {
 	return x * x * (3 - 2 * x);
 }
 
-bool IsAddressValidAndWritable(uintptr_t address) {
-    MEMORY_BASIC_INFORMATION mbi;
-    if (VirtualQuery(reinterpret_cast<LPCVOID>(address), &mbi, sizeof(mbi))) {
-        // Check if the address is committed memory and is writable
-        if (mbi.State == MEM_COMMIT &&
-            (mbi.Protect == PAGE_READWRITE ||
-                mbi.Protect == PAGE_WRITECOPY ||
-                mbi.Protect == PAGE_EXECUTE_READWRITE ||
-                mbi.Protect == PAGE_EXECUTE_WRITECOPY)) {
-            return true;
-        }
-    }
-    return false;
-}
-
 }

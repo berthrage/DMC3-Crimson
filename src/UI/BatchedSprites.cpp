@@ -10,6 +10,101 @@
 #include <set>
 
 namespace Graphics {
+    namespace {
+        // A depth-stencil target only depends on the render target size, and every Draw clears it before rendering, so
+        // batches that share a size share one target. Keeps a new wheel/HUD down to its own colour target.
+        struct SharedDepthTarget {
+            UINT                            Width{ 0 }, Height{ 0 };
+            unsigned                        LastUsed{ 0 };
+            ComPtr<ID3D11Texture2D>         pBuffer{};
+            ComPtr<ID3D11DepthStencilView>  pView{};
+        };
+
+        constexpr size_t kSharedDepthTargetCount = 4;
+
+        SharedDepthTarget  s_SharedDepthTargets[kSharedDepthTargetCount]{};
+        unsigned           s_SharedDepthTargetTick{ 0 };
+        ID3D11Device*      s_pSharedDepthDevice{ nullptr };
+
+        // Evicting a slot only drops the cache's reference, a batch that still uses that target keeps it alive.
+        SharedDepthTarget* GetSharedDepthTarget(ID3D11Device* pD3D11Device, UINT width, UINT height, HRESULT& hr)
+        {
+            if (s_pSharedDepthDevice != pD3D11Device) {
+                for (auto& target : s_SharedDepthTargets)
+                    target = SharedDepthTarget{};
+
+                s_pSharedDepthDevice = pD3D11Device;
+            }
+
+            SharedDepthTarget* pTarget = nullptr;
+
+            for (auto& target : s_SharedDepthTargets) {
+                if (target.pView && target.Width == width && target.Height == height) {
+                    pTarget = &target;
+                    break;
+                }
+            }
+
+            if (pTarget) {
+                pTarget->LastUsed = ++s_SharedDepthTargetTick;
+
+                hr = S_OK;
+                return pTarget;
+            }
+
+            SharedDepthTarget* pFree = nullptr;
+            for (auto& target : s_SharedDepthTargets) {
+                if (!target.pView) {
+                    pFree = &target;
+                    break;
+                }
+            }
+
+            if (!pFree) {
+                pFree = &s_SharedDepthTargets[0];
+                for (auto& target : s_SharedDepthTargets) {
+                    if (target.LastUsed < pFree->LastUsed)
+                        pFree = &target;
+                }
+            }
+
+            pFree->pView.Reset();
+            pFree->pBuffer.Reset();
+
+            D3D11_TEXTURE2D_DESC desc = {};
+            desc.Width              = width;
+            desc.Height             = height;
+            desc.MipLevels          = 1;
+            desc.ArraySize          = 1;
+            desc.Format             = DXGI_FORMAT_D24_UNORM_S8_UINT;
+            desc.SampleDesc.Count   = 1;
+            desc.SampleDesc.Quality = 0;
+            desc.Usage              = D3D11_USAGE_DEFAULT;
+            desc.BindFlags          = D3D11_BIND_DEPTH_STENCIL;
+
+            hr = pD3D11Device->CreateTexture2D(&desc, nullptr, &pFree->pBuffer);
+            if (FAILED(hr)) {
+                pFree->pBuffer.Reset();
+
+                return nullptr;
+            }
+
+            hr = pD3D11Device->CreateDepthStencilView(pFree->pBuffer.Get(), nullptr, &pFree->pView);
+            if (FAILED(hr)) {
+                pFree->pView.Reset();
+                pFree->pBuffer.Reset();
+
+                return nullptr;
+            }
+
+            pFree->Width    = width;
+            pFree->Height   = height;
+            pFree->LastUsed = ++s_SharedDepthTargetTick;
+
+            return pFree;
+        }
+    }
+
     BatchedSprites::BatchedSprites(ID3D11Device* pD3D11Device, UINT width, UINT height,
         const std::vector<SpriteDesc>& spriteDescs, std::shared_ptr<Texture2DArrayD3D11> pSpriteTextures,
         const std::vector<size_t> spriteIndices)
@@ -134,6 +229,26 @@ namespace Graphics {
     	// Compiled once per process; every batch after the first reuses the bytecode.
     	static ComPtr<ID3DBlob> s_pVertexShaderBlob;
     	static ComPtr<ID3DBlob> s_pPixelShaderBlob;
+
+    	// Shaders, input layout and states are identical for every batch, so they are created once per device and shared.
+    	// Draw() binds the copies below, which just reference the same objects.
+    	struct SharedPipelineState {
+    		ID3D11Device*                   pDevice{ nullptr };
+    		ComPtr<ID3D11VertexShader>      pVertexShader{};
+    		ComPtr<ID3D11PixelShader>       pPixelShader{};
+    		ComPtr<ID3D11InputLayout>       pInputLayout{};
+    		ComPtr<ID3D11BlendState>        pBlendState{};
+    		ComPtr<ID3D11RasterizerState>   pRasterizerState{};
+    		ComPtr<ID3D11DepthStencilState> pDepthStencilStateOpaque{};
+    		ComPtr<ID3D11DepthStencilState> pDepthStencilStateTransparent{};
+    		ComPtr<ID3D11SamplerState>      pTextureSampler{};
+    	};
+    	static SharedPipelineState s_Shared;
+
+    	if (s_Shared.pDevice != pD3D11Device) {
+    		s_Shared = SharedPipelineState{};
+    		s_Shared.pDevice = pD3D11Device;
+    	}
 
     	// Create the vertex shader
     	{
@@ -268,29 +383,34 @@ namespace Graphics {
 
     		//Log("BatchedSprites: Vertex shader compiled successfully");
     
-    		hr = pD3D11Device->CreateVertexShader(s_pVertexShaderBlob->GetBufferPointer(), s_pVertexShaderBlob->GetBufferSize(), NULL, &m_pVertexShader);
-    
-    		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__)) {
-                Log(GetLastErrorMsg().c_str());
-    			return false;
+    		if (!s_Shared.pVertexShader) {
+    			hr = pD3D11Device->CreateVertexShader(s_pVertexShaderBlob->GetBufferPointer(), s_pVertexShaderBlob->GetBufferSize(), NULL, &s_Shared.pVertexShader);
+
+    			if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__)) {
+    				Log(GetLastErrorMsg().c_str());
+    				return false;
+    			}
+
+    			//Log("BatchedSprites: Vertex shader created successfully");
+
+    			hr = pD3D11Device->CreateInputLayout(
+    				s_VertexInputLayout,
+    				sizeof(s_VertexInputLayout) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+    				s_pVertexShaderBlob->GetBufferPointer(),
+    				s_pVertexShaderBlob->GetBufferSize(),
+    				&s_Shared.pInputLayout
+    			);
+
+    			if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__)) {
+    				Log(GetLastErrorMsg().c_str());
+    				return false;
+    			}
+
+    			//Log("BatchedSprites: Input layout created successfully");
     		}
-    
-    		//Log("BatchedSprites: Vertex shader created successfully");
-    
-    		hr = pD3D11Device->CreateInputLayout(
-                s_VertexInputLayout,
-    			sizeof(s_VertexInputLayout) / sizeof(D3D11_INPUT_ELEMENT_DESC),
-    			s_pVertexShaderBlob->GetBufferPointer(),
-                s_pVertexShaderBlob->GetBufferSize(),
-                &m_pInputLayout
-            );
-    
-    		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__)) {
-    			Log(GetLastErrorMsg().c_str());
-    			return false;
-    		}
-    
-    		//Log("BatchedSprites: Input layout created successfully");
+
+    		m_pVertexShader = s_Shared.pVertexShader;
+    		m_pInputLayout  = s_Shared.pInputLayout;
     	}
     	//Log("BatchedSprites: Vertex shader creation completed");
     
@@ -453,14 +573,18 @@ namespace Graphics {
     
     		//Log("BatchedSprites: Pixel shader compiled successfully");
     
-    		hr = pD3D11Device->CreatePixelShader(s_pPixelShaderBlob->GetBufferPointer(), s_pPixelShaderBlob->GetBufferSize(), NULL, &m_pPixelShader);
-    
-    		if (FAILED(hr)) {
-    			Log("BatchedSprites: CreatePixelShader FAILED with HRESULT: 0x%08X", hr);
-    			return false;
+    		if (!s_Shared.pPixelShader) {
+    			hr = pD3D11Device->CreatePixelShader(s_pPixelShaderBlob->GetBufferPointer(), s_pPixelShaderBlob->GetBufferSize(), NULL, &s_Shared.pPixelShader);
+
+    			if (FAILED(hr)) {
+    				Log("BatchedSprites: CreatePixelShader FAILED with HRESULT: 0x%08X", hr);
+    				return false;
+    			}
+
+    			//Log("BatchedSprites: Pixel shader created successfully");
     		}
-    
-    		//Log("BatchedSprites: Pixel shader created successfully");
+
+    		m_pPixelShader = s_Shared.pPixelShader;
     	}
     	//Log("BatchedSprites: Pixel shader creation completed");
     
@@ -496,6 +620,7 @@ namespace Graphics {
     	//Log("BatchedSprites: Constant buffers created");
     
     	// Create the blending setup
+    	if (!s_Shared.pBlendState)
     	{
     		D3D11_BLEND_DESC desc;
     		ZeroMemory(&desc, sizeof(desc));
@@ -509,13 +634,15 @@ namespace Graphics {
     		desc.RenderTarget[0].BlendOpAlpha          = D3D11_BLEND_OP_MAX; // Use maximum of source and destination alpha
     		desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     
-    		hr = pD3D11Device->CreateBlendState(&desc, &m_pBlendState);
+    		hr = pD3D11Device->CreateBlendState(&desc, &s_Shared.pBlendState);
     
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
     			return false;
     	}
+    	m_pBlendState = s_Shared.pBlendState;
     
     	// Create the rasterizer state
+    	if (!s_Shared.pRasterizerState)
     	{
     		D3D11_RASTERIZER_DESC desc;
     		ZeroMemory(&desc, sizeof(desc));
@@ -524,13 +651,15 @@ namespace Graphics {
     		desc.ScissorEnable   = true;
     		desc.DepthClipEnable = true;
     
-    		hr = pD3D11Device->CreateRasterizerState(&desc, &m_pRasterizerState);
+    		hr = pD3D11Device->CreateRasterizerState(&desc, &s_Shared.pRasterizerState);
     
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
     			return false;
     	}
+    	m_pRasterizerState = s_Shared.pRasterizerState;
     
     	// Create depth-stencil State
+    	if (!s_Shared.pDepthStencilStateTransparent)
     	{
     		D3D11_DEPTH_STENCIL_DESC desc;
     		ZeroMemory(&desc, sizeof(desc));
@@ -542,7 +671,7 @@ namespace Graphics {
     		//desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     		//desc.BackFace = desc.FrontFace;
     
-    		hr = pD3D11Device->CreateDepthStencilState(&desc, &m_pDepthStencilStateOpaque);
+    		hr = pD3D11Device->CreateDepthStencilState(&desc, &s_Shared.pDepthStencilStateOpaque);
     
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
     			return false;
@@ -551,40 +680,32 @@ namespace Graphics {
     		desc.DepthEnable    = true;
     		desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     		desc.DepthFunc      = D3D11_COMPARISON_LESS_EQUAL;
-    		hr = pD3D11Device->CreateDepthStencilState(&desc, &m_pDepthStencilStateTransparent);
+    		hr = pD3D11Device->CreateDepthStencilState(&desc, &s_Shared.pDepthStencilStateTransparent);
             
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
     			return false;
     	}
+    	m_pDepthStencilStateOpaque      = s_Shared.pDepthStencilStateOpaque;
+    	m_pDepthStencilStateTransparent = s_Shared.pDepthStencilStateTransparent;
     
     	// Create depth-stencil
     	{
-    		D3D11_TEXTURE2D_DESC desc;
-    		ZeroMemory(&desc, sizeof(desc));
-    		desc.Width              = m_RTDims.x;
-    		desc.Height             = m_RTDims.y;
-    		desc.MipLevels          = 1;
-    		desc.ArraySize          = 1;
-    		desc.Format             = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    		desc.SampleDesc.Count   = 1;
-    		desc.SampleDesc.Quality = 0;
-    		desc.Usage              = D3D11_USAGE_DEFAULT;
-    		desc.BindFlags          = D3D11_BIND_DEPTH_STENCIL;
-    		desc.CPUAccessFlags     = 0;
-    		desc.MiscFlags          = 0;
-    
-    		hr = pD3D11Device->CreateTexture2D(&desc, nullptr, &m_pDepthStincilBuffer);
-    
-    		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
+    		HRESULT depthHr = S_OK;
+    		const SharedDepthTarget* pDepth = GetSharedDepthTarget(pD3D11Device, m_RTDims.x, m_RTDims.y, depthHr);
+
+    		if (!pDepth) {
+    			ErrorCheck(depthHr, __FILE__, __FUNCTION__, __LINE__);
+    			Log(GetLastErrorMsg().c_str());
+
     			return false;
-    
-    		hr = pD3D11Device->CreateDepthStencilView(m_pDepthStincilBuffer.Get(), nullptr, &m_pDepthStincilView);
-    
-    		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
-    			return false;
+    		}
+
+    		m_pDepthStincilBuffer = pDepth->pBuffer;
+    		m_pDepthStincilView   = pDepth->pView;
     	}
     
     	// Create texture sampler
+    	if (!s_Shared.pTextureSampler)
     	{
     		D3D11_SAMPLER_DESC desc;
     		ZeroMemory(&desc, sizeof(desc));
@@ -597,11 +718,12 @@ namespace Graphics {
     		desc.MinLOD         = 0.0f;
     		desc.MaxLOD         = 0.0f;
     
-    		hr = pD3D11Device->CreateSamplerState(&desc, &m_pTextureSampler);
+    		hr = pD3D11Device->CreateSamplerState(&desc, &s_Shared.pTextureSampler);
     
     		if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
     			return false;
     	}
+    	m_pTextureSampler = s_Shared.pTextureSampler;
     
     	// Create viewport
     	{
@@ -804,24 +926,16 @@ namespace Graphics {
         if (!CreateRenderTargetView(pD3D11Device, width, height))
             return false;
 
-        D3D11_TEXTURE2D_DESC desc = {};
-        desc.Width              = m_RTDims.x;
-        desc.Height             = m_RTDims.y;
-        desc.MipLevels          = 1;
-        desc.ArraySize          = 1;
-        desc.Format             = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        desc.SampleDesc.Count   = 1;
-        desc.SampleDesc.Quality = 0;
-        desc.Usage              = D3D11_USAGE_DEFAULT;
-        desc.BindFlags          = D3D11_BIND_DEPTH_STENCIL;
+        HRESULT depthHr = S_OK;
+        const SharedDepthTarget* pDepth = GetSharedDepthTarget(pD3D11Device, m_RTDims.x, m_RTDims.y, depthHr);
 
-        HRESULT hr = pD3D11Device->CreateTexture2D(&desc, nullptr, &m_pDepthStincilBuffer);
-        if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
+        if (!pDepth) {
+            ErrorCheck(depthHr, __FILE__, __FUNCTION__, __LINE__);
             return false;
+        }
 
-        hr = pD3D11Device->CreateDepthStencilView(m_pDepthStincilBuffer.Get(), nullptr, &m_pDepthStincilView);
-        if (!ErrorCheck(hr, __FILE__, __FUNCTION__, __LINE__))
-            return false;
+        m_pDepthStincilBuffer = pDepth->pBuffer;
+        m_pDepthStincilView   = pDepth->pView;
 
         m_ViewPort.Width  = (FLOAT)m_RTDims.x;
         m_ViewPort.Height = (FLOAT)m_RTDims.y;

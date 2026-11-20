@@ -360,6 +360,16 @@ CrimsonWindow g_window;
 HANDLE g_frameLatencyWaitableObject = nullptr;
 bool g_flipModelLatencyOptimized = false;
 
+// Perf probe, reported from SwapChainWrapper::Present
+volatile long long g_perfSubmitTicks = 0;
+volatile long g_perfSubmitCount = 0;
+volatile long long g_perfUploadTicks = 0;
+volatile long g_perfDrawCount = 0;
+volatile long long g_perfDiscardTicks = 0;
+volatile long long g_perfPeakBytes = 0;
+volatile long long g_perfVerts = 0;
+volatile long long g_perfRingUnits = 0;
+
 // Mirrors g_window.active for compat with external code.
 bool g_appInactive = false;
 
@@ -831,7 +841,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
 						desc1.Format = modifiedSwapChainDesc.BufferDesc.Format;
 						desc1.SampleDesc = modifiedSwapChainDesc.SampleDesc;
 						desc1.BufferUsage = modifiedSwapChainDesc.BufferUsage;
-						desc1.BufferCount = 2; // Flip model needs 2+ buffers
+						desc1.BufferCount = kFlipModelFrameLatency + 1; // flip model needs BufferCount > MaximumFrameLatency
 						desc1.Scaling = DXGI_SCALING_STRETCH; // Enables decoupled window/render resolution
 						desc1.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 						desc1.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED; 
@@ -953,9 +963,9 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         IDXGISwapChain2* swapChain2 = nullptr;
         HRESULT hr = ::DXGI::swapChain->QueryInterface(__uuidof(IDXGISwapChain2), (void**)&swapChain2);
         if (SUCCEEDED(hr) && swapChain2) {
-            hr = swapChain2->SetMaximumFrameLatency(1);
+            hr = swapChain2->SetMaximumFrameLatency(kFlipModelFrameLatency);
             if (SUCCEEDED(hr)) {
-                Log("Set swap chain maximum frame latency to 1 for reduced input lag");
+                Log("Set swap chain maximum frame latency to %u so submission overlaps the GPU", kFlipModelFrameLatency);
 
                 HANDLE waitableObject = swapChain2->GetFrameLatencyWaitableObject();
                 if (waitableObject != nullptr) {
@@ -976,7 +986,7 @@ HRESULT D3D11CreateDeviceAndSwapChain(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE Dr
         // Set device-level maximum frame latency for additional latency reduction.
         IDXGIDevice1* dxgiDevice = nullptr;
         if (SUCCEEDED((*ppDevice)->QueryInterface(IID_PPV_ARGS(&dxgiDevice)))) {
-            hr = dxgiDevice->SetMaximumFrameLatency(1);
+            hr = dxgiDevice->SetMaximumFrameLatency(kFlipModelFrameLatency);
             if (SUCCEEDED(hr)) {
                 Log("Set device maximum frame latency to 1");
             } else {

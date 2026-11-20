@@ -1963,7 +1963,6 @@ void PauseWhenGUIOpened() {
 	}
 }
 
-std::unique_ptr<WW::WeaponWheel> dummyWeaponWheel;
 std::unique_ptr<WW::WeaponWheel> meleeWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel> rangedWeaponWheel[PLAYER_COUNT];
 std::unique_ptr<WW::WeaponWheel>  meleeWorldSpaceWeaponWheel[PLAYER_COUNT];
@@ -2227,6 +2226,9 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 		return false;
 	}
 
+	// The wheel is built up front; follow the UI size if the window or resolution changed since.
+	pWeaponWheel->MatchTargetSize((UINT)(g_uiSize.y * 0.45f), (UINT)(g_uiSize.y * 0.45f));
+
 	// Switching Characters
 	if (state.oldWeaponIndex != (int)weaponIndex || state.oldCharIndex != (int)charIndex) {// If changed set it
 		if (isMelee) {
@@ -2371,6 +2373,67 @@ bool WeaponWheelController(PlayerActorData& actorData, IDXGISwapChain* pSwapChai
 	return false;
 }
 
+// Builds any wheel the current settings can show, so wheels never spawn the first time they're needed. All of them draw
+// with the one shared texture array, so this only costs their render targets and buffers.
+static void PreloadWeaponWheels(IDXGISwapChain* pSwapChain) {
+	size_t players = (size_t)activeConfig.Actor.playerCount;
+
+	if (players < 1)
+		players = 1;
+	if (players > PLAYER_COUNT)
+		players = PLAYER_COUNT;
+
+	const bool worldSpace = activeCrimsonConfig.WeaponWheel.worldSpaceWheels != HUDELEMENTSHOWSTATE::OFF;
+
+	bool ready = true;
+	for (size_t player = 0; player < players; player++) {
+		ready = ready && meleeWeaponWheel[player] && rangedWeaponWheel[player];
+
+		if (worldSpace)
+			ready = ready && meleeWorldSpaceWeaponWheel[player] && rangedWorldSpaceWeaponWheel[player];
+	}
+	if (ready)
+		return;
+
+	// Same size the controllers create wheels with before any multiplayer layout settles.
+	const UINT size = (UINT)(g_uiSize.y * 0.45f);
+
+	if (!size)
+		return;
+
+	ID3D11Device* pD3D11Device = nullptr;
+
+	if (FAILED(pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device))) || !pD3D11Device)
+		return;
+
+	ID3D11DeviceContext* pD3D11DeviceContext = nullptr;
+	pD3D11Device->GetImmediateContext(&pD3D11DeviceContext);
+
+	if (pD3D11DeviceContext) {
+		const std::vector<WW::WeaponIDs> noWeapons;
+
+		auto create = [&](std::unique_ptr<WW::WeaponWheel>& wheel) {
+			if (!wheel)
+				wheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pD3D11DeviceContext, size, size,
+					noWeapons, WW::WheelThemes::Neutral);
+		};
+
+		for (size_t player = 0; player < players; player++) {
+			create(meleeWeaponWheel[player]);
+			create(rangedWeaponWheel[player]);
+
+			if (worldSpace) {
+				create(meleeWorldSpaceWeaponWheel[player]);
+				create(rangedWorldSpaceWeaponWheel[player]);
+			}
+		}
+
+		pD3D11DeviceContext->Release();
+	}
+
+	pD3D11Device->Release();
+}
+
 // The sprite atlases and HUD 2.0 objects are built here, while the game is still in the menus, instead of when a stage
 // first draws them.
 static void PreloadSpriteTextures(IDXGISwapChain* pSwapChain) {
@@ -2392,30 +2455,12 @@ static void PreloadSpriteTextures(IDXGISwapChain* pSwapChain) {
 
 		CrimsonHUD::PreloadHUD2Textures(pD3D11Device, pD3D11DeviceContext);
 
-		pD3D11DeviceContext->Release();
+		if (pD3D11DeviceContext)
+			pD3D11DeviceContext->Release();
 	}
 
 	pD3D11Device->Release();
 	done = true;
-}
-
- void DummyWeaponWheelController (IDXGISwapChain* pSwapChain) {
-	// The wheel's textures are already up from PreloadSpriteTextures; this builds one wheel so its first in-game open
-	// doesn't pay for the batch setup.
-	static WeaponWheelState dummyWWState;
-
-	if (!dummyWeaponWheel) {
-		ID3D11DeviceContext* pDeviceContext = nullptr;
-
-		ID3D11Device* pD3D11Device = nullptr;
-
-		pSwapChain->GetDevice(IID_PPV_ARGS(&pD3D11Device));
-
-		pD3D11Device->GetImmediateContext(&pDeviceContext);
-
-		dummyWeaponWheel = std::make_unique<WW::WeaponWheel>(pD3D11Device, pDeviceContext, 100, 100,
-			dummyWWState.currentWeapons[0], activeCrimsonConfig.WeaponWheel.theme == "Crimson" ? dummyWWState.charTheme : WW::WheelThemes::Neutral);
-	}
 }
 
 void WeaponWheels1PController(IDXGISwapChain* pSwapChain) {
@@ -17776,7 +17821,7 @@ void GUI_Render(IDXGISwapChain* pSwapChain) {
 
     MultiplayerBars(pSwapChain);
 	PreloadSpriteTextures(pSwapChain);
-	DummyWeaponWheelController(pSwapChain);
+	PreloadWeaponWheels(pSwapChain);
 	WeaponWheels1PController(pSwapChain);
 	WeaponWheelsMultiplayerController(pSwapChain);
 	WorldSpaceWeaponWheels1PController(pSwapChain);
