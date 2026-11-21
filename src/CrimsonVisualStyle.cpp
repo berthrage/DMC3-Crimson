@@ -119,7 +119,6 @@ void SetVisualStylePreset(uint8 mode) {
 
 	// Copy tracked fields into active + queued — CrimsonHudAddons
 	auto applyTo = [&](CrimsonConfig& cfg) {
-		cfg.CrimsonHudAddons.positionings       = chosen->positionings;
 		cfg.CrimsonHudAddons.redOrbCounter      = chosen->redOrbCounter;
 		cfg.CrimsonHudAddons.stylesDisplay      = chosen->stylesDisplay;
 		cfg.CrimsonHudAddons.displayStyleNames  = chosen->displayStyleNames;
@@ -129,6 +128,8 @@ void SetVisualStylePreset(uint8 mode) {
 		cfg.CrimsonHudAddons.lockOn             = chosen->lockOn;
 		// HudOptions
 		cfg.HudOptions.selectedHUD              = chosen->selectedHUD;
+		// Only Crimson HUD 1.0 wants the repositioned elements.
+		cfg.CrimsonHudAddons.positionings       = CrimsonFiles::HudUsesPositionings(cfg.HudOptions.selectedHUD);
 		// VisualStyle meta
 		cfg.VisualStyle.preset                  = mode;
 	};

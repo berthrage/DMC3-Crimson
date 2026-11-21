@@ -62,6 +62,10 @@ bool IsCrimsonHUD2(const std::string& hudName) {
 	return hudName == CRIMSON_HUD2_NAME;
 }
 
+bool HudUsesPositionings(const std::string& hudName) {
+	return hudName != CLASSIC_HUD_NAME && !IsCrimsonHUD2(hudName);
+}
+
 std::string PacHUDName(const std::string& hudName) {
 	return IsCrimsonHUD2(hudName) ? std::string("Crimson HUD") : hudName;
 }

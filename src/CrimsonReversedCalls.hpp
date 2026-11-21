@@ -44,4 +44,6 @@ namespace CrimsonReversedCalls {
 	extern void ClothSnapToPose_sub_1402CA0A0(PhysicsData* physicsData, ModelData* modelData, byte8* boneMatrix, byte8* prevMatrixOut, int32 steps);
 	extern void CDrawEffectBlock_SetQuicksilverMatrix_sub_140302150(byte8* drawBlock);
 	extern void CDrawEffectBlock_ClearColorMatrix_sub_140302370(byte8* drawBlock);
+	// Copies the view matrix to camera +0x100 and rebuilds the combined matrices (+0x140 = +0x40 * view, +0x180 = +0x80 * view).
+	extern void CameraSetView_sub_140325810(byte8* camera, byte8* viewMatrix);
 }

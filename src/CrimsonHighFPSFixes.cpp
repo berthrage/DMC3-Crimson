@@ -1423,7 +1423,7 @@ void FixTeleportTransitionSpeed(bool enable) {
 void MenuAnimationFixes(bool enable) {
 	static bool run = false;
 
-	// The menu animation hooks install once and stay in; their behaviour follows the System config.
+	// The menu animation hooks install once and stay in, there is no setting to turn them off.
 	if (!enable || run) {
 		return;
 	}

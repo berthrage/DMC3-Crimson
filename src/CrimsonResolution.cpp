@@ -5,6 +5,7 @@
 #include "Vars.hpp"
 #include "CrimsonConfig.hpp"
 #include "CrimsonEfk.hpp"
+#include "CrimsonUltrawide.hpp"
 #include "DebugDrawDX11.hpp"
 #include "Global/HooksBase.hpp"
 #include "Core/GUI.hpp"
@@ -844,6 +845,7 @@ static SwitchResult SwitchSwapChain(SwapChainWrapper* wrapper, bool wantFlip, ui
 void ApplyPending(SwapChainWrapper* wrapper) {
     // The game reads its anti-aliasing flag every frame.
     *reinterpret_cast<uint8*>(appBaseAddr + userConfigRva + antiAliasingOffset) = activeCrimsonConfig.System.antiAliasing ? 1 : 0;
+    CrimsonUltrawide::Update();
 
     if (!g_pending) {
         return;

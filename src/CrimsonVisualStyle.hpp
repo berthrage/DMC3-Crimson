@@ -12,7 +12,7 @@ namespace CrimsonVisualStyle {
 // VisualStyleTracking holds only the fields we compare for preset matching.
 // It's not persisted: it's a comparison helper populated from CrimsonConfig.
 struct VisualStyleTracking {
-	bool positionings = true;
+	bool positionings = false;
 	bool redOrbCounter = true;
 	uint8 stylesDisplay = STYLESDISPLAY::WITH_BROKEN_GLASS;
 	uint8 styleNamesSet = STYLENAMESSET::CRIMSON;

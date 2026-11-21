@@ -29,6 +29,7 @@ set(MASM_SRC
     masm/FixCrashM5.asm
     masm/FixCrashVergilM3.asm
     masm/FixVideoAudioDevice.asm
+    masm/Ultrawide.asm
     masm/FixCStageSetGateSpawn.asm
     masm/FixSecretMissionTimerFPS.asm
     masm/FixStaggerGravity.asm
@@ -323,6 +324,8 @@ file(GLOB MAIN_SRC
     CrimsonCostume.hpp
     DMC3VideoAudio.cpp
     DMC3VideoAudio.hpp
+    CrimsonUltrawide.cpp
+    CrimsonUltrawide.hpp
     NvApiReflex.cpp
     NvApiReflex.hpp
 )

@@ -17,6 +17,7 @@
 #include "Global/GUIBase.hpp"
 #include "Global/HooksBase.hpp"
 #include "CrimsonResolution.hpp"
+#include "CrimsonUltrawide.hpp"
 #include "CrimsonUtil.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonMusicSwitcher.hpp"
@@ -10535,11 +10536,15 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 			UI::ComboVectorString("Select HUD", CrimsonFiles::HUDdirectories, queuedCrimsonConfig.HudOptions.selectedHUD);
 			if (queuedCrimsonConfig.HudOptions.selectedHUD != activeCrimsonConfig.HudOptions.selectedHUD) {
 				activeCrimsonConfig.HudOptions.selectedHUD = queuedCrimsonConfig.HudOptions.selectedHUD;
+				// Only Crimson HUD 1.0 wants the repositioned elements.
+				activeCrimsonConfig.CrimsonHudAddons.positionings = CrimsonFiles::HudUsesPositionings(activeCrimsonConfig.HudOptions.selectedHUD);
+				queuedCrimsonConfig.CrimsonHudAddons.positionings = activeCrimsonConfig.CrimsonHudAddons.positionings;
 				// Copy renamed files to GData.afs for backward compatibility
 				CrimsonFiles::CopyHUDFilePactoGameFolder();
 				// Load dynamically and hot-reload icons immediately
 				CrimsonFiles::ApplySelectedHUD(activeCrimsonConfig.HudOptions.selectedHUD);
 				HUD_ReloadIcons();
+				CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
 			}
 			ImGui::PopItemWidth();
 
@@ -10631,7 +10636,7 @@ void InterfaceSection(size_t defaultFontSize, ID3D11Device* pDevice) {
 					CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
 				}
 				ImGui::SameLine();
-				TooltipHelper("(?)", "Uncheck this if you're using Classic HUD.");
+				TooltipHelper("(?)", "Moves the game's own HUD elements for the Crimson HUD layout.\nTurns off automatically for the Classic HUD.");
 
 				ImGui::TableNextColumn();
 			}
@@ -11256,28 +11261,34 @@ void SystemSection(size_t defaultFontSize) {
 
 			GUI_Checkbox2("Disable Menu Fadeouts", activeCrimsonConfig.System.disableMenuFadeouts, queuedCrimsonConfig.System.disableMenuFadeouts);
 
+			ImGui::TableNextColumn();
+
 			GUI_Checkbox2("Disable Cutscene Letterbox", activeCrimsonConfig.System.disableCutsceneLetterbox,
 				queuedCrimsonConfig.System.disableCutsceneLetterbox);
 			if (ImGui::IsItemHovered()) {
 				ImGui::SetTooltip("Removes the black bars the game draws during cutscenes.");
 			}
 
-			GUI_Checkbox2("Menu Animation Fix", activeCrimsonConfig.System.menuAnimationFix, queuedCrimsonConfig.System.menuAnimationFix);
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Ultrawide Fix", activeCrimsonConfig.System.ultrawideFix, queuedCrimsonConfig.System.ultrawideFix);
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Keeps menu panels animating at the same speed no matter your frame rate.\n"
-					"Turn off to compare against the original behaviour.");
+				ImGui::SetTooltip("Corrects the field of view, HUD, text and FMVs at aspect ratios wider than 16:9 (21:9, 32:9).\n"
+					"Only active while the resolution is wider than 16:9. Based on DMCHDFix by Lyall.");
+			}
+			if (CrimsonUltrawide::StandaloneFixLoaded()) {
+				ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "DMCHDFix.asi patched DMC3 before Crimson could disable it,\n"
+					"so this and Culling Fix stay off. Restart the game to retry.");
 			}
 
-			ImGui::PushItemWidth(itemWidth * 0.8f);
-			GUI_Slider2FloatDefault("Menu Speed", activeCrimsonConfig.System.menuAnimationSpeed, queuedCrimsonConfig.System.menuAnimationSpeed,
-				defaultCrimsonConfig.System.menuAnimationSpeed, 50.0f, 200.0f, 1.0f, "%.0f%%");
-			ImGui::PopItemWidth();
+			ImGui::TableNextColumn();
+
+			GUI_Checkbox2("Culling Fix", activeCrimsonConfig.System.cullingFix, queuedCrimsonConfig.System.cullingFix);
 			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("Speed of menu panels, scene breaks and mission results.\n"
-					"100%% is the original speed. The cockpit and credits always play at 100%%.");
+				ImGui::SetTooltip("Widens the camera's culling to match your aspect ratio, at any resolution.\n"
+					"Stops objects and effects from disappearing before they leave the screen edges.");
 			}
-				
-			
+
 			ImGui::TableNextColumn();
 
 

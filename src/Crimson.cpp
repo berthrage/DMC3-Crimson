@@ -47,6 +47,7 @@
 #include "CrimsonHighFPSFixes.hpp"
 #include "CrimsonMusicSwitcher.hpp"
 #include "CrashHandlerLoader.hpp"
+#include "CrimsonUltrawide.hpp"
 
 
 
@@ -65,6 +66,8 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         Log("Session started.");
 
         InstallCrashHandlerFromDll(".\\logs\\CrimsonCrash.dmp");
+
+        CrimsonUltrawide::DisableStandaloneFix();
 
         if (!Core_Memory_Init()) {
             Log("Core_Memory_Init failed.");
@@ -299,6 +302,9 @@ uint32 DllMain(HINSTANCE instance, uint32 reason, LPVOID reserved) {
         }
 
         CrimsonPatches::HoldToAutoFire(activeCrimsonGameplay.Gameplay.General.holdToShoot);
+        // Only Crimson HUD 1.0 wants the repositioned elements.
+        activeCrimsonConfig.CrimsonHudAddons.positionings = CrimsonFiles::HudUsesPositionings(activeCrimsonConfig.HudOptions.selectedHUD);
+        queuedCrimsonConfig.CrimsonHudAddons.positionings = activeCrimsonConfig.CrimsonHudAddons.positionings;
         CrimsonDetours::ToggleClassicHUDPositionings(!activeCrimsonConfig.CrimsonHudAddons.positionings);
         CrimsonDetours::ToggleStyleRankHudNoFadeout(activeCrimsonConfig.HudOptions.disableStyleRankHudFadeout);
         CrimsonDetours::ToggleDMC4LockOnDirection(activeCrimsonGameplay.Gameplay.General.dmc4LockOnDirection);

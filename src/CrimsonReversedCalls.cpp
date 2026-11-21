@@ -134,6 +134,10 @@ namespace CrimsonReversedCalls {
 		GAME_CALL_SAFE(0x302370, void, byte8*)(drawBlock);
 	}
 
+	void CameraSetView_sub_140325810(byte8* camera, byte8* viewMatrix) {
+		GAME_CALL_SAFE(0x325810, void, byte8*, byte8*)(camera, viewMatrix);
+	}
+
 	
 
 }

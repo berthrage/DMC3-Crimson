@@ -201,13 +201,16 @@ void Load() {
     Module32First(snapshot, &me32);
 
 
+    // DMCHDFix.asi covers DMC1 and DMC2, Crimson has its own ultrawide fix for DMC3.
     const char* names[][4] = {{
                                   "dmc1.exe",
                                   "Eva.dll",
+                                  "DMCHDFix.asi",
                               },
         {
             "dmc2.exe",
             "Lucia.dll",
+            "DMCHDFix.asi",
         },
         {"dmc3.exe", "Crimson.dll", "SDL3.dll", "SDL3_mixer.dll"},
         {
@@ -222,21 +225,30 @@ void Load() {
 
     for_all(index, countof(names)) {
         auto appName = names[index][0];
-        auto libName = names[index][1];
 
         if (strncmp(me32.szModule, appName,
                 sizeof(appName) // @Research: Pretty sure that should be strlen. sizeof includes the terminating zero, strlen doesn't.
                 ) == 0) {
-            Log("%s %s", appName, libName);
+            for (size_t libIndex = 1; libIndex < countof(names[index]); libIndex++) {
+                auto libName = names[index][libIndex];
+                if (!libName) {
+                    break;
+                }
 
+                Log("%s %s", appName, libName);
 
-            SetLastError(0);
+                if ((libIndex > 1) && (GetFileAttributesA(libName) == INVALID_FILE_ATTRIBUTES)) {
+                    continue;
+                }
 
-            auto lib = LoadLibraryA(libName);
-            if (!lib) {
-                error = GetLastError();
+                SetLastError(0);
 
-                Log("LoadLibraryA failed. %s %X", libName, error);
+                auto lib = LoadLibraryA(libName);
+                if (!lib) {
+                    error = GetLastError();
+
+                    Log("LoadLibraryA failed. %s %X", libName, error);
+                }
             }
 
 

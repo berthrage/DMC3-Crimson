@@ -14,6 +14,7 @@
 #include "Actor.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonSplitscreen.hpp"
+#include "CrimsonUltrawide.hpp"
 #include "CrimsonEnemyAITarget.hpp"
 #include "Utility/Detour.hpp"
 #include "ImGui/imgui.h"
@@ -1750,7 +1751,9 @@ HudFrameInfo ReadHudFrameInfo(float screenWidth, float screenHeight) {
 	if (info.frameWidth <= 0 || info.frameHeight <= 0) {
 		return info;
 	}
-	const float visibleWidth = static_cast<float>(info.frameWidth) * (info.widescreen ? HUD_WIDESCREEN_WIDTH_FACTOR : 1.0f);
+	// The ultrawide fix squeezes the 2D projection, widening the visible HUD space.
+	const float visibleWidth = static_cast<float>(info.frameWidth) * (info.widescreen ? HUD_WIDESCREEN_WIDTH_FACTOR : 1.0f) *
+		CrimsonUltrawide::Multiplier();
 	const float unit = screenHeight / HUD_HEIGHT;
 	info.unitX = (screenWidth / visibleWidth) / unit;
 	info.unitY = (screenHeight / static_cast<float>(info.frameHeight)) / unit;
@@ -2119,6 +2122,10 @@ using DrawHudRectFn = __int64(__fastcall*)(__int64, int16_t, int16_t, int, uint1
 std::unique_ptr<Utility::Detour_t> s_drawHudRectHook;
 constexpr uintptr_t DRAW_HUD_RECT_OFFSET = 0x2E32F0; // DrawHudRect_sub_1402E32F0
 constexpr size_t COMBO_DRAW_MATRIX = 0x3CD0;
+// Pivot of the style meter in HUD units. It is not the screen centre (320): the rank model is drawn through the HUD
+// camera, which reaches the screen slightly right of that, so squeezing the bar about 320 left it behind the model at
+// 21:9 and further at 32:9. Calibrated against the model at 2560x1080 and 3840x1080.
+constexpr float HUD_RECT_CENTER_X = 370.0f;
 bool s_inStyleCombo = false;
 VanillaStyleShift s_comboShift = {};
 
@@ -2136,6 +2143,12 @@ __int64 __fastcall DrawHudRectHook(__int64 list, int16_t x, int16_t y, int colou
 		y = static_cast<int16_t>(y + static_cast<int>(std::lround(s_comboShift.y + s_comboShift.barY)) + (static_cast<int>(h) - newH) / 2);
 		w = static_cast<uint16_t>(newW);
 		h = static_cast<uint16_t>(newH);
+		if (CrimsonUltrawide::Active()) {
+			// The rect skips the 2D camera, so squeeze it towards the centre like the ultrawide HUD projection.
+			const float inv = 1.0f / CrimsonUltrawide::Multiplier();
+			x = static_cast<int16_t>(std::lround(HUD_RECT_CENTER_X + (x - HUD_RECT_CENTER_X) * inv));
+			w = static_cast<uint16_t>((std::max)(1, static_cast<int>(std::lround(w * inv))));
+		}
 	}
 	return original(list, x, y, colour, w, h, colours, count);
 }
@@ -2197,7 +2210,11 @@ void __fastcall StyleComboDrawHook(uint8_t* combo) {
 		return;
 	}
 	if (ComboMeterPlayers() < 2) {
-		original(combo); // single player: the game's own meter, where the game puts it
+		// single player: the game's own meter, where the game puts it (the bar still goes through DrawHudRectHook)
+		s_comboShift = {};
+		s_inStyleCombo = true;
+		original(combo);
+		s_inStyleCombo = false;
 		return;
 	}
 

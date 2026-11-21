@@ -36,6 +36,7 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonGameplay.hpp"
 #include "DMC3VideoAudio.hpp"
+#include "CrimsonFileHandling.hpp"
 
 namespace CrimsonDetours {
 
@@ -160,6 +161,23 @@ namespace CrimsonDetours {
 		std::uint64_t g_FixVideoAudioDevice_FailAddr;
 		void* g_FixVideoAudioDevice_Call;
 		void FixVideoAudioDeviceDetour();
+
+		// Ultrawide
+		std::uint64_t g_UltrawideCamera_ReturnAddr;
+		std::uint64_t g_UltrawideText_ReturnAddr;
+		std::uint64_t g_UltrawideMovie_ReturnAddr;
+		float g_UltrawideAspect = 1.0f;
+		float g_UltrawideInvAspect = 1.0f;
+		float g_UltrawideCameraBase = 0.0f;
+		float g_UltrawideCameraWritten = 0.0f;
+		void UltrawideCameraDetour();
+		void UltrawideTextDetour();
+		void UltrawideMovieDetour();
+
+		// CullingFix
+		std::uint64_t g_CullingFix_ReturnAddr;
+		float g_CullingFixScale = 1.4f;
+		void CullingFixDetour();
 
 		// EnsureAirRisingDragonLaunch
 		std::uint64_t g_EnsureAirRisingDragonLaunch_ReturnAddr;
@@ -2872,6 +2890,11 @@ void RerouteRedOrbsCounterAlpha(bool enable, volatile uint16_t& alphaVar) {
 void ToggleClassicHUDPositionings(bool enable) {
 	using namespace Utility;
 
+	// HUD 2.0 lays out its own elements.
+	if (CrimsonFiles::IsCrimsonHUD2(activeCrimsonConfig.HudOptions.selectedHUD)) {
+		enable = true;
+	}
+
 	// HudHPSeparation
 	static std::unique_ptr<Utility::Detour_t> HudHPSeparationHook =
 		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x27DD64, &HudHPSeparationDetour, 8);
@@ -2890,13 +2913,9 @@ void ToggleClassicHUDPositionings(bool enable) {
 	g_HudStyleBarPos_ReturnAddr = HudStyleBarPosHook->GetReturnAddress();
 	g_HudStyleBarPosX = 575.0f;
 	g_HudStyleBarPosY = 115.0f;
-	
-	if (enable) {
-        HudStyleBarPosHook->Toggle(false);
-	}
-	else {
-        HudStyleBarPosHook->Toggle(true);
-	}
+
+	// The style meter keeps the position the game draws it at, the old offset fought the HUD scaling.
+	HudStyleBarPosHook->Toggle(false);
 }
 
 void ToggleStyleRankHudNoFadeout(bool enable) {
@@ -3196,6 +3215,57 @@ void ToggleVideoAudioDeviceFix(bool enable) {
 	g_FixVideoAudioDevice_FailAddr = (uintptr_t)appBaseAddr + 0x3C978; // the XAudio2Create failure path
 	g_FixVideoAudioDevice_Call = &DMC3VideoAudio::CreateMasteringVoice;
 	FixVideoAudioDeviceHook->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleUltrawideFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// CameraSetup_sub_140325D90, rax = pRenderFrameState
+	// dmc3.exe+325ED5 - F3 44 0F 10 48 64       - movss xmm9,[rax+64]
+	static std::unique_ptr<Utility::Detour_t> UltrawideCameraHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x325ED5, &UltrawideCameraDetour, 6);
+	g_UltrawideCamera_ReturnAddr = UltrawideCameraHook->GetReturnAddress();
+	UltrawideCameraHook->Toggle(enable);
+
+	// Text glyph width, xmm6 = [dmc3.exe+5DE250]
+	// dmc3.exe+2B6C7 - F3 0F 59 C4             - mulss xmm0,xmm4
+	// dmc3.exe+2B6CB - 0F 5B D2                - cvtdq2ps xmm2,xmm2
+	static std::unique_ptr<Utility::Detour_t> UltrawideTextHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x2B6C7, &UltrawideTextDetour, 7);
+	g_UltrawideText_ReturnAddr = UltrawideTextHook->GetReturnAddress();
+	UltrawideTextHook->Toggle(enable);
+
+	// FMV viewport, pillarboxed to 16:9
+	// dmc3.exe+3B9AA - F3 48 0F 2A C0          - cvtsi2ss xmm0,rax
+	// dmc3.exe+3B9AF - F3 0F 11 4C 24 38       - movss [rsp+38],xmm1
+	// dmc3.exe+3B9B5 - F3 0F 11 44 24 3C       - movss [rsp+3C],xmm0
+	static std::unique_ptr<Utility::Detour_t> UltrawideMovieHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3B9AA, &UltrawideMovieDetour, 17);
+	g_UltrawideMovie_ReturnAddr = UltrawideMovieHook->GetReturnAddress();
+	UltrawideMovieHook->Toggle(enable);
+
+	run = enable;
+}
+
+void ToggleCullingFix(bool enable) {
+	using namespace Utility;
+	static bool run = false;
+	if (run == enable) {
+		return;
+	}
+
+	// sub_140325400 frustum test, the horizontal planes use sin(fov) * 1.4 (dmc3.exe+4D0B6C, shared so it's scaled here instead)
+	// dmc3.exe+3254C8 - F3 0F 59 15 9C B6 1A 00 - mulss xmm2,[dmc3.exe+4D0B6C]
+	static std::unique_ptr<Utility::Detour_t> CullingFixHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x3254C8, &CullingFixDetour, 8);
+	g_CullingFix_ReturnAddr = CullingFixHook->GetReturnAddress();
+	CullingFixHook->Toggle(enable);
 
 	run = enable;
 }

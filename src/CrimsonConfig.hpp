@@ -203,7 +203,7 @@ struct CrimsonConfig {
 	} WeaponWheel;
 
 	struct CrimsonHudAddons {
-		bool positionings = true;
+		bool positionings = false;
 		uint8 stylesDisplay = STYLESDISPLAY::WITH_BROKEN_GLASS;
 		bool displayStyleNames = true;
 		uint8 styleNamesSet = STYLENAMESSET::CRIMSON;
@@ -747,8 +747,7 @@ struct CrimsonConfig {
 
 		bool disableMenuFadeouts = false;
 
-		// Keeps menu animations on real time instead of per frame, and scales them by menuAnimationSpeed.
-		bool menuAnimationFix = true;
+		// Most Menu animations speed should now be consistent at all FPS targets, this controls the playback speed.
 		float menuAnimationSpeed = 100.0f;
 
 		// The game's edge based anti-aliasing pass (the launcher's Antialiasing option).
@@ -756,6 +755,9 @@ struct CrimsonConfig {
 
 		// Removes the black bars the game draws during cutscenes.
 		bool disableCutsceneLetterbox = true;
+
+		bool ultrawideFix = true;
+		bool cullingFix = true;
 
 		struct BlendingEffects {			bool ghosting = false;
 			bool colorFilter = true;
@@ -794,10 +796,11 @@ struct CrimsonConfig {
 				std::make_pair("nvidiaReflex", &System::nvidiaReflex),
 				std::make_pair("nvidiaReflexBoost", &System::nvidiaReflexBoost),
 				std::make_pair("disableMenuFadeouts", &System::disableMenuFadeouts),
-				std::make_pair("menuAnimationFix", &System::menuAnimationFix),
 				std::make_pair("menuAnimationSpeed", &System::menuAnimationSpeed),
 				std::make_pair("antiAliasing", &System::antiAliasing),
 				std::make_pair("disableCutsceneLetterbox", &System::disableCutsceneLetterbox),
+				std::make_pair("ultrawideFix", &System::ultrawideFix),
+				std::make_pair("cullingFix", &System::cullingFix),
 				std::make_pair("BlendingEffects", &System::BlendingEffects),
 				std::make_pair("windowSizeX",&System::windowSizeX),
 				std::make_pair("windowSizeY", &System::windowSizeY),

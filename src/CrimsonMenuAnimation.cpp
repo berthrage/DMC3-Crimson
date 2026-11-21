@@ -281,18 +281,16 @@ static int CountUpSeSite(uintptr_t returnAddress) {
 static int64_t __fastcall PlaySeHook(void* manager, int32 group, uint32 index, int32 a4, int32 a5) {
 	const auto original = s_playSeHook->GetTrampoline<PlaySeFn>();
 
-	if (activeCrimsonConfig.System.menuAnimationFix) {
-		const auto site = CountUpSeSite((uintptr_t)_ReturnAddress());
+	const auto site = CountUpSeSite((uintptr_t)_ReturnAddress());
 
-		if (site >= 0) {
-			const auto now = CrimsonClock::Time();
+	if (site >= 0) {
+		const auto now = CrimsonClock::Time();
 
-			if (now < s_countUpSeNext[site]) {
-				return 0;
-			}
-
-			s_countUpSeNext[site] = now + kCountUpSeInterval;
+		if (now < s_countUpSeNext[site]) {
+			return 0;
 		}
+
+		s_countUpSeNext[site] = now + kCountUpSeInterval;
 	}
 
 	return original(manager, group, index, a4, a5);
@@ -424,14 +422,14 @@ void OnTick() {
 	// above 60 fps is scaled back out of it.
 	g_frameCounterStep = (int)(65536.0f * std::min(1.0f, frameScale) + 0.5f);
 
-	const auto menuScale = system.menuAnimationFix ? frameScale * (system.menuAnimationSpeed / 100.0f) : 1.0f;
-	const auto fixedScale = system.menuAnimationFix ? frameScale : 1.0f;
+	const auto menuScale = frameScale * (system.menuAnimationSpeed / 100.0f);
+	const auto fixedScale = frameScale;
 
 	*Slot(kMenuTimerSlot) = menuScale;
 	*Slot(kMenuRateSlot) = 0.05f * menuScale;
 	*Slot(kFixedTimerSlot) = fixedScale;
 	*Slot(kBlinkPhaseSlot) = 3.0f * fixedScale;
-	s_menuStepScale = system.menuAnimationFix ? system.menuAnimationSpeed / 100.0f : 1.0f;
+	s_menuStepScale = system.menuAnimationSpeed / 100.0f;
 	s_menuFrameScale = menuScale;
 
 	// Credit text alpha fades 0 -> 0x80 by 2 per frame natively; credits stay at 100%.

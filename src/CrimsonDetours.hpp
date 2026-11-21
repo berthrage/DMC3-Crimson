@@ -5,6 +5,15 @@
 namespace CrimsonDetours {
 
 extern "C" {
+// Ultrawide
+extern float g_UltrawideAspect;
+extern float g_UltrawideInvAspect;
+extern float g_UltrawideCameraBase;
+extern float g_UltrawideCameraWritten;
+
+// CullingFix
+extern float g_CullingFixScale;
+
 // SampleMod
 void SampleModDetour1();
 
@@ -169,6 +178,8 @@ void ToggleCerberusCrashFix(bool enable);
 void ToggleVergilM3CrashFix(bool enable);
 void ToggleMission5CrashFix(bool enable);
 void ToggleVideoAudioDeviceFix(bool enable);
+void ToggleUltrawideFix(bool enable);
+void ToggleCullingFix(bool enable);
 void ToggleCerbDamageFix(bool enable);
 void ToggleArkhamPt2GrabCrashFix(bool enable);
 void ToggleArkhamPt2DoppelCrashFix(bool enable);
