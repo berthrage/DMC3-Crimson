@@ -2667,7 +2667,8 @@ struct Matrix44Ptr {
 struct CollisionDataMetadata {
     _(12);
     uint32 instanceId; //0xC
-    _(8);
+    uint32 hitFlags; // 0x10, written by the collision pass: 0x100 = the attack sphere hit an actor, 0x30000 = the stage probe hit the world
+    _(4);
     float radiusCopy; // 0x18
     _(4);
     byte8* sourceMatrixAddr; // 0x20
@@ -2688,6 +2689,7 @@ struct CollisionDataMetadata {
 };
 
 static_assert(offsetof(CollisionDataMetadata, instanceId) == 0xC);
+static_assert(offsetof(CollisionDataMetadata, hitFlags) == 0x10);
 static_assert(offsetof(CollisionDataMetadata, radiusCopy) == 0x18);
 static_assert(offsetof(CollisionDataMetadata, sourceMatrixAddr) == 0x20);
 static_assert(offsetof(CollisionDataMetadata, matrix1) == 0x30);
@@ -4696,7 +4698,10 @@ public:
 	bool roseMode; //0x00E0
 	char pad_00E1[191]; //0x00E1
 	uint64_t collisionDataStart; //0x01A0
-	char pad_01A8[657]; //0x01A8
+	char pad_01A8[128]; //0x01A8
+	CollisionDataMetadata* stageProbe; //0x0228 collision slot 0, only sees the stage
+	CollisionDataMetadata* attackHitbox; //0x0230 collision slot 1, the one that damages actors
+	char pad_0238[513]; //0x0238
 	bool randomTravelDirection; //0x0439
 	char pad_043A[6]; //0x043A
 	uint64_t matrixPtr; //0x0440
@@ -4721,6 +4726,8 @@ static_assert(offsetof(CPl000Shl10eActor, state2) == 0x74);
 static_assert(offsetof(CPl000Shl10eActor, position) == 0x80);
 static_assert(offsetof(CPl000Shl10eActor, rotation) == 0xC0);
 static_assert(offsetof(CPl000Shl10eActor, collisionDataStart) == 0x1A0);
+static_assert(offsetof(CPl000Shl10eActor, stageProbe) == 0x228);
+static_assert(offsetof(CPl000Shl10eActor, attackHitbox) == 0x230);
 static_assert(offsetof(CPl000Shl10eActor, roseMode) == 0xE0);
 static_assert(offsetof(CPl000Shl10eActor, randomTravelDirection) == 0x439);
 static_assert(offsetof(CPl000Shl10eActor, matrixPtr) == 0x440);

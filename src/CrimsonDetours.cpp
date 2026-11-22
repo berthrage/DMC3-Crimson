@@ -547,6 +547,10 @@ namespace CrimsonDetours {
 		std::uint64_t g_FireNevanRoseShlDestroyFX_OgCall;
 		void FireNevanRoseShlDestroyFXDetour();
 		void* g_NevanRoseShl_RoseEfkHitFXCall;
+		// NevanRoseShlExpireFX
+		std::uint64_t g_NevanRoseShlExpireFX_ReturnAddr;
+		void* g_NevanRoseShlExpireFX_HitFXCall;
+		void NevanRoseShlExpireFXDetour();
 }
 
 bool g_HoldToCrazyComboFuncA(PlayerActorData& actorData, uint16 stepBind) {
@@ -1676,6 +1680,12 @@ void PlayEcstasyRoseVFX(uintptr_t shlActorAddr) {
 	}
 }
 
+// Only the rose's attack sphere flags actor hits; the stage probe beside it only sees geometry.
+static bool RoseShlHitAnActor(const CPl000Shl10eActor& shlActor) {
+	constexpr uint32 collisionHitActor = 0x100;
+	return shlActor.attackHitbox != nullptr && (shlActor.attackHitbox->hitFlags & collisionHitActor) != 0;
+}
+
 void PlayEcstasyRoseHitFX(uintptr_t shlActorAddr) {
 	auto& shlActor = *reinterpret_cast<CPl000Shl10eActor*>(shlActorAddr);
 	if (!shlActor.matrixPtr) {
@@ -1705,7 +1715,7 @@ void PlayEcstasyRoseHitFX(uintptr_t shlActorAddr) {
 	matrix[2] = -s;  matrix[6] = 0;  matrix[10] = c;  matrix[14] = shlActor.position.z;
 	matrix[3] = 0;   matrix[7] = 0;  matrix[11] = 0;  matrix[15] = 1.0f;
 	CrimsonEfk::PlayEffectAtMatrix(CrimsonEfkPreload::ecstasy_Hit_Handle, matrix.data(), NULL);
-	CrimsonSDL::PlayEcstasyHit(shlActorAddr);
+	CrimsonSDL::PlayEcstasyHit(shlActorAddr, RoseShlHitAnActor(shlActor));
 }
 
 uint8 CheckChargeMechanics(uintptr_t playerAddr) {
@@ -3796,6 +3806,14 @@ void AirTauntRoseSwingDetours(bool enable) {
 	g_FireNevanRoseShlDestroyFX_OgCall = (uintptr_t)appBaseAddr + 0x1D6810;
 	g_NevanRoseShl_RoseEfkHitFXCall = &PlayEcstasyRoseHitFX;
 	fireNevanRoseShlDestroyFXHook->Toggle(enable);
+
+	// From CPl000Shl10eNevanShlTravelUpdate_sub_1401D6450:
+	// dmc3.exe+1D647A - E8 91 03 00 00 - call dmc3.CPl000Shl10eNevanShlDestroyFX_sub_1401D6810
+	static std::unique_ptr<Utility::Detour_t> nevanRoseShlExpireFXHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1D647A, &NevanRoseShlExpireFXDetour, 5);
+	g_NevanRoseShlExpireFX_ReturnAddr = nevanRoseShlExpireFXHook->GetReturnAddress();
+	g_NevanRoseShlExpireFX_HitFXCall = &PlayEcstasyRoseHitFX;
+	nevanRoseShlExpireFXHook->Toggle(enable);
 
 	run = enable;
 }

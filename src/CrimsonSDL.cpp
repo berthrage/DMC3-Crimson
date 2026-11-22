@@ -2011,7 +2011,7 @@ void PlayNormalBlock(int playerIndex) {
 	poolNormalBlock.PlayFree(playerIndex, normalBlock, (float)volume);
 }
 
-void PlayEcstasyHit(uintptr_t shlActorAddr) {
+void PlayEcstasyHit(uintptr_t shlActorAddr, bool hitAnActor) {
 	if (!SDL3Init || fn_MIX_SetTrack3DPosition == NULL) return;
 	if (!shlActorAddr) return;
 
@@ -2046,8 +2046,10 @@ void PlayEcstasyHit(uintptr_t shlActorAddr) {
 	const int panAngle = (int)std::round(angle);
 
 	// Overlapping hits are meant to ring out, so this one just takes a free voice
-	// and never fades the instance already playing.
-	poolEcstasyHit.PlayFree(playerIndex, ecstasyHit, 15.0f, panAngle, distance);
+	// and never fades the instance already playing. Walls and objects are far
+	// quieter than an enemy taking the hit.
+	const float volume = hitAnActor ? 15.0f : 15.0f * 0.3f;
+	poolEcstasyHit.PlayFree(playerIndex, ecstasyHit, volume, panAngle, distance);
 }
 
 void PlayDriveStart(int playerIndex, int entityIndex) {

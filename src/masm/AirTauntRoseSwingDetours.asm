@@ -301,6 +301,31 @@ OriginalCode:
 FireNevanRoseShlDestroyFXDetour ENDP
 
 .DATA
+EXTERN g_NevanRoseShlExpireFX_ReturnAddr:QWORD
+EXTERN g_NevanRoseShlExpireFX_HitFXCall:QWORD
+
+.CODE
+; From CPl000Shl10eNevanShlTravelUpdate_sub_1401D6450:
+; dmc3.exe+1D647A - E8 91 03 00 00 - call dmc3.CPl000Shl10eNevanShlDestroyFX_sub_1401D6810
+NevanRoseShlExpireFXDetour PROC
+; NevanShlActor in rbx
+CheckIfRoseShl:
+    cmp byte ptr [rbx + 0E0h], 1 ; check if RoseMode
+    jne OriginalCode
+    PushAllRegs
+    sub rsp, 20h
+    call qword ptr [g_NevanRoseShlExpireFX_HitFXCall]
+    add rsp, 20h
+    PopAllRegs
+    jmp qword ptr [g_NevanRoseShlExpireFX_ReturnAddr]
+
+OriginalCode:
+    call qword ptr [g_FireNevanRoseShlDestroyFX_OgCall]
+    jmp qword ptr [g_NevanRoseShlExpireFX_ReturnAddr]
+
+NevanRoseShlExpireFXDetour ENDP
+
+.DATA
 EXTERN g_NevanRoseShlBoneOverride_ReturnAddr:QWORD
 EXTERN g_NevanRoseShlBoneOverrideY_ReturnAddr:QWORD
 roseShlYliftActive db 0
