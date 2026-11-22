@@ -4900,7 +4900,7 @@ void CalculateRotationTowardsEnemy(byte8* actorBaseAddr) {
 	rotationTowardsEnemy = finalRotationTowardsEnemy;
 }
 
-void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
+void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr, byte8* targetActorBase) {
 	if (!actorBaseAddr) {
 		return;
 	}
@@ -4911,8 +4911,8 @@ void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr) {
 	auto& lockedOnEnemyHP = (entityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyHP : crimsonPlayer[playerIndex].lockedOnEnemyHPClone;
 	auto& lockedOnEnemyMaxHP = (entityIndex == 0) ? crimsonPlayer[playerIndex].lockedOnEnemyMaxHP : crimsonPlayer[playerIndex].lockedOnEnemyMaxHPClone;
 
-	if (actorData.lockOnData.targetBaseAddr60 != 0) {
-		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(actorData.lockOnData.targetBaseAddr60 - 0x60); // -0x60 very important don't forget
+	if (targetActorBase) {
+		auto& enemyActorData = *reinterpret_cast<EnemyActorData*>(targetActorBase);
 		auto& enemyId = enemyActorData.enemy;
 		bool isHell = (enemyId >= ENEMY::PRIDE_1 && enemyId <= ENEMY::HELL_VANGUARD);
 		bool isChess = (enemyId >= ENEMY::DAMNED_CHESSMEN_PAWN && enemyId <= ENEMY::DAMNED_CHESSMEN_KING);

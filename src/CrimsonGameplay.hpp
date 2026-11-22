@@ -100,7 +100,7 @@ void SprintAbility(byte8* actorBaseAddr);
 void StopSprintAbility(byte8* actorBaseAddr);
 void DTInfusedRoyalguardController(byte8* actorBaseAddr);
 void CalculateRotationTowardsEnemy(byte8* actorBaseAddr);
-void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr);
+void GetLockedOnEnemyHitPoints(byte8* actorBaseAddr, byte8* targetActorBase);
 void GetLockedOnEnemyStunDisplacement(byte8* actorBaseAddr);
 void CalculateLockedOnEnemyLastStunDisplacementValue(byte8* actorBaseAddr);
 void GetLockedOnEnemyShield(byte8* actorBaseAddr);

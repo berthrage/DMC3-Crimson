@@ -6,7 +6,9 @@ namespace CrimsonFX {
 
 #pragma region GeneralFX
 void DTReadySFX();
-void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex);
+// Fills the lock-on ring's screen position and camera distance, and returns the enemy the ring is on (the one the
+// vanilla reticle was projected for). Null when the ring kept its previous position this frame.
+byte8* ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex);
 void CalculateViewProperties(byte8* actorBaseAddr);
 void DTExplosionFXController(byte8* actorBaseAddr);
 void StyleRankHudFadeoutController();

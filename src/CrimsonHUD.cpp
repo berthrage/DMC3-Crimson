@@ -2442,7 +2442,7 @@ void LockOnWindows() {
 		if (lockOnAngle[playerIndex] > IM_PI * 2.0f) lockOnAngle[playerIndex] -= IM_PI * 2.0f;
 
 		// Compute lock-on screen position, camera distance, and clamped distance
-		CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
+		byte8* lockedEnemy = CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
 		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
 
 		// Adjusts size dynamically based on the distance between Camera and Player
@@ -2520,8 +2520,9 @@ void LockOnWindows() {
 		ImColor colorWithAlpha(poppedColor);
 		ImColor fgColorWithAlpha(1.0f, 1.0f, 1.0f, lockOnFade[playerIndex].alpha);
 
-		CrimsonGameplay::GetLockedOnEnemyHitPoints(actorData);
-		float healthFraction = crimsonPlayer[playerIndex].lockedOnEnemyHP / crimsonPlayer[playerIndex].lockedOnEnemyMaxHP; // Clamp to [0,1] as needed
+		CrimsonGameplay::GetLockedOnEnemyHitPoints(actorData, lockedEnemy);
+		float maxHealth = crimsonPlayer[playerIndex].lockedOnEnemyMaxHP;
+		float healthFraction = maxHealth > 0.0f ? crimsonPlayer[playerIndex].lockedOnEnemyHP / maxHealth : 0.0f;
 
 		// The game skips its own reticle when the target leaves the frame; the ring goes with it.
 		bool lockOnActive = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0

@@ -79,16 +79,22 @@ static bool ReadLockOnEntryPosition(const byte8* entry, float out[3]) {
 	return std::isfinite(out[0]) && std::isfinite(out[1]) && std::isfinite(out[2]);
 }
 
-void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex) {
+byte8* ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& cameraData, uint8 playerIndex) {
 	float lockOnWorld[3] = { actorData.lockOnData.targetPosition.x, actorData.lockOnData.targetPosition.y, actorData.lockOnData.targetPosition.z };
-	ReadLockOnEntryPosition(actorData.lockOnData.targetBaseAddr60, lockOnWorld);
+	const bool hasEntry = ReadLockOnEntryPosition(actorData.lockOnData.targetBaseAddr60, lockOnWorld);
+	byte8* entryActor = hasEntry ? actorData.lockOnData.targetBaseAddr60 - 0x60 : nullptr; // the entry is the enemy actor + 0x60
 
 	// The ring sits where the vanilla cursor put its reticle. When that is not available this frame (no cursor yet, no
-	// locked target) the previous position is kept, so the ring never alternates between two anchors.
+	// locked target) the previous position is kept, so the ring never alternates between two anchors. The health goes
+	// with it, from the enemy the ring is drawn on: the reticle can still sit on a dying enemy after the lock-on has
+	// moved to the next one, and the lock-on target's own health is the wrong enemy there.
+	byte8* ringEnemy = nullptr;
 	float screenX = 0.0f;
 	float screenY = 0.0f;
-	if (HUD_LockOnScreenPoint(playerIndex, lockOnWorld, g_uiSize.x, g_uiSize.y, screenX, screenY)) {
+	byte8* anchorActor = nullptr;
+	if (HUD_LockOnScreenPoint(playerIndex, lockOnWorld, g_uiSize.x, g_uiSize.y, screenX, screenY, &anchorActor)) {
 		crimsonPlayer[playerIndex].lockedEnemyScreenPosition = { screenX, screenY, 0.0f };
+		ringEnemy = anchorActor ? anchorActor : entryActor;
 	}
 
 	// Compute camera-to-locked-enemy distance and clamped value
@@ -103,6 +109,7 @@ void ComputeLockOnScreenData(PlayerActorData& actorData, const CameraData& camer
 	crimsonPlayer[playerIndex].cameraLockedEnemyDistance = glm::distance(lockedEnemyPosition, cameraPosition);
 	int distanceLockedEnemy = (int)crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20;
 	crimsonPlayer[playerIndex].cameraLockedEnemyDistanceClamped = glm::clamp(distanceLockedEnemy, 0, 255);
+	return ringEnemy;
 }
 
 void CalculateViewProperties(byte8* actorBaseAddr) {

@@ -3312,7 +3312,7 @@ struct LockOnData {
     _(200);
     vec4 targetPosition; // 0x2140
     _(24);
-    byte8* targetBaseAddr60; // 0x2168
+    byte8* targetBaseAddr60; // 0x2168 LockOnEntry_t*: the target entry, i.e. the enemy actor + 0x60
     byte8* var_2170;         // 0x2170
 };
 

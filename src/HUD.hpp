@@ -131,8 +131,10 @@ bool HUD_CrimsonHUD2ActiveFor(int view);
 
 // Where the original lock-on cursor puts a world point (the target's lock-on position): the game's own projection into
 // its HUD frame, then to screen pixels (the splitscreen view of `player` when it runs). False when it cannot be
-// projected (frame state unavailable, behind the camera).
-bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y);
+// projected (frame state unavailable, behind the camera). anchorActor receives the enemy the vanilla reticle was
+// projected for, or null when the point came from the entry's world position instead.
+bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y,
+	byte8** anchorActor = nullptr);
 
 // "Lock-On HUD" debug window (HUD_LockOnWindow): the original lock-on cursor next to the Crimson rings, each moved by
 // hand. The ring fields are filled in by the Crimson draw (CrimsonHUD.cpp) for the readout and the ring boxes.

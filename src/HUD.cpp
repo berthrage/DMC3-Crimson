@@ -2381,8 +2381,12 @@ bool HUD_LockOnTargetOnScreen(int player) {
 	return player >= 0 && player < PLAYER_COUNT && s_lockOnDebug.targetOnScreen[player];
 }
 
-bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y) {
+bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, float screenHeight, float& x, float& y,
+	byte8** anchorActor) {
 	const HudFrameInfo frame = ReadHudFrameInfo(screenWidth, screenHeight);
+	if (anchorActor) {
+		*anchorActor = nullptr;
+	}
 	if (!frame.valid) {
 		return false;
 	}
@@ -2407,6 +2411,9 @@ bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, 
 			}
 			frameX = element[0];
 			frameY = -element[1] / LOCKON_ELEMENT_Y_SCALE;
+			if (anchorActor) {
+				*anchorActor = reinterpret_cast<byte8*>(lockedTarget); // CUIDLockOnCursor::target, the enemy it projected
+			}
 		} __except (EXCEPTION_EXECUTE_HANDLER) {
 			return false;
 		}
