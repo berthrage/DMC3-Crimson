@@ -20,6 +20,8 @@ public:
 	void SetEffectPath(const std::wstring& path);
 	const std::wstring& GetEffectPath() const { return m_Path; }
 	bool IsLoaded() const { return m_Effect != nullptr; }
+	// Replaced on every reload.
+	Effekseer::Effect* GetEffect() const { return m_Effect.Get(); }
 
 	void SetPlaying(bool playing);
 	bool IsPlaying() const { return m_Playing; }
@@ -29,6 +31,8 @@ public:
 
 	// Multiplies every color in the effect, author it white to take this color as is.
 	void SetColor(glm::vec4 color);
+	// Custom data and dynamic equations read these; author the effect expecting them from code.
+	void SetDynamicInput(int index, float value);
 	void SetSpeed(float speed) { m_Speed = speed; }
 	// Position in world units, scale in world units per effect unit.
 	void SetTransform(glm::vec2 position, float scale);

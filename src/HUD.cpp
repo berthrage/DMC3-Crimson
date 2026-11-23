@@ -1499,6 +1499,15 @@ constexpr size_t LOCKON_RETICLE_MATRIX = 0x860;
 constexpr size_t LOCKON_RETICLE_ELEMENT_POS = 0x830; // element +0x10: HUD position the projection produced
 constexpr float  LOCKON_ELEMENT_Y_SCALE = 12.0f / 7.0f; // the cursor scales element y by this (ProjectMarker)
 
+// The cursor is shared and splitscreen builds each frame for one player, so its reticle and target belong to whoever's
+// frame ran last. Kept per player as the reticle update leaves them.
+struct LockOnReticleCapture {
+	float elementX = 0.0f;
+	float elementY = 0.0f;
+	uint64_t target = 0;
+};
+static LockOnReticleCapture s_lockOnReticle[PLAYER_COUNT];
+
 void ShiftMatrixTranslation(float* matrix) {
 	matrix[MATRIX_TRANSLATION / sizeof(float)]     += s_lockOnDebug.vanillaX;
 	matrix[MATRIX_TRANSLATION / sizeof(float) + 1] -= s_lockOnDebug.vanillaY;
@@ -1538,7 +1547,14 @@ __int64 __fastcall LockOnReticleUpdateHook(uint8_t* cursor) {
 	// The sentinel also says whether the game projected the reticle this tick: it skips that when the target is off
 	// screen (IsOutsideHudFrame_sub_14032E790), so the Crimson ring has to disappear with it.
 	const bool projected = !std::isnan(translation[0]);
-	s_lockOnDebug.targetOnScreen[CrimsonSplitscreen::CameraPlayer()] = projected;
+	const int player = CrimsonSplitscreen::CameraPlayer();
+	s_lockOnDebug.targetOnScreen[player] = projected;
+	if (projected) {
+		const float* element = reinterpret_cast<const float*>(cursor + LOCKON_RETICLE_ELEMENT_POS);
+		s_lockOnReticle[player].elementX = element[0];
+		s_lockOnReticle[player].elementY = element[1];
+		s_lockOnReticle[player].target = *reinterpret_cast<const uint64_t*>(cursor + LOCKON_TARGET_PTR);
+	}
 
 	if (!projected) {
 		translation[0] = savedX;
@@ -2396,26 +2412,21 @@ bool HUD_LockOnScreenPoint(int player, const float world[3], float screenWidth, 
 	float frameX = 0.0f;
 	float frameY = 0.0f;
 
-	// The vanilla reticle's own projected position: cursor + 0x830, element x and the element y divided back by the
-	// 12/7 the cursor bakes into it (see CUIDLockOnCursor_ProjectMarker_sub_140296BA0). One source only: the caller
-	// keeps the last position when this fails, so the ring never jumps between two anchors.
+	// The vanilla reticle's own projected position: element x and the element y divided back by the 12/7 the cursor
+	// bakes into it (see CUIDLockOnCursor_ProjectMarker_sub_140296BA0), as this player's reticle update left them.
+	// One source only: the caller keeps the last position when this fails, so the ring never jumps between two anchors.
 	if (lockOnDebug.anchorOnReticle) {
-		if (!lockOnDebug.cursor || !HUD_LockOnTargetOnScreen(player)) {
+		if (!lockOnDebug.cursor || player < 0 || player >= PLAYER_COUNT || !HUD_LockOnTargetOnScreen(player)) {
 			return false;
 		}
-		__try {
-			const uint64_t lockedTarget = *reinterpret_cast<const uint64_t*>(lockOnDebug.cursor + LOCKON_TARGET_PTR);
-			const float* element = reinterpret_cast<const float*>(lockOnDebug.cursor + LOCKON_RETICLE_ELEMENT_POS);
-			if (!lockedTarget || !std::isfinite(element[0]) || !std::isfinite(element[1])) {
-				return false;
-			}
-			frameX = element[0];
-			frameY = -element[1] / LOCKON_ELEMENT_Y_SCALE;
-			if (anchorActor) {
-				*anchorActor = reinterpret_cast<byte8*>(lockedTarget); // CUIDLockOnCursor::target, the enemy it projected
-			}
-		} __except (EXCEPTION_EXECUTE_HANDLER) {
+		const LockOnReticleCapture& reticle = s_lockOnReticle[player];
+		if (!reticle.target || !std::isfinite(reticle.elementX) || !std::isfinite(reticle.elementY)) {
 			return false;
+		}
+		frameX = reticle.elementX;
+		frameY = -reticle.elementY / LOCKON_ELEMENT_Y_SCALE;
+		if (anchorActor) {
+			*anchorActor = reinterpret_cast<byte8*>(reticle.target); // CUIDLockOnCursor::target, the enemy it projected
 		}
 	} else {
 		alignas(16) float matrix[16];
@@ -2502,6 +2513,22 @@ void HUD_LockOnWindow(bool* open) {
 	ImGui::Checkbox("Ring box", &d.showRingBox);
 	ImGui::DragFloat("ring window size (px at 1080p, 0 = default)", &d.ringWindowOverride, 0.5f, 0.0f, 2000.0f, "%.1f");
 
+	ImGui::Separator();
+	ImGui::TextUnformatted("Crimson ring effect");
+	ImGui::Checkbox("Main ring uses the Effekseer effect", &d.ringEffect);
+	ImGui::Checkbox("Cut the effect with the code pie mask", &d.ringEffectCodePie);
+	ImGui::Checkbox("Colour through the effect's custom data (off: tint in code)", &d.ringEffectCustomDataColor);
+	ImGui::DragFloat("effect scale (px per unit)", &d.ringEffectScale, 0.5f, 1.0f, 512.0f, "%.1f");
+	ImGui::DragFloat("effect offset x (px)", &d.ringEffectOffsetX, 0.5f, -256.0f, 256.0f, "%.1f");
+	ImGui::DragFloat("effect offset y (px, up)", &d.ringEffectOffsetY, 0.5f, -256.0f, 256.0f, "%.1f");
+	ImGui::Checkbox("Main ring foreground sprite", &d.ringForeground);
+	ImGui::Checkbox("Displacement ring uses the Effekseer effect", &d.displacementRingEffect);
+	ImGui::DragFloat("displacement effect scale (px per unit)", &d.displacementRingEffectScale, 0.5f, 1.0f, 512.0f, "%.1f");
+	ImGui::Checkbox("Stun ring uses the Effekseer effect", &d.stunRingEffect);
+	ImGui::DragFloat("stun effect scale (px per unit)", &d.stunRingEffectScale, 0.5f, 1.0f, 512.0f, "%.1f");
+	ImGui::Checkbox("Shield ring uses the Effekseer effect", &d.shieldRingEffect);
+	ImGui::DragFloat("shield effect scale (px per unit)", &d.shieldRingEffectScale, 0.5f, 1.0f, 512.0f, "%.1f");
+
 	if (ImGui::Button("Reset")) {
 		d.vanillaX = defaults.vanillaX;
 		d.vanillaY = defaults.vanillaY;
@@ -2509,6 +2536,19 @@ void HUD_LockOnWindow(bool* open) {
 		d.crimsonY = defaults.crimsonY;
 		d.ringWindowOverride = defaults.ringWindowOverride;
 		d.centerRingsVertically = defaults.centerRingsVertically;
+		d.ringEffect = defaults.ringEffect;
+		d.ringEffectCodePie = defaults.ringEffectCodePie;
+		d.ringEffectCustomDataColor = defaults.ringEffectCustomDataColor;
+		d.ringEffectScale = defaults.ringEffectScale;
+		d.ringEffectOffsetX = defaults.ringEffectOffsetX;
+		d.ringEffectOffsetY = defaults.ringEffectOffsetY;
+		d.ringForeground = defaults.ringForeground;
+		d.displacementRingEffect = defaults.displacementRingEffect;
+		d.displacementRingEffectScale = defaults.displacementRingEffectScale;
+		d.stunRingEffect = defaults.stunRingEffect;
+		d.stunRingEffectScale = defaults.stunRingEffectScale;
+		d.shieldRingEffect = defaults.shieldRingEffect;
+		d.shieldRingEffectScale = defaults.shieldRingEffectScale;
 		d.anchorOnReticle = defaults.anchorOnReticle;
 		d.frameScaleX = defaults.frameScaleX;
 		d.frameScaleY = defaults.frameScaleY;

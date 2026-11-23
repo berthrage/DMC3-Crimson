@@ -149,6 +149,19 @@ struct LockOnHudDebug {
 	float crimsonX = 2.0f;              // pixels at 1080p, y down: moves every Crimson ring
 	float crimsonY = -3.3f;
 	float ringWindowOverride = 0.0f;    // pixels at 1080p, 0 = the addon's own
+	bool ringEffect = true;             // draw the main ring with the Effekseer effect instead of old sprite
+	bool ringEffectCodePie = true;      // cut the effect with the code pie mask 
+	float ringEffectScale = 90.0f;      // effect target pixels per effect unit; mainring is ~4 units wide, 128 fills the 512 px target
+	bool ringForeground = false;        // lockonforeground.png over the main ring
+	bool ringEffectCustomDataColor = true; // colour the effect through its own custom data instead of tinting its target in code 
+	float ringEffectOffsetX = 0.0f;     // effect target pixels from the ring centre, y up
+	float ringEffectOffsetY = 0.0f;
+	bool displacementRingEffect = true; // draw the displacement ring with the Effekseer effect instead of old sprite
+	float displacementRingEffectScale = 90.0f;
+	bool stunRingEffect = true;         // draw the stun ring with the Effekseer effect instead of old sprite
+	float stunRingEffectScale = 90.0f;
+	bool shieldRingEffect = true;       // draw the shield ring with the Effekseer effect instead of old sprite
+	float shieldRingEffectScale = 90.0f;
 	bool anchorOnReticle = true;        // anchor on the position the game projected for its reticle
 	float frameScaleX = 1.0f;           // frame units -> pixels, on top of the frame width
 	float frameScaleY = 1.0f;           // frame units -> pixels, on top of the frame height

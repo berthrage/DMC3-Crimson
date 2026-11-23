@@ -104,6 +104,17 @@ void EffekseerLayer::SetColor(glm::vec4 color)
 	ApplyColor();
 }
 
+void EffekseerLayer::SetDynamicInput(int index, float value)
+{
+	if (m_Manager == nullptr)
+		return;
+
+	if (m_Handle >= 0)
+		m_Manager->SetDynamicInput(m_Handle, index, value);
+	if (m_WarmHandle >= 0)
+		m_Manager->SetDynamicInput(m_WarmHandle, index, value);
+}
+
 void EffekseerLayer::SetTransform(glm::vec2 position, float scale)
 {
 	if (position == m_Position && scale == m_Scale)

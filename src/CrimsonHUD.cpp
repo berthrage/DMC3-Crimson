@@ -47,6 +47,7 @@
 #include "UI\EmbeddedImages.hpp"
 #include "UI\DanteHUD2.hpp"
 #include "UI\VergilHUD2.hpp"
+#include "UI\LockOnRingEffect.hpp"
 #include "CrimsonGUI.hpp"
 #include "CrimsonFileHandling.hpp"
 #include "CrimsonHUD.hpp"
@@ -171,6 +172,42 @@ static Texture2DD3D11* LockOnTexture{ nullptr };
 static Texture2DD3D11* LockOnForegroundTexture{ nullptr };
 static Texture2DD3D11* LockOnStunTexture{ nullptr };
 static Texture2DD3D11* LockOnShieldTexture{ nullptr };
+static HUD::LockOnRingEffect* s_lockOnRingEffect{ nullptr };
+static HUD::LockOnRingEffect* s_lockOnDisplacementRingEffect{ nullptr };
+static HUD::LockOnRingEffect* s_lockOnStunRingEffect{ nullptr };
+static HUD::LockOnRingEffect* s_lockOnShieldRingEffect{ nullptr };
+
+// Built on first use; loads the effect's material and textures with it.
+static HUD::LockOnRingEffect* LockOnRingEffectCreate(HUD::LockOnRingEffect*& effect, const wchar_t* effectPath,
+	ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext) {
+	if (effect) {
+		return effect;
+	}
+	ID3D11Device* device = pDevice ? pDevice : D3D11::device;
+	ID3D11DeviceContext* deviceContext = pDeviceContext ? pDeviceContext : D3D11::deviceContext;
+	if (!device || !deviceContext) {
+		return nullptr;
+	}
+	effect = new HUD::LockOnRingEffect(device, deviceContext, effectPath, PLAYER_COUNT);
+	return effect;
+}
+
+static HUD::LockOnRingEffect* LockOnRingEffectGet(ID3D11Device* pDevice = nullptr, ID3D11DeviceContext* pDeviceContext = nullptr) {
+	return LockOnRingEffectCreate(s_lockOnRingEffect, LR"(Crimson\vfx\lockon\mainring.efkefc)", pDevice, pDeviceContext);
+}
+
+static HUD::LockOnRingEffect* LockOnDisplacementRingEffectGet(ID3D11Device* pDevice = nullptr, ID3D11DeviceContext* pDeviceContext = nullptr) {
+	return LockOnRingEffectCreate(s_lockOnDisplacementRingEffect, LR"(Crimson\vfx\lockon\displacementring.efkefc)",
+		pDevice, pDeviceContext);
+}
+
+static HUD::LockOnRingEffect* LockOnStunRingEffectGet(ID3D11Device* pDevice = nullptr, ID3D11DeviceContext* pDeviceContext = nullptr) {
+	return LockOnRingEffectCreate(s_lockOnStunRingEffect, LR"(Crimson\vfx\lockon\stunring.efkefc)", pDevice, pDeviceContext);
+}
+
+static HUD::LockOnRingEffect* LockOnShieldRingEffectGet(ID3D11Device* pDevice = nullptr, ID3D11DeviceContext* pDeviceContext = nullptr) {
+	return LockOnRingEffectCreate(s_lockOnShieldRingEffect, LR"(Crimson\vfx\lockon\shieldring.efkefc)", pDevice, pDeviceContext);
+}
 
 // STYLE GLASSES HUD
 static Texture2DD3D11* tSmall{ nullptr };
@@ -2318,24 +2355,49 @@ void NowPlayingBannerWindow() {
 }
 
 
-// Smoothed lock-on distance helper — continuous float with exponential
-// smoothing to eliminate stepping from integer quantization in
-// ComputeLockOnScreenData.  Capped at capDistance so the lock-on icon
-// never grows beyond ~14 % above the default (non-scaling) size.
+struct LockOnRingMotion {
+	ImVec2 screenPos = ImVec2(0.0f, 0.0f);
+	float distance = 0.0f;
+	byte8* enemy = nullptr;
+	int frame = -1;
+	bool tracking = false;
+};
+static LockOnRingMotion s_lockOnRingMotion[PLAYER_COUNT];
 
-static float g_smoothLockOnDist[PLAYER_COUNT] = { 0.0f };
-static bool  g_smoothLockOnDistInit[PLAYER_COUNT] = { false };
-
-inline float GetSmoothedLockOnDist(uint8 playerIndex, float rawDist, float deltaTime) {
-	if (!g_smoothLockOnDistInit[playerIndex]) {
-		g_smoothLockOnDist[playerIndex] = rawDist;
-		g_smoothLockOnDistInit[playerIndex] = true;
-		return rawDist;
+// The reticle moves in whole HUD units (~3px at 1080p) at the game's tick, so following it raw makes the rings step
+// and resize in jumps. Eased once per frame and shared, so every ring stays concentric; snaps when the ring appears
+// or moves to another enemy. ringEnemy is null on frames the reticle gave no position, which isn't a switch.
+static const LockOnRingMotion& UpdateLockOnRingMotion(uint8 playerIndex, PlayerActorData& actorData, byte8* ringEnemy) {
+	LockOnRingMotion& motion = s_lockOnRingMotion[playerIndex];
+	const int frame = ImGui::GetFrameCount();
+	if (motion.frame == frame) {
+		return motion;
 	}
-	const float smoothSpeed = 6.0f; // lower == smoother; but more lag
-	g_smoothLockOnDist[playerIndex] = SmoothLerp(
-		g_smoothLockOnDist[playerIndex], rawDist, smoothSpeed, deltaTime);
-	return g_smoothLockOnDist[playerIndex];
+
+	const bool active = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON)) && actorData.lockOnData.targetBaseAddr60 != 0
+		&& HUD_LockOnTargetOnScreen(playerIndex);
+	const auto& rawPos = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+	const float rawDist = crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20.0f;
+
+	const bool switchedEnemy = ringEnemy && ringEnemy != motion.enemy;
+	if (ringEnemy) {
+		motion.enemy = ringEnemy;
+	}
+
+	if (motion.frame != frame - 1 || (active && !motion.tracking) || switchedEnemy) {
+		motion.screenPos = ImVec2(rawPos.x, rawPos.y);
+		motion.distance = rawDist;
+	} else {
+		const float deltaTime = ImGui::GetIO().DeltaTime;
+		const float positionSpeed = 20.0f; // lower == smoother, but trails further behind fast enemies
+		const float distanceSpeed = 8.0f;
+		motion.screenPos.x = SmoothLerp(motion.screenPos.x, rawPos.x, positionSpeed, deltaTime);
+		motion.screenPos.y = SmoothLerp(motion.screenPos.y, rawPos.y, positionSpeed, deltaTime);
+		motion.distance = SmoothLerp(motion.distance, rawDist, distanceSpeed, deltaTime);
+	}
+	motion.tracking = active;
+	motion.frame = frame;
+	return motion;
 }
 
 const float g_capDistance = 29.0f; // max size cap distance for the lockOns
@@ -2369,6 +2431,8 @@ static void RecordLockOnRing(uint8 player, ImVec2 windowPos, ImVec2 requested, I
 	d.ringCentre[player][0] = centre.x;
 	d.ringCentre[player][1] = centre.y;
 }
+
+static void HUD2PremultipliedBlendCallback(const ImDrawList*, const ImDrawCmd*);
 
 void LockOnWindows() {
 	static float lockOnAngle[PLAYER_COUNT] = { 0.0f };
@@ -2411,6 +2475,19 @@ void LockOnWindows() {
 	// The original cursor stays on for its Artemis markers, the reticle is hidden by LockOnReticleUpdateHook (HUD.cpp).
 	CrimsonPatches::ToggleHideLockOn(false);
 
+	HUD::LockOnRingEffect* ringEffect = nullptr;
+	if (HUD_LockOnDebug().ringEffect) {
+		ringEffect = LockOnRingEffectGet();
+		if (ringEffect && !ringEffect->IsLoaded()) {
+			ringEffect = nullptr;
+		}
+	}
+	if (ringEffect) {
+		bool anyRingVisible = false;
+		for (int i = 0; i < PLAYER_COUNT; ++i) anyRingVisible |= lockOnFade[i].alpha > 0.01f;
+		ringEffect->Update(ImGui::GetIO().DeltaTime, anyRingVisible);
+	}
+
 	// Determine player count based on actor module state
 	uint8 playerCount = activeConfig.Actor.enable ? activeConfig.Actor.playerCount : 1;
 
@@ -2443,14 +2520,14 @@ void LockOnWindows() {
 
 		// Compute lock-on screen position, camera distance, and clamped distance
 		byte8* lockedEnemy = CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
-		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+		const LockOnRingMotion& ringMotion = UpdateLockOnRingMotion(playerIndex, actorData, lockedEnemy);
+		const ImVec2 lockedEnemyScreenPosition = ringMotion.screenPos;
 
 		// Adjusts size dynamically based on the distance between Camera and Player
 		float textureBaseSizeX = 600.0f * scaleFactorY;
 		float textureBaseSizeY = 581.0f * scaleFactorY;
 
-		float rawDist = crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20.0f;
-		float smoothDist = GetSmoothedLockOnDist(playerIndex, rawDist, ImGui::GetIO().DeltaTime);
+		float smoothDist = ringMotion.distance;
 		float safeDistance = (std::max)(smoothDist, g_capDistance);  // capped to prevent oversized icons when close
 
 		ImVec2 sizeDistance = {
@@ -2532,8 +2609,9 @@ void LockOnWindows() {
 		const float fadeOutDuration = 0.25f;
 		UpdateFade(lockOnFade[playerIndex], lockOnActive, fadeInDuration, fadeOutDuration, ImGui::GetIO().DeltaTime);
 
-		// Same centering as the stun / displacement / shield rings, so they stay concentric on every player
-		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		// Same centering as the stun / displacement / shield rings, so they stay concentric on every player.
+		// windowPos rather than GetWindowPos(), which ImGui floors to whole pixels.
+		ImVec2 windowContentPos = windowPos;
 		ImVec2 centeredTexturePos = ImVec2(
 			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
 			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
@@ -2542,15 +2620,53 @@ void LockOnWindows() {
 			ImVec2(centeredTexturePos.x + textureWidth * 0.5f, centeredTexturePos.y + textureHeight * 0.5f));
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
-			if (LockOnTexture->IsValid()) {
-				DrawRotatedImagePie(
-					LockOnTexture->GetTexture(),
-					centeredTexturePos,
-					ImVec2(textureWidth, textureHeight),
-					lockOnAngle[playerIndex],
-					colorWithAlpha,
-					healthFraction
-				);
+			const bool spriteRing = LockOnTexture->IsValid();
+			bool ringDrawn = false;
+
+			if (ringEffect && D3D11::deviceContext) {
+				const LockOnHudDebug& d = HUD_LockOnDebug();
+				// Both fills cut the ring by health; doing both would cut it twice, so only one is active.
+				const float effectFill = d.ringEffectCodePie ? 1.0f : healthFraction;
+				const float pieFill = d.ringEffectCodePie ? healthFraction : 1.0f;
+				const glm::vec3 ringColor(poppedColor.x, poppedColor.y, poppedColor.z);
+				ID3D11ShaderResourceView* ringView = ringEffect->Render(D3D11::deviceContext, playerIndex,
+					d.ringEffectCustomDataColor ? &ringColor : nullptr, effectFill, d.ringEffectScale,
+					glm::vec2(d.ringEffectOffsetX, d.ringEffectOffsetY));
+				if (ringView) {
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					// Premultiplied target, so the fade scales the colour too; without custom data colour it's tinted here.
+					const float fade = lockOnFade[playerIndex].alpha;
+					const ImVec4 tint = d.ringEffectCustomDataColor ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : poppedColor;
+					drawList->AddCallback(HUD2PremultipliedBlendCallback, nullptr);
+					DrawRotatedImagePie(
+						(ImTextureID)ringView,
+						centeredTexturePos,
+						ImVec2(textureWidth, textureHeight),
+						lockOnAngle[playerIndex],
+						ImColor(tint.x * fade, tint.y * fade, tint.z * fade, fade),
+						pieFill
+					);
+					drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+					ringDrawn = true;
+				}
+			}
+
+			if (!ringDrawn) {
+				if (spriteRing) {
+					DrawRotatedImagePie(
+						LockOnTexture->GetTexture(),
+						centeredTexturePos,
+						ImVec2(textureWidth, textureHeight),
+						lockOnAngle[playerIndex],
+						colorWithAlpha,
+						healthFraction
+					);
+				} else {
+					ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
+				}
+			}
+
+			if (spriteRing && HUD_LockOnDebug().ringForeground) {
 				DrawRotatedImagePie(
 					LockOnForegroundTexture->GetTexture(),
 					centeredTexturePos,
@@ -2559,8 +2675,6 @@ void LockOnWindows() {
 					fgColorWithAlpha,
 					healthFraction
 				);
-			} else {
-				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 			}
 		}
 
@@ -2601,6 +2715,29 @@ void StunDisplacementLockOnWindows() {
 	}
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
+	HUD::LockOnRingEffect* ringEffect = nullptr;
+	if (HUD_LockOnDebug().displacementRingEffect && activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
+		ringEffect = LockOnDisplacementRingEffectGet();
+		if (ringEffect && !ringEffect->IsLoaded()) {
+			ringEffect = nullptr;
+		}
+	}
+	HUD::LockOnRingEffect* stunRingEffect = nullptr;
+	if (HUD_LockOnDebug().stunRingEffect && activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
+		stunRingEffect = LockOnStunRingEffectGet();
+		if (stunRingEffect && !stunRingEffect->IsLoaded()) {
+			stunRingEffect = nullptr;
+		}
+	}
+	bool anyRingVisible = false;
+	for (int i = 0; i < PLAYER_COUNT; ++i) anyRingVisible |= lockOnFade[i].alpha > 0.01f;
+	if (ringEffect) {
+		ringEffect->Update(ImGui::GetIO().DeltaTime, anyRingVisible);
+	}
+	if (stunRingEffect) {
+		stunRingEffect->Update(ImGui::GetIO().DeltaTime, anyRingVisible);
+	}
+
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		auto& playerData = GetPlayerData(playerIndex);
@@ -2634,16 +2771,15 @@ void StunDisplacementLockOnWindows() {
 		// Keep angle in [0, 2*PI]
 		if (lockOnAngle[playerIndex] > IM_PI * 2.0f) lockOnAngle[playerIndex] -= IM_PI * 2.0f;
 
-		CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
-
-		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+		byte8* ringEnemy = CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
+		const LockOnRingMotion& ringMotion = UpdateLockOnRingMotion(playerIndex, actorData, ringEnemy);
+		const ImVec2 lockedEnemyScreenPosition = ringMotion.screenPos;
 
 		// Adjusts size dynamically based on the distance between Camera and Player
 		float textureBaseSizeX = 600.0f * scaleFactorY;
 		float textureBaseSizeY = 581.0f * scaleFactorY;
 
-		float rawDist = crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20.0f;
-		float smoothDist = GetSmoothedLockOnDist(playerIndex, rawDist, ImGui::GetIO().DeltaTime);
+		float smoothDist = ringMotion.distance;
 		float safeDistance = (std::max)(smoothDist, g_capDistance);  // capped to prevent oversized icons when close
 
 		// DISPLACEMENT LOCK-ON (OUTER DARKER CIRCLE)
@@ -2722,7 +2858,7 @@ void StunDisplacementLockOnWindows() {
 		UpdateFade(lockOnFade[playerIndex], lockOnActive, fadeInDuration, fadeOutDuration, ImGui::GetIO().DeltaTime);
 
 		// Calculate centered texture position within the window
-		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		ImVec2 windowContentPos = windowPos;
 		ImVec2 centeredTexturePos = ImVec2(
 			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
 			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
@@ -2733,22 +2869,50 @@ void StunDisplacementLockOnWindows() {
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
 			if (LockOnTexture->IsValid()) {
 				if (activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
-					DrawRotatedImagePie(
-						LockOnStunTexture->GetTexture(),
-						centeredTexturePos,
-						ImVec2(textureWidth, textureHeight),
-						lockOnAngle[playerIndex],
-						colorWithAlpha,
-						displacementFraction
-					);
-					DrawRotatedImagePie(
-						LockOnForegroundTexture->GetTexture(),
-						centeredTexturePos,
-						ImVec2(textureWidth, textureHeight),
-						lockOnAngle[playerIndex],
-						fgColorWithAlpha,
-						displacementFraction
-					);
+					bool ringDrawn = false;
+					if (ringEffect && D3D11::deviceContext) {
+						const LockOnHudDebug& d = HUD_LockOnDebug();
+						const float effectFill = d.ringEffectCodePie ? 1.0f : displacementFraction;
+						const float pieFill = d.ringEffectCodePie ? displacementFraction : 1.0f;
+						// The effect carries its own colour.
+						ID3D11ShaderResourceView* ringView = ringEffect->Render(D3D11::deviceContext, playerIndex,
+							nullptr, effectFill, d.displacementRingEffectScale,
+							glm::vec2(d.ringEffectOffsetX, d.ringEffectOffsetY));
+						if (ringView) {
+							ImDrawList* drawList = ImGui::GetWindowDrawList();
+							const float fade = lockOnFade[playerIndex].alpha;
+							drawList->AddCallback(HUD2PremultipliedBlendCallback, nullptr);
+							DrawRotatedImagePie(
+								(ImTextureID)ringView,
+								centeredTexturePos,
+								ImVec2(textureWidth, textureHeight),
+								lockOnAngle[playerIndex],
+								ImColor(fade, fade, fade, fade),
+								pieFill
+							);
+							drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+							ringDrawn = true;
+						}
+					}
+
+					if (!ringDrawn) {
+						DrawRotatedImagePie(
+							LockOnStunTexture->GetTexture(),
+							centeredTexturePos,
+							ImVec2(textureWidth, textureHeight),
+							lockOnAngle[playerIndex],
+							colorWithAlpha,
+							displacementFraction
+						);
+						DrawRotatedImagePie(
+							LockOnForegroundTexture->GetTexture(),
+							centeredTexturePos,
+							ImVec2(textureWidth, textureHeight),
+							lockOnAngle[playerIndex],
+							fgColorWithAlpha,
+							displacementFraction
+						);
+					}
 				}
 			} else {
 				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
@@ -2833,7 +2997,7 @@ void StunDisplacementLockOnWindows() {
 				ImColor colorStunWithAlpha(poppedColorStun);
 
 				// Calculate centered texture position for the STUN window
-				ImVec2 windowContentPosStun = ImGui::GetWindowPos();
+				ImVec2 windowContentPosStun = windowPos;
 				ImVec2 centeredTexturePosStun = ImVec2(
 					windowContentPosStun.x + (windowSize.x - textureWidthStun) * 0.5f,
 					windowContentPosStun.y + (windowSize.y - textureHeightStun) * LockOnRingVertical()
@@ -2843,7 +3007,32 @@ void StunDisplacementLockOnWindows() {
 				float stunFraction = 1.0f - (lockedOnEnemyStun / lockedOnEnemyMaxStun);
 
 				if (activeCrimsonConfig.CrimsonHudAddons.lockOnStunDisplacement) {
-					if (LockOnTexture->IsValid()) {
+					bool stunRingDrawn = false;
+					if (stunRingEffect && D3D11::deviceContext) {
+						const LockOnHudDebug& d = HUD_LockOnDebug();
+						const float effectFill = d.ringEffectCodePie ? 1.0f : stunFraction;
+						const float pieFill = d.ringEffectCodePie ? stunFraction : 1.0f;
+						// The effect carries its own colour.
+						ID3D11ShaderResourceView* ringView = stunRingEffect->Render(D3D11::deviceContext, playerIndex,
+							nullptr, effectFill, d.stunRingEffectScale, glm::vec2(d.ringEffectOffsetX, d.ringEffectOffsetY));
+						if (ringView) {
+							ImDrawList* drawList = ImGui::GetWindowDrawList();
+							const float fade = lockOnFade[playerIndex].alpha;
+							drawList->AddCallback(HUD2PremultipliedBlendCallback, nullptr);
+							DrawRotatedImagePie(
+								(ImTextureID)ringView,
+								centeredTexturePosStun,
+								ImVec2(textureWidthStun, textureHeightStun),
+								lockOnAngle[playerIndex],
+								ImColor(fade, fade, fade, fade),
+								pieFill
+							);
+							drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+							stunRingDrawn = true;
+						}
+					}
+
+					if (!stunRingDrawn && LockOnTexture->IsValid()) {
 						DrawRotatedImagePie(
 							LockOnStunTexture->GetTexture(),
 							centeredTexturePosStun,
@@ -2860,7 +3049,7 @@ void StunDisplacementLockOnWindows() {
 							fgColorWithAlpha,
 							stunFraction
 						);
-					} else {
+					} else if (!stunRingDrawn) {
 						ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 					}
 				}
@@ -2954,6 +3143,19 @@ void ShieldLockOnWindows() {
 	}
 	auto& cameraData = *reinterpret_cast<CameraData*>(pool_4449[147]);
 
+	HUD::LockOnRingEffect* ringEffect = nullptr;
+	if (HUD_LockOnDebug().shieldRingEffect) {
+		ringEffect = LockOnShieldRingEffectGet();
+		if (ringEffect && !ringEffect->IsLoaded()) {
+			ringEffect = nullptr;
+		}
+	}
+	if (ringEffect) {
+		bool anyRingVisible = false;
+		for (int i = 0; i < PLAYER_COUNT; ++i) anyRingVisible |= lockOnFade[i].alpha > 0.01f;
+		ringEffect->Update(ImGui::GetIO().DeltaTime, anyRingVisible);
+	}
+
 	// Loop through player data
 	for (uint8 playerIndex = 0; playerIndex < activeConfig.Actor.playerCount; ++playerIndex) {
 		PlayerActorData* actorDataPtr = nullptr;
@@ -2984,16 +3186,15 @@ void ShieldLockOnWindows() {
 		// Keep angle in [0, 2*PI]
 		if (lockOnAngle[playerIndex] > IM_PI * 2.0f) lockOnAngle[playerIndex] -= IM_PI * 2.0f;
 
-		CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
-
-		auto& lockedEnemyScreenPosition = crimsonPlayer[playerIndex].lockedEnemyScreenPosition;
+		byte8* ringEnemy = CrimsonFX::ComputeLockOnScreenData(actorData, cameraData, playerIndex);
+		const LockOnRingMotion& ringMotion = UpdateLockOnRingMotion(playerIndex, actorData, ringEnemy);
+		const ImVec2 lockedEnemyScreenPosition = ringMotion.screenPos;
 
 		// Adjusts size dynamically based on the distance between Camera and Player
 		float textureBaseSizeX = 600.0f * scaleFactorY;
 		float textureBaseSizeY = 581.0f * scaleFactorY;
 
-		float rawDist = crimsonPlayer[playerIndex].cameraLockedEnemyDistance / 20.0f;
-		float smoothDist = GetSmoothedLockOnDist(playerIndex, rawDist, ImGui::GetIO().DeltaTime);
+		float smoothDist = ringMotion.distance;
 		float safeDistance = (std::max)(smoothDist, g_capDistance);  // capped to prevent oversized icons when close
 
 		ImVec2 sizeDistance = {
@@ -3066,7 +3267,7 @@ void ShieldLockOnWindows() {
 		UpdateFade(lockOnFade[playerIndex], lockOnActive, fadeInDuration, fadeOutDuration, ImGui::GetIO().DeltaTime);
 
 		// Calculate centered texture position within the window
-		ImVec2 windowContentPos = ImGui::GetWindowPos();
+		ImVec2 windowContentPos = windowPos;
 		ImVec2 centeredTexturePos = ImVec2(
 			windowContentPos.x + (windowSize.x - textureWidth) * 0.5f,
 			windowContentPos.y + (windowSize.y - textureHeight) * LockOnRingVertical()
@@ -3075,7 +3276,32 @@ void ShieldLockOnWindows() {
 			ImVec2(centeredTexturePos.x + textureWidth * 0.5f, centeredTexturePos.y + textureHeight * 0.5f));
 
 		if (lockOnFade[playerIndex].alpha > 0.01f) {
-			if (LockOnTexture->IsValid()) {
+			bool shieldRingDrawn = false;
+			if (ringEffect && D3D11::deviceContext) {
+				const LockOnHudDebug& d = HUD_LockOnDebug();
+				const float effectFill = d.ringEffectCodePie ? 1.0f : shieldFraction;
+				const float pieFill = d.ringEffectCodePie ? shieldFraction : 1.0f;
+				// The effect carries its own colour.
+				ID3D11ShaderResourceView* ringView = ringEffect->Render(D3D11::deviceContext, playerIndex,
+					nullptr, effectFill, d.shieldRingEffectScale, glm::vec2(d.ringEffectOffsetX, d.ringEffectOffsetY));
+				if (ringView) {
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+					const float fade = lockOnFade[playerIndex].alpha;
+					drawList->AddCallback(HUD2PremultipliedBlendCallback, nullptr);
+					DrawRotatedImagePie(
+						(ImTextureID)ringView,
+						centeredTexturePos,
+						ImVec2(textureWidth, textureHeight),
+						lockOnAngle[playerIndex],
+						ImColor(fade, fade, fade, fade),
+						pieFill
+					);
+					drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
+					shieldRingDrawn = true;
+				}
+			}
+
+			if (!shieldRingDrawn && LockOnTexture->IsValid()) {
 				DrawRotatedImagePie(
 					LockOnShieldTexture->GetTexture(),
 					centeredTexturePos,
@@ -3092,7 +3318,7 @@ void ShieldLockOnWindows() {
 					fgColorWithAlpha,
 					shieldFraction
 				);
-			} else {
+			} else if (!shieldRingDrawn) {
 				ImGui::GetWindowDrawList()->AddRectFilled(texturePos, ImVec2(texturePos.x + textureWidth, texturePos.y + textureHeight), ImColor(1.0f, 1.0f, 1.0f, alpha));
 			}
 		}
@@ -5211,6 +5437,10 @@ static void VergilHUD2RenderView(int view) {
 void PreloadHUD2Textures(ID3D11Device* pD3D11Device, ID3D11DeviceContext* pD3D11DeviceContext) {
 	HUD::Dante::DanteHUD2::PreloadTextures(pD3D11Device);
 	HUD::Vergil::VergilHUD2::PreloadTextures(pD3D11Device);
+	LockOnRingEffectGet(pD3D11Device, pD3D11DeviceContext);
+	LockOnDisplacementRingEffectGet(pD3D11Device, pD3D11DeviceContext);
+	LockOnStunRingEffectGet(pD3D11Device, pD3D11DeviceContext);
+	LockOnShieldRingEffectGet(pD3D11Device, pD3D11DeviceContext);
 
 	// Build the single-player HUDs now; their sprite batches, shader compiles and effect loads would otherwise all land
 	// on the first frame of a stage.

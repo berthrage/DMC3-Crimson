@@ -697,8 +697,8 @@ struct CrimsonConfig {
 	struct PlayerProperties {
 		uint8 playerColor[PLAYER_COUNT][4] = {
 			// r   g  b  a  
-			{ 222, 28, 76, 255 }, // 1P 
-			{ 12, 133, 197, 255 }, // 2P  
+			{ 222, 23, 49, 255 }, // 1P 
+			{ 67, 23, 222, 255 }, // 2P  
 			{ 255, 230, 0, 255 }, // 3P    
 			{ 0, 192, 70, 255 }, // 4P
 		};

@@ -5512,8 +5512,8 @@ struct ColorPresets {
 	} ColorDMC3Default;
 
     struct LockOnColors {
-		uint32 Dante = 0xDE1C4CFF;
-		uint32 Vergil = 0x0C85C5FF;
+		uint32 Dante = 0xDE1731FF;
+		uint32 Vergil = 0x4317DEFF;
     } LockOnColors;
 };
 

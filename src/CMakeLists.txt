@@ -372,6 +372,8 @@ set(UI_SRC
     UI/GenericAnimation.hpp
     UI/GraphicsBase.cpp
     UI/GraphicsBase.hpp
+    UI/LockOnRingEffect.cpp
+    UI/LockOnRingEffect.hpp
     UI/Sprite.cpp
     UI/Sprite.hpp
     UI/Texture2DArrayD3D11.cpp
