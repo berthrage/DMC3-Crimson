@@ -551,7 +551,11 @@ static void SetPoint(vec4& point, const float* value) {
 static bool PullEyeInFromWall(CameraData& camera) {
 	constexpr float probePadding = 24.0f;
 	constexpr float margin = 4.0f;
-	constexpr float minDistance = 28.0f;
+	// A wall this close wins over keeping the eye out of the character's back, or the eye would sit inside it.
+	constexpr float minDistance = 12.0f;
+	constexpr float sideRadius = 30.0f;
+	// Floors and stairs are closer than ceilings, a full down probe would pull the eye in on low camera angles.
+	constexpr float verticalRadius = 12.0f;
 	constexpr float holdTime = 0.2f;
 	constexpr float releaseRate = 5.0f;
 	constexpr float releaseMinSpeed = 120.0f;
@@ -566,7 +570,6 @@ static bool PullEyeInFromWall(CameraData& camera) {
 	// CollisionMoveSlide_sub_1400601E0 loads its points as aligned vectors.
 	alignas(16) float focus[4] = { camera.camcoords1.x, camera.camcoords1.y, camera.camcoords1.z, 1.0f };
 	alignas(16) float freeEye[4] = { camera.camcoords1b.x, camera.camcoords1b.y, camera.camcoords1b.z, 1.0f };
-	alignas(16) float probe[4] = {};
 
 	const float dx = freeEye[0] - focus[0];
 	const float dy = freeEye[1] - focus[1];
@@ -577,12 +580,29 @@ static bool PullEyeInFromWall(CameraData& camera) {
 	}
 	const float dir[3] = { dx / freeDistance, dy / freeDistance, dz / freeDistance };
 
-	// Ray past the eye, so the pulled-in eye keeps a margin from the wall instead of touching it.
-	const float probeDistance = freeDistance + probePadding;
-	probe[0] = focus[0] + dir[0] * probeDistance;
-	probe[1] = focus[1] + dir[1] * probeDistance;
-	probe[2] = focus[2] + dir[2] * probeDistance;
-	probe[3] = 1.0f;
+	// The centre line alone slips past corners and walls the near plane clips at the screen edge, so probe a small
+	// disc around the eye too and keep the closest wall. The offsets taper to nothing at the lookat.
+	float side[3] = { -dir[2], 0.0f, dir[0] };
+	const float sideLength = sqrtf(side[0] * side[0] + side[2] * side[2]);
+	if (sideLength > 0.001f) {
+		side[0] /= sideLength;
+		side[2] /= sideLength;
+	} else {
+		side[0] = 1.0f;
+		side[2] = 0.0f;
+	}
+	const float up[3] = {
+		dir[1] * side[2] - dir[2] * side[1],
+		dir[2] * side[0] - dir[0] * side[2],
+		dir[0] * side[1] - dir[1] * side[0]
+	};
+	const float probes[5][3] = {
+		{ 0.0f, 0.0f, 0.0f },
+		{ side[0] * sideRadius, side[1] * sideRadius, side[2] * sideRadius },
+		{ -side[0] * sideRadius, -side[1] * sideRadius, -side[2] * sideRadius },
+		{ up[0] * verticalRadius, up[1] * verticalRadius, up[2] * verticalRadius },
+		{ -up[0] * verticalRadius, -up[1] * verticalRadius, -up[2] * verticalRadius },
+	};
 
 	// Same collision query the vanilla sweep uses, so every wall that blocks it also pulls the eye in. It clips the
 	// segment at the first polygon and then pushes the end point out of the polygons it overlaps.
@@ -590,16 +610,48 @@ static bool PullEyeInFromWall(CameraData& camera) {
 	using CollisionMoveSlide_t = char(__fastcall*)(byte8*, float*, const float*);
 	auto setLayer = reinterpret_cast<CollisionSetLayer_t>(appBaseAddr + COLLISION_SET_LAYER_OFFSET());
 	auto moveSlide = reinterpret_cast<CollisionMoveSlide_t>(appBaseAddr + COLLISION_SLIDE_OFFSET());
+
+	// Every ray is padded past the eye, so the pulled-in eye keeps a margin from the wall instead of touching it.
+	float wallLimit = noWall;
+	float closestHit = -1.0f;
 	setLayer(collision, 1);
-	moveSlide(collision, probe, focus);
+	for (const auto& offset : probes) {
+		const float rayX = freeEye[0] + offset[0] - focus[0];
+		const float rayY = freeEye[1] + offset[1] - focus[1];
+		const float rayZ = freeEye[2] + offset[2] - focus[2];
+		const float rayLength = sqrtf(rayX * rayX + rayY * rayY + rayZ * rayZ);
+		if (rayLength <= 0.001f) {
+			continue;
+		}
+
+		const float reach = rayLength + probePadding;
+		alignas(16) float probe[4] = {
+			focus[0] + rayX / rayLength * reach,
+			focus[1] + rayY / rayLength * reach,
+			focus[2] + rayZ / rayLength * reach,
+			1.0f
+		};
+		moveSlide(collision, probe, focus);
+
+		const float hx = probe[0] - focus[0];
+		const float hy = probe[1] - focus[1];
+		const float hz = probe[2] - focus[2];
+		const float hitDistance = sqrtf(hx * hx + hy * hy + hz * hz);
+		if (hitDistance >= reach - 0.5f) {
+			continue;
+		}
+
+		// An off-centre ray is longer than the centre line it stands in for, so scale its hit back down.
+		const float lineHit = hitDistance * freeDistance / rayLength;
+		closestHit = (closestHit < 0.0f) ? lineHit : (std::min)(closestHit, lineHit);
+		const float limit = (std::max)(lineHit - margin, minDistance);
+		if (limit < wallLimit) {
+			wallLimit = limit;
+		}
+	}
 	setLayer(collision, 0);
 
-	const float hx = probe[0] - focus[0];
-	const float hy = probe[1] - focus[1];
-	const float hz = probe[2] - focus[2];
-	const float hitDistance = sqrtf(hx * hx + hy * hy + hz * hz);
-	const bool hit = hitDistance < probeDistance - 0.5f;
-	const float wallLimit = hit ? (std::max)(hitDistance - margin, minDistance) : noWall;
+	const bool hit = wallLimit < noWall;
 
 	auto& state = WallPullInView();
 	const double now = CrimsonClock::Time();
@@ -639,7 +691,7 @@ static bool PullEyeInFromWall(CameraData& camera) {
 	auto& readout = CrimsonCameraController::g_wallPullIn;
 	readout.active = pulledIn;
 	readout.wantedDistance = freeDistance;
-	readout.hitDistance = hit ? hitDistance : -1.0f;
+	readout.hitDistance = hit ? closestHit : -1.0f;
 	readout.resolvedDistance = distance;
 
 	state.freeEye[0] = freeEye[0];
