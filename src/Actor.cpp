@@ -1126,6 +1126,10 @@ bool IsMeleeWeaponReady(PlayerActorData& actorData, uint8 weapon) {
             }
         }
 
+        if (CrimsonGameplay::IsEcstasyWeaponModelActive(actorData)) {
+            return (actorData.meleeWeaponIndex == weapon);
+        }
+
         if (IsWeaponActive(actorData, weapon)) {
             return true;
         }

@@ -82,6 +82,7 @@ set(MASM_SRC
     masm/FixSpiralRicochetRetrigger.asm
     masm/FixBlisteringSwordsSpread.asm
     masm/KillWeaponMotionState.asm
+    masm/KillWeaponMotionEffect.asm
     masm/AirTauntRoseSwingDetours.asm
     masm/FixNevanShlPlayerSpawn.asm
     masm/ScreenShakeDetours.asm

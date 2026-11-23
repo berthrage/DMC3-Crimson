@@ -1,6 +1,7 @@
 #include <random>
 
 #include "CrimsonFastcallDetours.hpp"
+#include "Config.hpp"
 #include "Internal.hpp"
 #include "File.hpp"
 #include "Utility/Detour.hpp"
@@ -17,6 +18,7 @@
 #include <Xinput.h>
 #include "CrimsonSDL.hpp"
 #include "CrimsonClock.hpp"
+#include "CrimsonGameplay.hpp"
 using namespace Utility;
 namespace CrimsonFastcallDetours{
 
@@ -24,10 +26,14 @@ namespace CrimsonFastcallDetours{
  static constexpr auto VERGIL_TAUNT_OFFSET() { return 0x21A220; }
  static constexpr auto XINPUT_APPLY_VIBRATION_OFFSET() { return 0x042050; }
  static constexpr auto NEVAN_SHL_TRAVEL_UPDATE_OFFSET() { return 0x1D6450; }
+ static constexpr auto PLAYER_WEAPON_VISIBLE_OFFSET() { return 0x1FD3E0; }
+ static constexpr auto PLAYER_WEAPON_MOTION_GROUP_OFFSET() { return 0x1FD5C0; }
  static std::unique_ptr<Utility::Detour_t> s_DanteTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_VergilTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_XinputApplyVibrationHook;
  static std::unique_ptr<Utility::Detour_t> s_NevanShlTravelUpdateHook;
+ static std::unique_ptr<Utility::Detour_t> s_PlayerWeaponVisibleHook;
+ static std::unique_ptr<Utility::Detour_t> s_PlayerWeaponMotionGroupHook;
  std::random_device randomDevice;
  std::mt19937 rng(randomDevice());
 
@@ -562,6 +568,88 @@ namespace CrimsonFastcallDetours{
      assert(res);
  }
 
+
+ // Ecstasy runs on the Cerberus swing, which makes the game show the Cerberus weapon model for the
+ // whole move no matter what is equipped. Every weapon object asks these two questions each frame:
+ // whether its model is drawn, and whether the running animation owns its attach pose (+0x118).
+ struct PlayerWeaponModelOverride {
+     bool swap;        // true when Ecstasy should answer for this weapon
+     bool equipped;    // true for the equipped melee weapon, false for Cerberus
+ };
+
+ static PlayerWeaponModelOverride GetEcstasyWeaponModelOverride(uintptr_t weaponAddr) {
+     PlayerWeaponModelOverride result{ false, false };
+
+     auto* weapon = reinterpret_cast<WeaponData*>(weaponAddr);
+     if (!weapon || !weapon->actorBaseAddr) {
+         return result;
+     }
+     auto& actorData = *reinterpret_cast<PlayerActorData*>(weapon->actorBaseAddr);
+     if (!CrimsonGameplay::IsEcstasyWeaponModelActive(actorData)) {
+         return result;
+     }
+
+     // The Actor System relocates the game's weapon slot array to newWeapons, and the weapon objects
+     // read the same one, so the equipped melee weapon has to come from whichever array is live.
+     auto* weaponSlots = activeConfig.Actor.enable ? actorData.newWeapons : actorData.weapons;
+     auto meleeWeaponIndex = actorData.meleeWeaponIndex;
+     if (meleeWeaponIndex >= (activeConfig.Actor.enable ? 10u : 5u)) {
+         return result;
+     }
+     auto equippedMeleeWeapon = weaponSlots[meleeWeaponIndex];
+     if (weapon->weapon == equippedMeleeWeapon) {
+         result.swap = true;
+         result.equipped = true;
+     } else if (weapon->weapon == WEAPON::CERBERUS) {
+         result.swap = true;
+     }
+     return result;
+ }
+
+ // CPlayerWeapon::IsVisible - decides whether this weapon object is drawn this frame.
+ static uint8 __fastcall PlayerWeaponIsVisible_sub_1401FD3E0(uintptr_t weaponAddr, uint8 state) {
+     typedef uint8(__fastcall* PlayerWeaponIsVisibleTrampoline)(uintptr_t, uint8);
+     uintptr_t trampoline_raw = s_PlayerWeaponVisibleHook->GetTrampoline();
+     PlayerWeaponIsVisibleTrampoline trampoline = (PlayerWeaponIsVisibleTrampoline)trampoline_raw;
+
+     auto modelOverride = GetEcstasyWeaponModelOverride(weaponAddr);
+     if (modelOverride.swap) {
+         return modelOverride.equipped;
+     }
+     return trampoline(weaponAddr, state);
+ }
+
+ // CPlayerWeapon::UsesMotionGroup - true when the running animation drives this weapon's attach pose
+ // instead of the default in-hand pose. Ecstasy hands the Cerberus pose to the equipped weapon.
+ static bool __fastcall PlayerWeaponUsesMotionGroup_sub_1401FD5C0(uintptr_t weaponAddr) {
+     typedef bool(__fastcall* PlayerWeaponUsesMotionGroupTrampoline)(uintptr_t);
+     uintptr_t trampoline_raw = s_PlayerWeaponMotionGroupHook->GetTrampoline();
+     PlayerWeaponUsesMotionGroupTrampoline trampoline = (PlayerWeaponUsesMotionGroupTrampoline)trampoline_raw;
+
+     if (GetEcstasyWeaponModelOverride(weaponAddr).equipped) {
+         return true;
+     }
+     return trampoline(weaponAddr);
+ }
+
+ void EcstasyWeaponModelDetour() {
+     s_PlayerWeaponVisibleHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + PLAYER_WEAPON_VISIBLE_OFFSET(),
+             (uintptr_t)&PlayerWeaponIsVisible_sub_1401FD3E0,
+             NULL, "player_weapon_visible_detour");
+     bool res = s_PlayerWeaponVisibleHook->Toggle();
+     assert(res);
+
+     s_PlayerWeaponMotionGroupHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + PLAYER_WEAPON_MOTION_GROUP_OFFSET(),
+             (uintptr_t)&PlayerWeaponUsesMotionGroup_sub_1401FD5C0,
+             NULL, "player_weapon_motion_group_detour");
+     res = s_PlayerWeaponMotionGroupHook->Toggle();
+     assert(res);
+ }
+
  void InitDetours() {
      ModdedTauntDetour();
      ModdedTauntVergilDetour();
@@ -570,6 +658,7 @@ namespace CrimsonFastcallDetours{
      ModdedXinputVibrationDetour();
      ModdedPlaySFXWithPosByTypeDetour();
      ModdedNevanShlTravelUpdateDetour();
+     EcstasyWeaponModelDetour();
  }
 }
 

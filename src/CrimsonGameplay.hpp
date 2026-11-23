@@ -107,6 +107,8 @@ void GetLockedOnEnemyShield(byte8* actorBaseAddr);
 void DetectCloseToEnemy(byte8* actorBaseAddr);
 void SkyLaunchAirTauntController(byte8* actorBaseAddr);
 bool IsEcstasyLocked(PlayerActorData& actorData);
+bool IsInEcstasySwing(PlayerActorData& actorData);
+bool IsEcstasyWeaponModelActive(PlayerActorData& actorData);
 void EcstasyLockController(byte8* actorBaseAddr);
 void CancelPendingRoseSpawn(byte8* actorBaseAddr);
 void ToggleRebellionHoldDrive(bool enable);

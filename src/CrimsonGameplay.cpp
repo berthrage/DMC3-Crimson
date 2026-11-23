@@ -5287,6 +5287,33 @@ bool IsEcstasyLocked(PlayerActorData& actorData) {
 	return inAirTauntRose && actionTimer < ECSTASY_LOCK_TIME;
 }
 
+// inAirTauntRose clears before the swing animation ends, so this holds on until the Cerberus swing motion stops.
+bool IsInEcstasySwing(PlayerActorData& actorData) {
+	static bool active[PLAYER_COUNT][ENTITY_COUNT] = {};
+
+	if (actorData.character != CHARACTER::DANTE) return false;
+	uint8 playerIndex = activeConfig.Actor.enable ? actorData.newPlayerIndex : 0;
+	uint8 entityIndex = activeConfig.Actor.enable ? actorData.newEntityIndex : (actorData.isClone ? 1 : 0);
+	if (playerIndex >= PLAYER_COUNT || entityIndex >= ENTITY_COUNT) return false;
+
+	auto& inAirTauntRose = (entityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRose
+		: crimsonPlayer[playerIndex].inAirTauntRoseClone;
+	auto& motionData = actorData.motionData[UPPER_BODY];
+	if (inAirTauntRose) {
+		active[playerIndex][entityIndex] = true;
+	} else if (actorData.action != ACTION_DANTE::CERBERUS_SWING || motionData.index == 0 ||
+		motionData.group != MOTION_GROUP_DANTE::CERBERUS) {
+		active[playerIndex][entityIndex] = false;
+	}
+	return active[playerIndex][entityIndex];
+}
+
+// Ecstasy plays on the Cerberus swing, so the game would show the nunchaku instead of the equipped melee weapon.
+// Devil Trigger already decides the shown weapon from the devil form.
+bool IsEcstasyWeaponModelActive(PlayerActorData& actorData) {
+	return IsInEcstasySwing(actorData) && !actorData.devil;
+}
+
 // Eats the cancel inputs while the lock lasts. Must run before the game reads them (see WeaponSwitchController).
 void EcstasyLockController(byte8* actorBaseAddr) {
 	if (!actorBaseAddr || (uintptr_t)actorBaseAddr >= 0xFFFFFFFFFF) {

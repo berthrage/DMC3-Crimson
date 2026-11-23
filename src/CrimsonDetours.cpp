@@ -479,6 +479,11 @@ namespace CrimsonDetours {
 		void KillWeaponMotionStateDetour();
 		void* g_KillWeaponMotionStateCheckCall;
 
+		// KillWeaponMotionEffect
+		std::uint64_t g_KillWeaponMotionEffect_ReturnAddr;
+		void KillWeaponMotionEffectDetour();
+		void* g_KillWeaponMotionEffectCheckCall;
+
 		// AirTauntRoseSwingDetours:
 		// SwingRoseAirTauntInertiaAndSpawnShl
 		std::uint64_t g_SwingRoseAirTauntInertiaAndSpawnShl_ReturnAddr;
@@ -1560,6 +1565,10 @@ bool CheckIfInAirTauntRose(uintptr_t playerAddr) {
 		return true;
 	}
 	return false;
+}
+
+bool CheckIfInEcstasySwing(uintptr_t playerAddr) {
+	return CrimsonGameplay::IsInEcstasySwing(*reinterpret_cast<PlayerActorData*>(playerAddr));
 }
 
 // Called from the swing detour once the Air Taunt Rose state is confirmed.
@@ -3705,6 +3714,15 @@ void KillWeaponMotionState(bool enable) {
 	g_KillWeaponMotionState_ReturnAddr = killWeaponMotionStateHook->GetReturnAddress();
 	g_KillWeaponMotionStateCheckCall = &CheckIfInAirTauntRose;  // Uncomment if calling C++ functions
 	killWeaponMotionStateHook->Toggle(enable);
+
+	// weaponEffect (top bits of the same motion value) turns on the weapon trails and Cerberus' glow (PlayVFX 2, 0xBF),
+	// which the Ecstasy swing shouldn't show.
+	// dmc3.exe+1F027D - 88 83 103A0000 - mov [rbx+00003A10],al { weaponEffect }
+	static std::unique_ptr<Utility::Detour_t> killWeaponMotionEffectHook =
+		std::make_unique<Detour_t>((uintptr_t)appBaseAddr + 0x1F027D, &KillWeaponMotionEffectDetour, 6);
+	g_KillWeaponMotionEffect_ReturnAddr = killWeaponMotionEffectHook->GetReturnAddress();
+	g_KillWeaponMotionEffectCheckCall = &CheckIfInEcstasySwing;
+	killWeaponMotionEffectHook->Toggle(enable);
 
 	run = enable;
 }

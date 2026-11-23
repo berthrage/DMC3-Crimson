@@ -3228,6 +3228,24 @@ static_assert(sizeof(RecoveryData) == 0x70);
 
 // $WeaponDataStart
 
+// One entry of PlayerWeaponAttachTable_14058DAE0. The state comes from the animation (actor+0x39C3):
+// 0 = sheathed on the back, 1 = right hand, 2..11 = the per weapon hold poses.
+struct PlayerWeaponAttachDef {
+    uint8 bone;         // 0x00 player bone the model hangs off; 0 = sheathed
+    uint8 secondBone;   // 0x01
+    uint8 unk_02;       // 0x02
+    uint8 playerBone;   // 0x03 bone whose matrix the model follows
+    _(12);
+    float offset[3];   // 0x10 local translation
+    _(4);
+    float rotation[3]; // 0x20 local rotation
+    _(4);
+};
+
+static_assert(offsetof(PlayerWeaponAttachDef, offset) == 0x10);
+static_assert(offsetof(PlayerWeaponAttachDef, rotation) == 0x20);
+static_assert(sizeof(PlayerWeaponAttachDef) == 0x30);
+
 struct WeaponData {
     _(20);
     float speed;           // 0x14
@@ -3240,7 +3258,7 @@ struct WeaponData {
     uint8 playerBoneAttachment; // 0x114
     uint8 sheathPlayerBoneAttachment; // 0x115
     _(2);
-    uint8 value; // 0x118
+    uint8 attachState; // 0x118 indexed into PlayerWeaponAttachTable_14058DAE0
     _(7);
     byte8* actorBaseAddr; // 0x120
 	_(8);
@@ -3255,7 +3273,7 @@ static_assert(offsetof(WeaponData, baseAddr) == 0x48);
 static_assert(offsetof(WeaponData, weapon) == 0x112);
 static_assert(offsetof(WeaponData, playerBoneAttachment) == 0x114);
 static_assert(offsetof(WeaponData, sheathPlayerBoneAttachment) == 0x115);
-static_assert(offsetof(WeaponData, value) == 0x118);
+static_assert(offsetof(WeaponData, attachState) == 0x118);
 static_assert(offsetof(WeaponData, actorBaseAddr) == 0x120);
 static_assert(offsetof(WeaponData, weaponCDraw) == 0x130);
 static_assert(offsetof(WeaponData, hideYamatoTip) == 0xE70);
@@ -3597,7 +3615,14 @@ struct PlayerActorDataBase : ActorDataBase {
     uint32 var_39BC;                    // 0x39BC
     uint8 weaponMotionState[16];        // 0x39C0
     uint32 nextActionRequestPolicy[16]; // 0x39D0
-    uint8 var_3A10[8];                  // 0x3A10
+    uint8 weaponEffect;                 // 0x3A10 // top bits (0xC0) of the motion's weaponMotionState[3] key, turns on weapon trails/glow
+    uint8 lastWeaponMotionState3;       // 0x3A11 // weaponMotionState[3] before this frame's motion read
+    uint8 lastWeaponMotionState4;       // 0x3A12
+    _(1);
+    uint8 weaponMotionState4Latched;    // 0x3A14 // last weaponMotionState[4] key with bit 0x40 set
+    _(1);
+    uint8 lastWeaponMotionState7;       // 0x3A16
+    uint8 lastWeaponMotionState8;       // 0x3A17
     uint32 shadow;                      // 0x3A18 // 0 off, 1 on, 2 shadow object at 0x100, 3 locked
     uint32 lastShadow;                  // 0x3A1C // shadow request deferred while doppelganger is set (0x6362)
     uint32 modelEffectMode;             // 0x3A20 // CPlSetModelEffectMode_sub_1401FCB10, 6 = clone dark overlay, 7 = clear
@@ -3780,7 +3805,10 @@ static_assert(offsetof(PlayerActorDataBase, motionDataMirror) == 0x39B4);
 static_assert(offsetof(PlayerActorDataBase, var_39BC) == 0x39BC);
 static_assert(offsetof(PlayerActorDataBase, weaponMotionState) == 0x39C0);
 static_assert(offsetof(PlayerActorDataBase, nextActionRequestPolicy) == 0x39D0);
-static_assert(offsetof(PlayerActorDataBase, var_3A10) == 0x3A10);
+static_assert(offsetof(PlayerActorDataBase, weaponEffect) == 0x3A10);
+static_assert(offsetof(PlayerActorDataBase, lastWeaponMotionState3) == 0x3A11);
+static_assert(offsetof(PlayerActorDataBase, weaponMotionState4Latched) == 0x3A14);
+static_assert(offsetof(PlayerActorDataBase, lastWeaponMotionState8) == 0x3A17);
 static_assert(offsetof(PlayerActorDataBase, shadow) == 0x3A18);
 static_assert(offsetof(PlayerActorDataBase, lastShadow) == 0x3A1C);
 static_assert(offsetof(PlayerActorDataBase, modelEffectMode) == 0x3A20);
