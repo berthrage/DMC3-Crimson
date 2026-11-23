@@ -66,10 +66,10 @@ namespace CrimsonDetours {
 		std::uint64_t g_SetAirTaunt_ReturnAddr;
 		std::uint64_t g_SetAirTaunt_Call;
 		void SetAirTauntDetour();
-		void* g_SetAirTauntSkyLaunchCheckCall;
+		void* g_SetAirTauntEcstasyCheckCall;
 		void* g_SetAirTauntATRisingSunCheckCall;
 
-		// Sky Launch Detours: (Dante Air Taunt)
+		// Sky Launch Detours (deprecated since 0.6, Dante's air taunt is now Ecstasy)
 		// SkyLaunchForceRelease 
 		std::uint64_t g_SkyLaunchForceRelease_ReturnAddr;
 		void* g_skyLaunchForceReleaseCheckCall;
@@ -822,7 +822,7 @@ bool DetectIfInSkyLaunch(PlayerActorData& actorData) {
 	return false;
 }
 
-bool CheckSkyLaunchEnabled(uintptr_t playerAddr) {
+bool CheckEcstasyAirTauntEnabled(uintptr_t playerAddr) {
 	auto& actorData = *reinterpret_cast<PlayerActorData*>(playerAddr);
 	auto playerIndex = actorData.newPlayerIndex;
 	auto& inAirTauntRose = (actorData.newEntityIndex == ENTITY::MAIN) ? crimsonPlayer[playerIndex].inAirTauntRose : crimsonPlayer[playerIndex].inAirTauntRoseClone;
@@ -840,7 +840,7 @@ bool CheckSkyLaunchEnabled(uintptr_t playerAddr) {
 	actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = newAirTauntRose_pl000_00_4;
 	bool canAirTaunt = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK && CrimsonGameplay::CanQueueMeleeAttack(actorData)) || 
 		actorData.eventData[0].event != ACTOR_EVENT::ATTACK;
-	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::SKY_LAUNCH_AIR_TAUNT] &&
+	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::ECSTASY_AIR_TAUNT] &&
 		canAirTaunt;
 }
 
@@ -2665,6 +2665,7 @@ void ToggleHoldToCrazyCombo(bool enable) {
     run = enable;
 }
 
+// Deprecated since 0.6: Sky Launch was replaced by Ecstasy.
 void SkyLaunchDetours(bool enable) {
 	using namespace Utility;
 	static bool run = false;
@@ -2757,7 +2758,7 @@ void AirTauntDetours(bool enable) {
 	g_SetAirTaunt_ReturnAddr = setAirTauntHook->GetReturnAddress();
 	g_SetAirTaunt_Call = (uintptr_t)appBaseAddr + 0x1E09D0;
 	setAirTauntHook->Toggle(enable);
-	g_SetAirTauntSkyLaunchCheckCall = &CheckSkyLaunchEnabled;
+	g_SetAirTauntEcstasyCheckCall = &CheckEcstasyAirTauntEnabled;
 	g_SetAirTauntATRisingSunCheckCall = &CheckAirTauntRisingSunEnabled;
 
 	SkyLaunchDetours(enable);

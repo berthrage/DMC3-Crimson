@@ -5510,6 +5510,7 @@ void ApplySkyLaunchProperties(byte8* actorBaseAddr) {
 
 }
 
+// Deprecated since 0.6: Sky Launch was replaced by Ecstasy.
 void SkyLaunchAirTauntController(byte8* actorBaseAddr) {
     CheckRoyalReleaseAndSkyLaunch(actorBaseAddr);
 	ApplySkyLaunchProperties(actorBaseAddr);

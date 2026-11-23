@@ -165,7 +165,7 @@ CrimsonConfigGameplay CreateStyleSwitcherPreset() {
 	dante.airTornado = true;
 	dante.airRisingDragonLaunch = false;
 	dante.airAgniRudraWhirlwind = false;
-	dante.skyLaunchAirTaunt = false;
+	dante.ecstasyAirTaunt = false;
 	dante.dmc4Mobility = false;
 	dante.dTInfusedRoyalguard = false;
 	dante.airHikeCoreAbility = true;
@@ -256,7 +256,7 @@ CrimsonConfigGameplay CreateCrimsonPreset() {
 	dante.airTornado = true;
 	dante.airRisingDragonLaunch = true;
 	dante.airAgniRudraWhirlwind = true;
-	dante.skyLaunchAirTaunt = true;
+	dante.ecstasyAirTaunt = true;
 	dante.dmc4Mobility = true;
 	dante.dTInfusedRoyalguard = true;
 	dante.airHikeCoreAbility = true;
@@ -462,7 +462,7 @@ const CrimsonConfigGameplayMask CRIMSON_MASK = [] {
 	mask.Gameplay.Dante.airTornado = false;
 	mask.Gameplay.Dante.airRisingDragonLaunch = false;
 	mask.Gameplay.Dante.airAgniRudraWhirlwind = false;
-	mask.Gameplay.Dante.skyLaunchAirTaunt = false;
+	mask.Gameplay.Dante.ecstasyAirTaunt = false;
 	mask.Gameplay.Dante.airStinger = false;
 	mask.Gameplay.Vergil.airLunarPhase = false;
 	mask.Gameplay.Vergil.airRisingSun = false;

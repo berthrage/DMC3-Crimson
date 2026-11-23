@@ -69,7 +69,7 @@ struct CrimsonConfigGameplayMask {
 			bool airTornado = true;
 			bool airRisingDragonLaunch = true;
 			bool airAgniRudraWhirlwind = true;
-			bool skyLaunchAirTaunt = true;
+			bool ecstasyAirTaunt = true;
 			bool dmc4Mobility = true;
 			bool dTInfusedRoyalguard = true;
 			bool airHikeCoreAbility = true;
@@ -102,7 +102,7 @@ struct CrimsonConfigGameplayMask {
 					std::make_pair("airTornado", &Dante::airTornado),
 					std::make_pair("airRisingDragonLaunch", &Dante::airRisingDragonLaunch),
 					std::make_pair("airAgniRudraWhirlwind", &Dante::airAgniRudraWhirlwind),
-					std::make_pair("skyLaunchAirTaunt", &Dante::skyLaunchAirTaunt),
+					std::make_pair("ecstasyAirTaunt", &Dante::ecstasyAirTaunt),
 					std::make_pair("dmc4Mobility", &Dante::dmc4Mobility),
 					std::make_pair("dTInfusedRoyalguard", &Dante::dTInfusedRoyalguard),
 					std::make_pair("airHikeCoreAbility", &Dante::airHikeCoreAbility),

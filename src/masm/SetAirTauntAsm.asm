@@ -2,7 +2,7 @@ INCLUDE CommonMacros.inc
 .DATA
 extern g_SetAirTaunt_ReturnAddr:QWORD
 extern g_SetAirTaunt_Call:QWORD
-extern g_SetAirTauntSkyLaunchCheckCall:QWORD
+extern g_SetAirTauntEcstasyCheckCall:QWORD
 extern g_SetAirTauntATRisingSunCheckCall:QWORD
 
 .CODE
@@ -20,14 +20,14 @@ SetAirTauntDetour PROC ; player in rcx
 
 DanteLabel:
     PushAllRegsNoFlags
-    call qword ptr [g_SetAirTauntSkyLaunchCheckCall]
+    call qword ptr [g_SetAirTauntEcstasyCheckCall]
     cmp al, 1
     PopAllRegsNoFlags
-    je ApplySkyLaunch
+    je ApplyEcstasy
     jmp ReturnLabel
     
 
-ApplySkyLaunch:
+ApplyEcstasy:
     mov word ptr [rcx+3fa4h],040d ; cerb flicker
     jmp CodeLabel
 

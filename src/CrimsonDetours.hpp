@@ -26,7 +26,7 @@ void EnableAirTauntDetour();
 // SetAirTaunt
 void SetAirTauntDetour();
 
-// Sky Launch Detours: (Dante Air Taunt)
+// Sky Launch Detours (deprecated since 0.6, Dante's air taunt is now Ecstasy)
 // SkyLaunchForceRelease 
 void SkyLaunchForceReleaseDetour();
 
