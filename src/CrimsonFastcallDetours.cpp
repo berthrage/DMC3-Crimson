@@ -19,6 +19,7 @@
 #include "CrimsonSDL.hpp"
 #include "CrimsonClock.hpp"
 #include "CrimsonGameplay.hpp"
+#include "CrimsonAnimation.hpp"
 using namespace Utility;
 namespace CrimsonFastcallDetours{
 
@@ -28,12 +29,14 @@ namespace CrimsonFastcallDetours{
  static constexpr auto NEVAN_SHL_TRAVEL_UPDATE_OFFSET() { return 0x1D6450; }
  static constexpr auto PLAYER_WEAPON_VISIBLE_OFFSET() { return 0x1FD3E0; }
  static constexpr auto PLAYER_WEAPON_MOTION_GROUP_OFFSET() { return 0x1FD5C0; }
+ static constexpr auto PLAY_ANIMATION_OFFSET() { return 0x1EFB90; }
  static std::unique_ptr<Utility::Detour_t> s_DanteTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_VergilTauntHook;
  static std::unique_ptr<Utility::Detour_t> s_XinputApplyVibrationHook;
  static std::unique_ptr<Utility::Detour_t> s_NevanShlTravelUpdateHook;
  static std::unique_ptr<Utility::Detour_t> s_PlayerWeaponVisibleHook;
  static std::unique_ptr<Utility::Detour_t> s_PlayerWeaponMotionGroupHook;
+ static std::unique_ptr<Utility::Detour_t> s_PlayAnimationHook;
  std::random_device randomDevice;
  std::mt19937 rng(randomDevice());
 
@@ -650,6 +653,27 @@ namespace CrimsonFastcallDetours{
      assert(res);
  }
 
+ // dmc3.exe+1EFB90 - 48 89 5C 24 08 - mov [rsp+08],rbx
+ static void __fastcall PlayAnimation_sub_1401EFB90(byte8* actorBaseAddr, uint32 group, uint32 index, float initialFrame,
+     uint8 loopMode, uint8 blendFlag, uint8 blendFrames) {
+     typedef void(__fastcall* PlayAnimationTrampoline)(byte8*, uint32, uint32, float, uint8, uint8, uint8);
+     uintptr_t trampoline_raw = s_PlayAnimationHook->GetTrampoline();
+     PlayAnimationTrampoline trampoline = (PlayAnimationTrampoline)trampoline_raw;
+
+     CrimsonAnimation::OnPlayAnimation(actorBaseAddr, group, index);
+     trampoline(actorBaseAddr, group, index, initialFrame, loopMode, blendFlag, blendFrames);
+ }
+
+ void PlayAnimationDetour() {
+     s_PlayAnimationHook =
+         std::make_unique<Utility::Detour_t>(
+             (uintptr_t)appBaseAddr + PLAY_ANIMATION_OFFSET(),
+             (uintptr_t)&PlayAnimation_sub_1401EFB90,
+             NULL, "play_animation_detour");
+     bool res = s_PlayAnimationHook->Toggle();
+     assert(res);
+ }
+
  void InitDetours() {
      ModdedTauntDetour();
      ModdedTauntVergilDetour();
@@ -659,6 +683,7 @@ namespace CrimsonFastcallDetours{
      ModdedPlaySFXWithPosByTypeDetour();
      ModdedNevanShlTravelUpdateDetour();
      EcstasyWeaponModelDetour();
+     PlayAnimationDetour();
  }
 }
 

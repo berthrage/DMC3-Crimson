@@ -74,8 +74,24 @@ namespace CrimsonReversedCalls {
 		return GAME_CALL_SAFE(0x224180, uint8, uintptr_t)(playerActorAddr);
 	}
 
-	void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 a5, uint8 a6, uint8 nFrames) {
-		GAME_CALL_SAFE(0x1EFB90, void, uintptr_t, uint32, int, float, uint8, uint8, uint8)(actorAddr, group, index, initialFrame, a5, a6, nFrames);
+	void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 loopMode, uint8 blendFlag, uint8 blendFrames) {
+		GAME_CALL_SAFE(0x1EFB90, void, uintptr_t, uint32, int, float, uint8, uint8, uint8)(actorAddr, group, index, initialFrame, loopMode, blendFlag, blendFrames);
+	}
+
+	void CPlReturnToNeutral_sub_1401E0030(uintptr_t playerActorAddr, uint8 blendFrames) {
+		GAME_CALL_SAFE(0x1E0030, void, uintptr_t, uint8)(playerActorAddr, blendFrames);
+	}
+
+	uint32 CPlGetMotionStatus_sub_1401EEF00(uintptr_t playerActorAddr, uint32 part) {
+		return GAME_CALL_SAFE(0x1EEF00, uint32, uintptr_t, uint32)(playerActorAddr, part);
+	}
+
+	void CPlUpdateMotion_sub_1401EF8E0(uintptr_t playerActorAddr) {
+		GAME_CALL_SAFE(0x1EF8E0, void, uintptr_t)(playerActorAddr);
+	}
+
+	void CPlSetEvent_sub_1401E0A20(uintptr_t playerActorAddr, uint32 event) {
+		GAME_CALL_SAFE(0x1E0A20, void, uintptr_t, uint32)(playerActorAddr, event);
 	}
 
 	void TriggerCPlayerGravity_sub_1401FB300(uintptr_t playerActorAddr, uint16 angle, float a3) {

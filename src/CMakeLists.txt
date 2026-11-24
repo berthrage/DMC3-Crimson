@@ -218,6 +218,8 @@ file(GLOB MAIN_SRC
     CrimsonEnemyAITarget.hpp
     CrimsonFastcallDetours.cpp
     CrimsonFastcallDetours.hpp
+    CrimsonAnimation.cpp
+    CrimsonAnimation.hpp
     CrimsonFileHandling.cpp
     CrimsonFileHandling.hpp	
     CrimsonFX.cpp

@@ -29,7 +29,15 @@ namespace CrimsonReversedCalls {
 	extern void PlayStepSound_sub_1403389B0(uintptr_t fileAddr, uint32 stepSet, int groundMaterial, uintptr_t posPtr);
 	extern uint32 TriggerCPlayerEvent_sub_1401E0800(uintptr_t playerAddr, int eventIndex, int a3, int a4);
 	extern uint8 CPlayerSetSwordFormationTargetIndex_sub_140224180(uintptr_t playerActorAddr);
-	extern void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 a5, uint8 a6, uint8 nFrames);
+	// loopMode / blendFlag / blendFrames: 0xFF = the clip's own setting. blendFlag != 0 blends over blendFrames.
+	extern void PlayAnimation_sub_1401EFB90(uintptr_t actorAddr, uint32 group, int index, float initialFrame, uint8 loopMode, uint8 blendFlag, uint8 blendFrames);
+	// Leaves any action: clears velocity, plays the character / weapon idle and sets the idle event.
+	extern void CPlReturnToNeutral_sub_1401E0030(uintptr_t playerActorAddr, uint8 blendFrames);
+	// 4 = current clip finished. Event handlers check part 0.
+	extern uint32 CPlGetMotionStatus_sub_1401EEF00(uintptr_t playerActorAddr, uint32 part);
+	// Advances both body part motion players one frame.
+	extern void CPlUpdateMotion_sub_1401EF8E0(uintptr_t playerActorAddr);
+	extern void CPlSetEvent_sub_1401E0A20(uintptr_t playerActorAddr, uint32 event);
 	extern void TriggerCPlayerGravity_sub_1401FB300(uintptr_t playerActorAddr, uint16 angle, float a3 = 0.0f);
 	extern void ApplyNewYInertiaCPl_sub_1401FD110(uintptr_t playerActorAddr, int index, float newYinertia, float newYInertiaMult);
 	extern void ApplyNewXInertiaCPl_sub_1401FD050(uintptr_t playerActorAddr, float newXInertia, float newXInertiaMult);

@@ -890,7 +890,7 @@ enum {
 namespace ACTOR_EVENT {
 enum {
     UNKNOWN_0,
-    UNKNOWN_1,
+    IDLE,
     UNKNOWN_2,
     UNKNOWN_3,
     UNKNOWN_4,
@@ -943,6 +943,7 @@ enum {
 
 // $ActorEventEnd
 
+static_assert(ACTOR_EVENT::IDLE == 1);
 static_assert(ACTOR_EVENT::JUMP == 5);
 static_assert(ACTOR_EVENT::TRICKSTER_DASH == 22);
 static_assert(ACTOR_EVENT::TRICKSTER_SKY_STAR == 23);
@@ -3134,18 +3135,52 @@ static_assert(offsetof(CDrawEffectBlock, color) == 0x230);
 
 // $BodyPartDataStart
 
+// One motion player (lower / upper body). SetMotion_sub_14005A290 binds a clip, MotionPlayerUpdateFrame_sub_140059AF0 advances it.
 struct BodyPartData {
-    _(104);
-    byte8** motionArchives;   // 0x68
+    _(32);
+    byte8* chunkArchive;      // 0x20 motion chunk table, u16 offsets by group then index
+    byte8* chunkStream;       // 0x28 current chunk, re-parsed by ParseMotionChunks_sub_140058FE0 at chunk ends
+    _(32);
+    float frame;              // 0x50
+    float duration;           // 0x54
+    uint32 group;             // 0x58
+    uint32 index;             // 0x5C
+    uint32 layerId;           // 0x60 chunks only apply when their id byte matches
+    _(4);
+    byte8** motionArchives;   // 0x68 -> actor motionArchives, re-read on every chunk parse
     ModelData* modelDataAddr; // 0x70
-    _(66);
-    bool busy; // 0xBA
-    _(101);
+    _(8);
+    int16 startFrame;         // 0x80 frame the event list rewinds to
+    uint8 blendFlag;          // 0x82 0xFF = chunk default; consumed (reset to 0xFF) by the first skeleton chunk
+    uint8 loopMode;           // 0x83 same
+    uint8 blendFrames;        // 0x84 same
+    _(45);
+    int16 chunkEndFrame;      // 0xB2 0x7FFF = none
+    uint8 motionFlags;        // 0xB4 from the chunk terminator: 1 = stop at the clip end, 2 = chunk end frame applies
+    _(4);
+    uint8 paused;             // 0xB9 update returns early
+    bool ended;               // 0xBA set when a stop-at-end clip reaches its end, the update stops advancing
+    _(5);
+    uint32 status;            // 0xC0 4 = finished
+    _(92);
 };
 
+static_assert(offsetof(BodyPartData, chunkArchive) == 0x20);
+static_assert(offsetof(BodyPartData, chunkStream) == 0x28);
+static_assert(offsetof(BodyPartData, frame) == 0x50);
+static_assert(offsetof(BodyPartData, duration) == 0x54);
+static_assert(offsetof(BodyPartData, group) == 0x58);
+static_assert(offsetof(BodyPartData, index) == 0x5C);
+static_assert(offsetof(BodyPartData, layerId) == 0x60);
 static_assert(offsetof(BodyPartData, motionArchives) == 0x68);
 static_assert(offsetof(BodyPartData, modelDataAddr) == 0x70);
-static_assert(offsetof(BodyPartData, busy) == 0xBA);
+static_assert(offsetof(BodyPartData, startFrame) == 0x80);
+static_assert(offsetof(BodyPartData, blendFrames) == 0x84);
+static_assert(offsetof(BodyPartData, chunkEndFrame) == 0xB2);
+static_assert(offsetof(BodyPartData, motionFlags) == 0xB4);
+static_assert(offsetof(BodyPartData, paused) == 0xB9);
+static_assert(offsetof(BodyPartData, ended) == 0xBA);
+static_assert(offsetof(BodyPartData, status) == 0xC0);
 
 static_assert(sizeof(BodyPartData) == 288);
 

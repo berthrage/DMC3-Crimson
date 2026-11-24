@@ -43,6 +43,7 @@
 #include "CrimsonReversedCalls.hpp"
 #include "CrimsonHighFPSFixes.hpp"
 #include "CrimsonCostume.hpp"
+#include "CrimsonAnimation.hpp"
 // @Remove
 #define g_enableLockOnFixes true
 
@@ -3495,43 +3496,6 @@ void ClearActorModelOverlay(PlayerActorData& actorData, uint32 rgba) {
     });
 }
 
-struct StyleSwitchAnimationState {
-	bool isPlaying = false;
-	std::chrono::steady_clock::time_point startTime;
-	byte8* actorData = nullptr;
-	uint32 group;
-	uint32 index;
-};
-
-StyleSwitchAnimationState switchAnimState;
-
-void PlaySwitchAnimation(byte8* actorData, uint32 group, uint32 index) {
-	PlayAnimation_1EFB90(actorData, group, index, -1.0f, -1, 2, 13);
-	switchAnimState.isPlaying = true;
-	switchAnimState.startTime = std::chrono::steady_clock::now();
-	switchAnimState.actorData = actorData;
-	switchAnimState.group = group;
-	switchAnimState.index = index;
-}
-
-void UpdateStyleSwitchAnimations() {
-	if (switchAnimState.isPlaying) {
-		auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-			std::chrono::steady_clock::now() - switchAnimState.startTime
-		).count();
-
-		if (elapsed >= 30) { // 50 ms has passed
-			PlayAnimation_1EFB90(switchAnimState.actorData, switchAnimState.group, switchAnimState.index, -1.0f, -1, 2, 0);
-		}
-
-        if (elapsed >= 40) {
-            auto& actorData = *reinterpret_cast<PlayerActorData*>(switchAnimState.actorData);
-            actorData.motionArchives[2] = File_staticFiles[pl000_00_2];
-            switchAnimState.isPlaying = false; // Reset state
-        }
-	}
-}
-
 void StyleSwitch(byte8* actorBaseAddr, int style) {
     if (!actorBaseAddr) {
         return;
@@ -3584,25 +3548,21 @@ void StyleSwitch(byte8* actorBaseAddr, int style) {
 		actorData.styleLevel = heldStyleExpDataDante.accumulatedStyleLevels[style];
 	}
 	actorData.styleExpPoints = heldStyleExpDataDante.accumulatedStylePoints[style];
-	if (actorData.eventData[0].event == 1 && actorData.character == CHARACTER::DANTE) {
-		auto& motionArchive = actorData.motionArchives[5];
-		auto lastMotionArchive = motionArchive;
-
-		//if (motionArchive != File_staticFiles[pl000_00_3]) motionArchive = File_staticFiles[pl000_00_3];
-		
-		uint32 group = 2, index = 0;
-        
+	if (actorData.eventData[0].event == ACTOR_EVENT::IDLE && actorData.character == CHARACTER::DANTE) {
+		uint32 index = 0;
+		byte8* bank = newStyleSwitching01_pl000_00_4;
 		switch (style) {
-		case STYLE::SWORDMASTER:   group = 2; index = 1; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
-		case STYLE::GUNSLINGER:    group = 2; index = 2; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
-		case STYLE::TRICKSTER:     group = 2; index = 0; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching01_pl000_00_4; break;
-		case STYLE::ROYALGUARD:    group = 2; index = 0; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
-        case STYLE::QUICKSILVER:   group = 2; index = 1;  actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
-        //case STYLE::QUICKSILVER:   group = 3; index = 13;  actorData.motionArchives[3] = vergil_pl021_00_3; break;
-        case STYLE::DOPPELGANGER:  group = 2; index = 2; actorData.motionArchives[MOTION_GROUP_DANTE::TAUNTS] = newStyleSwitching02_pl000_00_4; break;
+		case STYLE::SWORDMASTER:   index = 1; break;
+		case STYLE::GUNSLINGER:    index = 2; break;
+		case STYLE::TRICKSTER:     index = 0; break;
+		case STYLE::ROYALGUARD:    index = 0; bank = newStyleSwitching02_pl000_00_4; break;
+		case STYLE::QUICKSILVER:   index = 1; bank = newStyleSwitching02_pl000_00_4; break;
+		case STYLE::DOPPELGANGER:  index = 2; bank = newStyleSwitching02_pl000_00_4; break;
 		}
 
-		PlaySwitchAnimation(actorBaseAddr, group, index);
+		CrimsonAnimation::PlayOptions options;
+		options.blendFrames = 2;
+		CrimsonAnimation::Play(actorBaseAddr, MOTION_GROUP_DANTE::TAUNTS, index, bank, options);
         CrimsonSDL::PlaySnap(actorBaseAddr);
     }
    
@@ -5003,7 +4963,15 @@ template <typename T> void DirectWeaponSwitchKeyboardController(T& actorData) {
 }
 
 template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
-    if (!actorBaseAddr || (actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1]) || InCutscene()) {
+    if (!actorBaseAddr) {
+        return true;
+    }
+    if (InCutscene()) {
+        CrimsonAnimation::Stop(actorBaseAddr);
+        return true;
+    }
+    CrimsonAnimation::Update(actorBaseAddr);
+    if ((actorBaseAddr == g_playerActorBaseAddrs[0]) || (actorBaseAddr == g_playerActorBaseAddrs[1])) {
         return true;
     }
     auto& actorData = *reinterpret_cast<T*>(actorBaseAddr);
@@ -5027,7 +4995,6 @@ template <typename T> bool WeaponSwitchController(byte8* actorBaseAddr) {
     //    EffekseerHandle particle = EffekseerPlayEffect(particleHandle, actorData.position, actorData);
     //}
     CrimsonGameplay::UpdateRevivePlayer(actorBaseAddr);
-	UpdateStyleSwitchAnimations();
 	StyleSwitchController(actorBaseAddr);
     CharacterSwitchController();
     CrimsonGameplay::CharSwitchTeleportController(actorBaseAddr);
