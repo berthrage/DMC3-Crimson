@@ -50,16 +50,14 @@ namespace CrimsonFastcallDetours{
      return dist(rng);
  }
 
- // Swaps the taunt animation bank for the taunt that starts this frame. The controller itself picks the
- // animation out of the bank (Dante by style rank, Vergil by weapon), so leaving it in charge keeps the
+ // Swaps the taunt animation bank for the taunt that starts this frame, until the taunt event ends. The controller
+ // itself picks the animation out of the bank (Dante by style rank, Vergil by weapon), so leaving it in charge keeps the
  // facing snap, the timers and the enemy-in-sight check that gates the style / DT award intact.
  static void SetTauntBank(PlayerActorDataBase& actorData, uint32 group, byte8* bank, uint32 vanillaFile) {
      if (!bank) {
          bank = File_staticFiles[vanillaFile];
      }
-     if (bank) {
-         actorData.motionArchives[group] = bank;
-     }
+     CrimsonAnimation::SwapArchiveForEvent(reinterpret_cast<byte8*>(&actorData), group, bank);
  }
 
  static void __fastcall CPlDanteTauntController_sub_1401FE860(byte8* actorBaseAddr) {

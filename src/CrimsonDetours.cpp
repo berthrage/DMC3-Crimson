@@ -31,6 +31,7 @@
 #include "HUD.hpp"
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
+#include "CrimsonAnimation.hpp"
 #include "Internal.hpp"
 #include "CrimsonDetours.hpp"
 #include "CrimsonSDL.hpp"
@@ -837,11 +838,15 @@ bool CheckEcstasyAirTauntEnabled(uintptr_t playerAddr) {
 		: crimsonPlayer[playerIndex].roseSpawnFiredClone;
 	roseSpawnFired = false; // a new Ecstasy gets its own rose
 	actionTimer = 0.0f;
-	actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = newAirTauntRose_pl000_00_4;
 	bool canAirTaunt = (actorData.eventData[0].event == ACTOR_EVENT::ATTACK && CrimsonGameplay::CanQueueMeleeAttack(actorData)) || 
 		actorData.eventData[0].event != ACTOR_EVENT::ATTACK;
-	return activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::ECSTASY_AIR_TAUNT] &&
+	bool enabled = activeCrimsonGameplay.Gameplay.General.extramoves && ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::ECSTASY_AIR_TAUNT] &&
 		canAirTaunt;
+	if (enabled) {
+		CrimsonAnimation::SwapArchive((byte8*)playerAddr, MOTION_GROUP_DANTE::CERBERUS, newAirTauntRose_pl000_00_4,
+			{ ACTION_DANTE::CERBERUS_SWING });
+	}
+	return enabled;
 }
 
 bool CheckAirTauntRisingSunEnabled() {

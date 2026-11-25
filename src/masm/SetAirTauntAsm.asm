@@ -20,7 +20,13 @@ SetAirTauntDetour PROC ; player in rcx
 
 DanteLabel:
     PushAllRegsNoFlags
+    PushAllXmm
+    mov rbp, rsp ; aligned stack + shadow space for the C++ call
+    and rsp, -16
+    sub rsp, 20h
     call qword ptr [g_SetAirTauntEcstasyCheckCall]
+    mov rsp, rbp
+    PopAllXmm
     cmp al, 1
     PopAllRegsNoFlags
     je ApplyEcstasy
@@ -33,7 +39,13 @@ ApplyEcstasy:
 
 VergilLabel:
     PushAllRegsNoFlags
+    PushAllXmm
+    mov rbp, rsp
+    and rsp, -16
+    sub rsp, 20h
     call qword ptr [g_SetAirTauntATRisingSunCheckCall]
+    mov rsp, rbp
+    PopAllXmm
     cmp al, 1
     PopAllRegsNoFlags
     je ApplyATRisingSun

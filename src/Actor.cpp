@@ -10569,6 +10569,8 @@ void SetAction(byte8* actorBaseAddr) {
 	using namespace ACTION_DANTE;
 	using namespace ACTION_VERGIL;
 
+    CrimsonAnimation::OnNewAction(actorBaseAddr);
+
     uint8 index = (actorData.devil) ? 1 : 0;
 
     auto lockOn = (actorData.buttons[0] & GetBinding(BINDING::LOCK_ON));
@@ -10614,15 +10616,9 @@ void SetAction(byte8* actorBaseAddr) {
 
     switch (actorData.character) {
     case CHARACTER::DANTE: {
-        
-        // Resetting Drive anim
-        if (!drive.inQuickDrive) {
-            actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = File_staticFiles[pl000_00_3];
-        }
 
-        // Resetting Swing anim
+        // Ecstasy cancelled by a new Swing
         if (inAirTauntRose && actorData.action == CERBERUS_SWING) {
-            actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4];
             // Any cancel drops the rose: Ecstasy only throws it if the move runs on.
             CrimsonGameplay::CancelPendingRoseSpawn(actorBaseAddr);
 			inAirTauntRose = false;
@@ -10653,7 +10649,8 @@ void SetAction(byte8* actorBaseAddr) {
 
             CrimsonGameplay::ToggleRebellionHoldDrive(true);
             actorData.action = REBELLION_DRIVE_1;
-            actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart1_pl000_00_3;
+            CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, newDrivePart1_pl000_00_3,
+                { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 
         // AIR REVOLVER
         } else if (activeCrimsonGameplay.Gameplay.General.extramoves && 
@@ -10681,7 +10678,8 @@ void SetAction(byte8* actorBaseAddr) {
 
             // Only enable hold for QuickDrive charging if OverDrive is unlocked; otherwise fire immediately (original behavior)
             CrimsonGameplay::ToggleRebellionHoldDrive(ExpConfig::missionExpDataDante.unlocks[UNLOCK_DANTE::REBELLION_OVERDRIVE]);
-            actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = demo_pl000_00_3;
+            CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, demo_pl000_00_3,
+                { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 
             actorData.newQuickDrive = true;
 
@@ -14782,6 +14780,9 @@ void ToggleRebellionInfiniteShredder(bool enable) {
 namespace Actor {
 
 void EventCreateMainActor(byte8* actorBaseAddr) {
+
+    // Old actors are gone; their clips and archive swaps must not write into the new ones.
+    CrimsonAnimation::Reset();
 
     if (!activeConfig.Actor.enable) {
         return;

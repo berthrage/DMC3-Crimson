@@ -44,6 +44,7 @@
 #include "CrimsonEfk.hpp"
 #include "CrimsonEfkPreload.hpp"
 #include "CrimsonReversedCalls.hpp"
+#include "CrimsonAnimation.hpp"
 
 namespace CrimsonGameplay {
 
@@ -1891,12 +1892,16 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 	// TRIGGER RISING STAR
 	// Only allow transition once per action
 	if ((canTransition || canTransitionClose)) {
-        if (!inRisingStar) {
-            actorData.motionArchives[MOTION_GROUP_VERGIL::BEOWULF] = newRisingStar_pl021_00_4; // Swap Rising Sun's animation to Rising Star,
-        }
-        
 		actorData.action = BEOWULF_RISING_SUN;
-		CrimsonReversedCalls::PlayAnimation_sub_1401EFB90((uintptr_t)&actorData, 4, 11, 20.0f, 0, 0, -1);
+        if (!inRisingStar) {
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_VERGIL::BEOWULF, newRisingStar_pl021_00_4, { BEOWULF_RISING_SUN });
+        }
+
+		CrimsonAnimation::PlayOptions risingStarOptions;
+		risingStarOptions.initialFrame = 20.0f;
+		risingStarOptions.loopMode = 0;
+		risingStarOptions.returnToIdle = false;
+		CrimsonAnimation::Play(actorBaseAddr, MOTION_GROUP_VERGIL::BEOWULF, 11, nullptr, risingStarOptions);
 		actorData.recoverState[0] = 1;
 		CrimsonReversedCalls::ApplyNewYInertiaCPl_sub_1401FD110((uintptr_t)&actorData, 1, 1.0f, -1.15f);
 
@@ -1920,7 +1925,6 @@ void VergilRisingStar(byte8* actorBaseAddr) {
 			actorData.eventData[0].event == ACTOR_EVENT::JUMP_CANCEL
         ) || actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_1 ||
 		actorData.action == YAMATO_JUDGEMENT_CUT_LEVEL_2 && inRisingStar) {
-		actorData.motionArchives[MOTION_GROUP_VERGIL::BEOWULF] = File_staticFiles[pl021_00_4]; // Revert to default pac motion archive after Rising Star finishes or is cancelled by a trick.
 		inRisingStar = false;
 		CrimsonPatches::ToggleKillRisingSunEffects(false);
 	}
@@ -2593,16 +2597,11 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			jCut.consecutiveJdcCount++;
 			pendingJustFrameJDC[playerIndex][entityIndex] = true;
 
-			if (!inAir) {
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] = newJudgementCut_pl021_00_3; // Swap to Just Frame Judgement Cut animation
-				jCut.state = JDC_STATE::JUST_FRAME_GROUNDED;
-			}
-			else {
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] = newJudgementCutAirJF_pl021_00_3; // Swap to JF Air Just Frame Judgement Cut animation
-				jCut.state = JDC_STATE::JUST_FRAME_AIR;
-			}
-
 			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_VERGIL::YAMATO,
+				inAir ? newJudgementCutAirJF_pl021_00_3 : newJudgementCut_pl021_00_3,
+				{ YAMATO_JUDGEMENT_CUT_LEVEL_1, YAMATO_JUDGEMENT_CUT_LEVEL_2 });
+			jCut.state = inAir ? JDC_STATE::JUST_FRAME_AIR : JDC_STATE::JUST_FRAME_GROUNDED;
 			
 			CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800((uintptr_t)&actorData, ACTOR_EVENT::ATTACK, 0, -1);
 			actionTimer = 0.0f;
@@ -2621,12 +2620,13 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 			jCut.consecutiveJdcCount++;
 			pendingJustFrameJDC[playerIndex][entityIndex] = false;
 
+			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
 			if (inAir) {
-				actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] = newJudgementCutAir_pl021_00_3; // Swap to Normal Air Just Frame Judgement Cut animation
+				CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_VERGIL::YAMATO, newJudgementCutAir_pl021_00_3,
+					{ YAMATO_JUDGEMENT_CUT_LEVEL_1, YAMATO_JUDGEMENT_CUT_LEVEL_2 });
 				jCut.state = JDC_STATE::NORMAL_AIR;
 			}
-			
-			actorData.action = YAMATO_JUDGEMENT_CUT_LEVEL_2;
+
 			actorData.recoverState[0] = 0; 
 			CrimsonReversedCalls::TriggerCPlayerEvent_sub_1401E0800((uintptr_t)&actorData, ACTOR_EVENT::ATTACK, 0, -1);
 			actionTimer = 0.0f;
@@ -2722,10 +2722,7 @@ void VergilJudgementCutRework(byte8* actorBaseAddr) {
 
 	if (actorData.action != YAMATO_JUDGEMENT_CUT_LEVEL_2 &&
 		actorData.action != YAMATO_JUDGEMENT_CUT_LEVEL_1 &&
-		(actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCut_pl021_00_3 ||
-		 actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAir_pl021_00_3 ||
-		 actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] == newJudgementCutAirJF_pl021_00_3)) {
-		actorData.motionArchives[MOTION_GROUP_VERGIL::YAMATO] = File_staticFiles[pl021_00_3]; // Ensure we swap back to regular motion archive after the move is performed
+		jCut.state != JDC_STATE::NORMAL_GROUNDED) {
 		jCut.state = JDC_STATE::NORMAL_GROUNDED;
 		rotatedWhileFiring[playerIndex][entityIndex] = false;
 	}
@@ -5384,7 +5381,6 @@ void TrackRoyalReleaseAndSkyLaunch(byte8* actorBaseAddr) {
 	if ((actorData.action == CERBERUS_SWING && actionTimer > 0.7f) ||
 		(actorData.action != CERBERUS_SWING) ||
 		cancelledByTrickOrJump) {
-		actorData.motionArchives[MOTION_GROUP_DANTE::CERBERUS] = File_staticFiles[pl000_00_4]; // Revert to default pac motion archive after Rose Air Taunt finishes or is cancelled by a trick.
 		if (cancelledByTrickOrJump) {
 			CancelPendingRoseSpawn(actorBaseAddr);
 		}
@@ -5691,7 +5687,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 		if (drive.meleePressedForOverdrive && !drive.part2Played && motionTimer >= 0.55f && motionTimer <= 0.79f) {
 			CrimsonGameplay::ToggleRebellionHoldDrive(false);
 			drive.resetMotion19Timer = false;
-			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart2_pl000_00_3;
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, newDrivePart2_pl000_00_3, { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 			actorData.action = REBELLION_DRIVE_1;
 			func_1E0800_TriggerEvent(actorBaseAddr, 17, 0, 0);
 			actorData.rotation = GetRotationTowardsEnemy(actorData);
@@ -5703,7 +5699,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 			drive.effectInterruptTime = 1.4f;
 			CrimsonGameplay::ToggleRebellionHoldDrive(false);
 			drive.resetMotion19Timer = false;
-			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart3_pl000_00_3;
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, newDrivePart3_pl000_00_3, { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 			actorData.action = REBELLION_DRIVE_1;
 			func_1E0800_TriggerEvent(actorBaseAddr, 17, 0, 0);
 			actorData.rotation = GetRotationTowardsEnemy(actorData);
@@ -5734,7 +5730,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 		if (drive.quickMeleePressedForOverdrive && !drive.quickPart2Played && motionTimer >= 0.55f && motionTimer <= 0.79f) {
 			CrimsonGameplay::ToggleRebellionHoldDrive(false);
 			drive.resetMotion19Timer = false;
-			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart2_pl000_00_3;
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, newDrivePart2_pl000_00_3, { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 			actorData.action = REBELLION_DRIVE_1;
 			func_1E0800_TriggerEvent(actorBaseAddr, 17, 0, 0);
 			actorData.rotation = GetRotationTowardsEnemy(actorData);
@@ -5744,7 +5740,7 @@ void DanteDriveRework(byte8* actorBaseAddr) {
 		else if (drive.quickPart2Played && !drive.quickPart3Played && motionTimer >= 0.41f) {
 			CrimsonGameplay::ToggleRebellionHoldDrive(false);
 			drive.resetMotion19Timer = false;
-			actorData.motionArchives[MOTION_GROUP_DANTE::REBELLION] = newDrivePart3_pl000_00_3;
+			CrimsonAnimation::SwapArchive(actorBaseAddr, MOTION_GROUP_DANTE::REBELLION, newDrivePart3_pl000_00_3, { REBELLION_DRIVE_1, REBELLION_DRIVE_2 });
 			actorData.action = REBELLION_DRIVE_1;
 			func_1E0800_TriggerEvent(actorBaseAddr, 17, 0, 0);
 			actorData.rotation = GetRotationTowardsEnemy(actorData);
